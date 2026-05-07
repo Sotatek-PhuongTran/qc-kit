@@ -23,28 +23,17 @@ All file formats are supported: plain text, Markdown, PDF, Word (.docx), images 
 
 ### Step 1: Read all artefacts
 
-**Read the common files first** — they hold shared definitions that the UC will reference by code/ID. Located in `docs/BA/SRS-report/CMR/`:
+- Read the project-config file - ## 2. Project Context section to understand the project context.
+- Read the common files first — Read the `.claude\skills\qc-uc-read\references\input-files-format.md` to understand the input file's structure and to ensure that you understand all the common rules and the project context.
 
-| File | Holds |
-|---|---|
-| `Bảng thông báo lỗi.docx` | Error message catalog (mã lỗi → text message gốc) |
-| `Quy tắc nghiệp vụ chung.docx` | Common business rules (rule ID → full rule text) |
-| `Các chức năng dùng chung cho các báo cáo.docx` | Common functions reused across reports (login, navigation, …) |
-| `Sơ đồ quy trình.docx` | Process flow diagrams |
-| `Mô tả dự án.md` | Project overview |
-
-For `.docx` files, invoke the `.agents/skills/docx/SKILL.md` skill to extract text/tables — do NOT use the Read tool directly on `.docx`.
-
-**Common Reference Resolution rule (MANDATORY):** When the source UC references a common-file entry by code/ID/name (e.g., `MSG_E001`, `BR_xxx`, the name of a common function), do NOT leave the bare code in the audit output. Open the corresponding common file, copy the **exact original text** (message wording, full rule statement, function description), and inline that text into the audit section that uses it (Section 6.1.B Business Rules, 6.1.C Error Codes / Toast Messages, Section 3 Preconditions if a common function is reused, etc.). Preserve the original code in parentheses for traceability — e.g., `"Mã báo cáo đã tồn tại trong hệ thống" (MSG_E001)`.
-
+**Common Reference Resolution rule (MANDATORY):** When the source UC references a common-file entry by code/ID/name (e.g., `MSG_E001`, `BR_xxx`, the name of a common function), do NOT leave the bare code in the audit output. Open the corresponding common file, copy the **exact original text** (message wording, full rule statement, function description), and inline that text into the audit section that uses it (Section 6.1.B Business Rules, 6.1.C Error Codes / Toast Messages, Section 3 Preconditions if a common function is reused, etc.). Preserve the original code in parentheses for traceability — e.g., `"New user created successfully." (MSG_E001)`.
 This is so test cases written downstream from the audit file have the exact verbatim message/rule text in `Expected Result` without re-opening the common docs.
 
-Then read each provided UC file or pasted content fully before scoring anything.
+- Then read each provided UC file or pasted content fully before scoring anything.
 
 **Input-type routing:**
 | Input type           | Action  |
 | -------------------- | -------------------|
-| URL provided         | Invoke the `.agents\skills\document-extraction\SKILL.md` skill to extract text, tables, images first. Do NOT use the Read tool directly on URL files.|
 |PDF provided          | Invoke the `.agents\skills\pdf\SKILL.md` skill to extract text, tables, images first. Do NOT use the Read tool directly on PDF files.|
 |DOCX provided          | Invoke the `.agents\skills\docx\SKILL.md` skill to extract text, tables, images first. Do NOT use the Read tool directly on DOCX files.|
 | File path provided   | Read the file using the appropriate tools|
@@ -137,16 +126,16 @@ Mark each as:
 | 5   | UI Object Inventory & Mapping         | 15      | Yes       | Every atomic UI element listed as its own row with label/type/required/default/placeholder/enum values. **Auto-cap rules:** if any row collapses ≥ 2 atomic elements (e.g., "9 API fields", "(4 values)"), max score = 8/15. If any design image has < 80% of its visible elements enumerated, max score = 5/15. If any design image is referenced but no element from it appears in Section 4, max score = 0/15. |
 | 6   | Object Attributes & Behavior Definition| 20      | Yes       | Determine the state and response of each UI object based on specific system conditions. **1-to-1 rule:** every row in Section 4 must have ≥ 1 corresponding row here. If < 80% of Section-4 rows are covered, max score = 10/20.|
 | 7   | Functional Logic & Workflow Decomposition| 20      | Yes       | Analyze in detail the business processes of each function available on the feature screen. Duplicate the block below for each major sub-function (e.g., View List, Create Record).|
-| 8   | Functional Integration Analysis       | 10      | Yes       | Analyze and evaluate the linkages and influences between the cataloged functions, acting as an integration check between functions.|
-| 9   | Acceptance Criteria                   | 10      | Yes       | Measurable, verifiable pass/fail statements|
+| 8   | Functional Integration Analysis       | 20      | Yes       | Analyze and evaluate the linkages and influences between the cataloged functions, acting as an integration check between functions.|
+| 9   | Acceptance Criteria                   | 20      | Yes       | Measurable, verifiable pass/fail statements|
 | 10   | Non-functional Requirements           | 5       | No        | Performance, security, compatibility, accessibility|
 
-**Total: 110 points → Normalise to 100 for the final score.**
+**Total: 130 points → Normalise to 100 for the final score.**
 
-**Normalization formula:** `Final Score = round((Raw Score / 110) × 100, 1)`
+**Normalization formula:** `Final Score = round((Raw Score / 130) × 100, 1)`
 
-> Example: Raw score 88 / 110 → Final Score = round((88 / 110) × 100, 1) = **80.0 / 100**
-> Example: Raw score 95 / 110 → Final Score = round((95 / 110) × 100, 1) = **86.4 / 100**
+> Example: Raw score 88 / 130 → Final Score = round((88 / 130) × 100, 1) = **67.7 / 100**
+> Example: Raw score 95 / 130 → Final Score = round((95 / 130) × 100, 1) = **73.1 / 100**
 
 **Auto-fail rule:** If any Critical knowledge area scores 0, verdict = NOT READY
 regardless of total score.

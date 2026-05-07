@@ -6,7 +6,8 @@
 
 ### Step 2 — Apply Answers & Resolve Gaps
 1. Analyze the BA's answers in the backlog.
-2. Incorporate the clarified business rules, logic, and UI behavior into the 5 synthesis sections (Object Attributes, Workflows, etc.) of the previous audited file. **Apply the Common Reference Resolution rule** defined in `first-audit-workflow.md` Phase 1 Step 1 — if the BA's answer or the updated UC references a common-file code (`MSG_*`, `BR_*`, common function name), inline the exact text from the corresponding file in `docs/BA/SRS-report/CMR/`, keeping the code in parentheses.
+2. Incorporate the clarified business rules, logic, and UI behavior into the 5 synthesis sections (Object Attributes, Workflows, etc.) of the previous audited file. **Common Reference Resolution rule (MANDATORY):** When the source UC references a common-file entry by code/ID/name (e.g., `MSG_E001`, `BR_xxx`, the name of a common function), do NOT leave the bare code in the audit output. Open the corresponding common file, copy the **exact original text** (message wording, full rule statement, function description), and inline that text into the audit section that uses it (Section 6.1.B Business Rules, 6.1.C Error Codes / Toast Messages, Section 3 Preconditions if a common function is reused, etc.). Preserve the original code in parentheses for traceability — e.g., `"New user created successfully." (MSG_E001)`.
+This is so test cases written downstream from the audit file have the exact verbatim message/rule text in `Expected Result` without re-opening the common docs.
 3. **Re-scan all design images (mandatory).** Do NOT trust v[N-1]'s Section 4/5 to be complete. Open every design image listed in the input set and re-extract atomic UI elements per the granularity rule (1 component = 1 row, with label/type/required/default/placeholder/enum values). For every element missing from v[N-1]'s Section 4 or 5, add it to v[N+1]. Re-scan covers `*.png`, `*.jpg`, design exports, and screen mockups embedded in `.docx`/`.pdf`.
 4. **Coverage delta check.** For each design image, record `elements_in_image` vs `rows_in_section_4` in working notes. If a delta is found, expand and document; do NOT advance to Step 3 until delta = 0 for every image.
 
@@ -28,16 +29,16 @@ Mark each as:
 | 5   | UI Object Inventory & Mapping         | 15      | Yes       | Every atomic UI element listed as its own row with label/type/required/default/placeholder/enum values. **Auto-cap rules:** if any row collapses ≥ 2 atomic elements (e.g., "9 API fields", "(4 values)"), max score = 8/15. If any design image has < 80% of its visible elements enumerated, max score = 5/15. If any design image is referenced but no element from it appears in Section 4, max score = 0/15. |
 | 6   | Object Attributes & Behavior Definition| 20      | Yes       | Determine the state and response of each UI object based on specific system conditions. **1-to-1 rule:** every row in Section 4 must have ≥ 1 corresponding row here. If < 80% of Section-4 rows are covered, max score = 10/20.|
 | 7   | Functional Logic & Workflow Decomposition| 20      | Yes       | Analyze in detail the business processes of each function available on the feature screen. Duplicate the block below for each major sub-function (e.g., View List, Create Record).|
-| 8   | Functional Integration Analysis       | 10      | Yes       | Analyze and evaluate the linkages and influences between the cataloged functions, acting as an integration check between functions.|
-| 9   | Acceptance Criteria                   | 10      | Yes       | Measurable, verifiable pass/fail statements|
+| 8   | Functional Integration Analysis       | 20      | Yes       | Analyze and evaluate the linkages and influences between the cataloged functions, acting as an integration check between functions.|
+| 9   | Acceptance Criteria                   | 20      | Yes       | Measurable, verifiable pass/fail statements|
 | 10   | Non-functional Requirements           | 5       | No        | Performance, security, compatibility, accessibility|
 
-**Total: 110 points → Normalise to 100 for the final score.**
+**Total: 130 points → Normalise to 100 for the final score.**
 
-**Normalization formula:** `Final Score = round((Raw Score / 110) × 100, 1)`
+**Normalization formula:** `Final Score = round((Raw Score / 130) × 100, 1)`
 
-> Example: Raw score 88 / 110 → Final Score = round((88 / 110) × 100, 1) = **80.0 / 100**
-> Example: Raw score 95 / 110 → Final Score = round((95 / 110) × 100, 1) = **86.4 / 100**
+> Example: Raw score 88 / 130 → Final Score = round((88 / 130) × 100, 1) = **67.7 / 100**
+> Example: Raw score 95 / 130 → Final Score = round((95 / 130) × 100, 1) = **73.1 / 100**
 
 **Auto-fail rule:** If any Critical knowledge area scores 0, verdict = NOT READY
 regardless of total score.

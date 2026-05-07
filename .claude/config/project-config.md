@@ -54,13 +54,15 @@ Cung cấp links đến các môi trường đang được sử dụng. Điều 
 ---
 
 ## 5. Accounts & Credentials Structure
+
 Không cung cấp các tài khoản có quyền hạn thay đổi dữ liệu trên môi trường thực (production). Chỉ cung cấp các tài khoản kiểm thử.
+
 | Account Type      | Username / Email Format       | Role Description                                  | Password |
 |-------------------|-------------------------------|---------------------------------------------------|------------------------|
-| **Admin**         | `admin_qa@project.com`        | Full access, system configuration, user management|  |
-| **Standard User** | `user_*@project.com`          | Normal consumer/customer role                     |  |
-| **Vendor/Partner**| `vendor_*@project.com`        | Third-party integration or B2B partner access     |  |
-| **Test Card / Payment** | `4242 4242 ...`               | Stripe / Payment Sandbox testing cards            |  |
+| **Admin**         | `admin_qa@project.com`        | Full access, system configuration, user management|                        |
+| **Standard User** | `user_*@project.com`          | Normal consumer/customer role                     |                        |
+| **Vendor/Partner**| `vendor_*@project.com`        | Third-party integration or B2B partner access     |                        |
+| **Test Card / Payment** | `4242 4242 ...`               | Stripe / Payment Sandbox testing cards            |                        |
 
 ---
 

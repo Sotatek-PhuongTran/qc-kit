@@ -1,0 +1,116 @@
+## Generate Test Cases (5-Step Mandatory Workflow & Logic)
+
+### Step 1: Input Analysis (MANDATORY)
+
+- Identify the highest version of all the input files (UC Readiness Report, Scenarios). Always select the highest version number available.
+- Read the provided documents and comprehend the use case in preparation for test case design.
+- Do NOT generate `testcases` files or write Python scripts in this step.
+
+### Step 2: Detailed Drafting (MANDATORY)
+
+Write a draft file.
+Follow  6 distinct phases to design test cases:
+
+#### Phase 1: Screen Initialization (Static States)
+
+The agent must verify the landing state of the screen before any user interaction occurs.
+
+- Empty State (No Data): Verify the visibility and specific default attributes of every object on the screen.
+  - Explicitly describe placeholders, empty-state icons, or "No Data" messages.
+- Populated State (With Data): Verify the default appearance of all items.
+  - Describe the default state (Enabled/Disabled) of all components relative to the data present.
+
+#### Phase 2: Item Interactions (Component States)
+
+Verify the behavior of individual UI components without triggering core business logic.
+
+- Navigation & Reset: Check 'X' icons, 'Cancel' buttons, and 'Close' controls to ensure they exit or reset the view as intended.
+- Screen Initialization Triggers: Verify that clicking functional buttons correctly opens or initializes the relevant sub-functions or popups.
+- Component Verification:
+  - Dropdowns: Verify clickability and ensure the correct list of values is displayed.
+  - Textboxes/Buttons: Verify states (Clickable, Disabled, Read-only) based on the design or business rules.
+- Navigation Tools: Check pagination behavior (Active page, Next/Prev arrows).
+
+#### Phase 3: Core Functional Testing (Logic Analysis)
+
+Apply systematic testing techniques for every specific function available on the screen:
+
+- Happy Path: Execute the successful flow using valid inputs.
+- Validation: * Required Fields: Ensure the system blocks saving if mandatory fields are empty.
+  - Format: Check Email, Phone, Date, or specific data formats.
+  - Range: Check character length or numeric limits.
+  - Boundary Value Analysis (BVA): Test at the limits (Min, Max, Min-1, Max+1).
+- Exception/Error Handling: Trigger and verify system responses to invalid logic or external errors.
+
+#### Phase 4: Functional Integration
+
+Verify the synergy between different functions on the same screen.
+
+- Example: How a 'Search' action affects 'Pagination', or how 'Deleting' an item updates the list count in real-time.
+
+#### Phase 5: UI-Level Non-Functional Testing
+
+- Security: Check for sensitive data masking (passwords) and input sanitization (SQL Injection/XSS) in UI fields.
+- U X/Loading: Verify the presence of loading indicators (spinners) during data fetching and button debounce to prevent double-clicks.
+
+#### Phase 6: GUI & Visual Compliance (Design-to-Code)
+
+This phase focuses exclusively on visual fidelity:
+
+- Design Alignment: Compare every object against the design file (Figma/Mockup) regarding position, color (HEX codes), spacing, and font sizes.
+- Responsive Design: Verify the UI rendering across various screen resolutions and aspect ratios.
+
+**Test Case Writing rules (MANDATORY at drafting time):** Apply the rules in `.agents/skills/qc-tc-design-report/references/testcase-instruction-rules.md`. Specifically:
+- **Test Case Writing rules → Rule 1 (UI Notation Standard)**: wrap on-screen components/labels/placeholders/values in `"Double Quotes"`.
+- **Test Case Writing rules → Rule 2 (Content Logic)**: TC ID format `TC_XXX`; Title starts with `Kiểm tra` / `Xác nhận`; Pre-conditions start with an action; Steps use imperative verbs; Expected Result starts with the step number and explicitly describes UI state changes.
+- **Language & Encoding → Rule 0a**: preserve Vietnamese diacritics from the source UC document — do NOT strip dấu when drafting.
+- **Test cases example**: read `.agents/skills/qc-tc-design-report/references/Testcasse-refer.md` and use it as the structural & writing-style reference for each draft row (TC ID format, Title phrasing, Pre-condition / Step / Expected Result layout, multi-line bullet style).
+
+### Step 3: Pre-Execution Traceability Matrix
+
+- In the report file, build the `Requirement Traceability Matrix` mapping the file requirement ACs to the drafted Test Case IDs.
+- Ensure 100% test coverage before progressing.
+
+### Step 4: Output Generation (.xlsx)
+
+After Steps 1–3 are verified, generate the `.xlsx` by invoking the shared converter script. **Do NOT write a new openpyxl script** — reuse the project script:
+
+```bash
+python .agents/skills/qc-tc-design-report/scripts/md_to_xlsx.py \
+  --input-glob "docs/QC-REPORT/testcases/[UC-ID]/[UC-ID]_*_part*.md" \
+  --uc-id [UC-ID]
+```
+
+First-time setup (run once per machine):
+```bash
+pip install -r .agents/skills/qc-tc-design-report/scripts/requirements.txt
+```
+
+The script handles all of the following automatically — do not re-implement:
+- Reads the template at `.agents/skills/qc-tc-design-report/templates/[MBFS] Template TestCase - Mobile.xlsx` and writes into the `Test cases` sheet (single sheet, KEEP template's column headers in row 1; do NOT rename the sheet, do NOT add extra columns).
+- Auto-versioning: scans `docs/QC-REPORT/testcases/[UC-ID]/` for any existing `*_v{N}.xlsx` whose name contains the UC id, picks the next version. Refuses to overwrite.
+- Merges multi-part draft files in `partN` order.
+- Inserts header rows (text in column B only, other columns blank, NOT counted as test cases) for `## <Roman>. Màn hình: …` (screen) and `### <Roman>.1./.2. …` (GUI / FUNC sections).
+- Strips inline annotations like `[NEW]`, `[UPDATED — …]` from titles.
+- Re-opens the saved file and verifies Vietnamese diacritics on sample cells; exits non-zero on mojibake.
+
+**Drafting requirements (still MANDATORY — they shape the md the script reads):**
+- **Layout** (see `.agents/skills/qc-tc-design-report/references/testcase-instruction-rules.md` → "Sheet Layout & Section Headers"): single sheet, ordered as `Screen I → I.1 GUI cases → I.2 FUNC cases → Screen II → II.1 GUI cases → II.2 FUNC cases → …`. Roman numerals I, II, III in document order. The screen name MUST match Section 4 of the latest audited UC file — do NOT paraphrase or translate.
+- **Sorting** (see same file → "Sheet Layout & Section Headers"): GUI before Functional. Within GUI: Screen Initialization → Item Interactions → Common UI cases → UI elements verify. Within FUNC: Happy path → Validation → Error/Exception.
+- **Encoding** (see Rules 0a–0d): write the md as UTF-8, preserve Vietnamese diacritics, never apply `unicodedata.normalize` / `unidecode` / Latin-1 conversion. The script verifies this on the way out.
+
+### Step 5: Write Summary
+
+Save a summary file in the same folder as the md and xlsx files. Include:
+
+```markdown
+## ✅ Test Design Complete
+
+| Artifact | File | Count |
+|---|---|---|
+| Test Cases | [filename].xlsx | X cases (Y GUI / Z FUNC) |
+
+### Requirement Traceability Matrix
+| AC ID | Acceptance Criteria | Linked Test Cases | Status |
+|---|---|---|---|
+| AC-01 | ... | TC_UC001_GUI_01, TC_UC001_GUI_02 | Covered |

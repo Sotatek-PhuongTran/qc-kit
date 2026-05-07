@@ -21,7 +21,7 @@
 | `func-test-scenarios`          | `docs/QC/test-scenarios/functional-test/<UC-ID>/`         | `<UC-ID>_<feature>_scenarios_<YYYYMMDD>_v<N>.md`          | Test scenarios — output của `qc-func-scenario-design`           |
 | `func-test-cases`              | `docs/QC/test-cases/functional-test/<UC-ID>/`         | `<UC-ID>_<feature>_testcases_<YYYYMMDD>_v<N>.xlsx`        | Test cases — output của `qc-func-tc-design`                     |
 | `func-test-cases-draft`        | `docs/QC/test-cases/functional-test/<UC-ID>/`         | `<UC-ID>_<feature>_testcases_draft.md`                    | Bản test cases định dạng md            |
-| `test-cases-summary`      | `docs/QC/test-cases/functional-test/<UC-ID>/`         | `<UC-ID>_<feature>_testcases_summary_<YYYYMMDD>_v<N>.md`  | Tóm tắt sau khi thiết kế test cases                         |
+| `func-test-cases-summary`      | `docs/QC/test-cases/functional-test/<UC-ID>/`         | `<UC-ID>_<feature>_testcases_summary_<YYYYMMDD>_v<N>.md`  | Tóm tắt sau khi thiết kế test cases                         |
 
 ---
 

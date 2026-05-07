@@ -60,11 +60,7 @@ This phase focuses exclusively on visual fidelity:
 - Design Alignment: Compare every object against the design file (Figma/Mockup) regarding position, color (HEX codes), spacing, and font sizes.
 - Responsive Design: Verify the UI rendering across various screen resolutions and aspect ratios.
 
-**Test Case Writing rules (MANDATORY at drafting time):** Apply the rules in `.agents/skills/qc-tc-design-report/references/testcase-instruction-rules.md`. Specifically:
-- **Test Case Writing rules → Rule 1 (UI Notation Standard)**: wrap on-screen components/labels/placeholders/values in `"Double Quotes"`.
-- **Test Case Writing rules → Rule 2 (Content Logic)**: TC ID format `TC_XXX`; Title starts with `Kiểm tra` / `Xác nhận`; Pre-conditions start with an action; Steps use imperative verbs; Expected Result starts with the step number and explicitly describes UI state changes.
-- **Language & Encoding → Rule 0a**: preserve Vietnamese diacritics from the source UC document — do NOT strip dấu when drafting.
-- **Test cases example**: read `.agents/skills/qc-tc-design-report/references/Testcasse-refer.md` and use it as the structural & writing-style reference for each draft row (TC ID format, Title phrasing, Pre-condition / Step / Expected Result layout, multi-line bullet style).
+**Test Case Writing rules (MANDATORY at drafting time):** Apply all the rules in `qc-func-tc-design/rules/testcase-instruction-rules.md`.
 
 ### Step 3: Pre-Execution Traceability Matrix
 
@@ -73,7 +69,8 @@ This phase focuses exclusively on visual fidelity:
 
 ### Step 4: Output Generation (.xlsx)
 
-After Steps 1–3 are verified, generate the `.xlsx` by invoking the shared converter script. **Do NOT write a new openpyxl script** — reuse the project script:
+After Steps 1–3 are verified, generate the `.xlsx` by invoking the shared converter script.
+The script was written based on the `test-case-template` in the `qc-func-tc-design\templates` folder, if the template changed, you need to update the script.
 
 ```bash
 python .agents/skills/qc-tc-design-report/scripts/md_to_xlsx.py \
@@ -90,14 +87,14 @@ The script handles all of the following automatically — do not re-implement:
 - Reads the template at `.agents/skills/qc-tc-design-report/templates/[MBFS] Template TestCase - Mobile.xlsx` and writes into the `Test cases` sheet (single sheet, KEEP template's column headers in row 1; do NOT rename the sheet, do NOT add extra columns).
 - Auto-versioning: scans `docs/QC-REPORT/testcases/[UC-ID]/` for any existing `*_v{N}.xlsx` whose name contains the UC id, picks the next version. Refuses to overwrite.
 - Merges multi-part draft files in `partN` order.
-- Inserts header rows (text in column B only, other columns blank, NOT counted as test cases) for `## <Roman>. Màn hình: …` (screen) and `### <Roman>.1./.2. …` (GUI / FUNC sections).
+- Inserts header rows (text in column B only, other columns blank, NOT counted as test cases) for `## <Roman>. <screen-line>` (screen — `Màn hình:` for VI / `Screen:` for EN) and `### <Roman>.1./.2. …` (GUI / FUNC sections). The script keys off the `##` / `###` prefix only, so any language wording is accepted.
 - Strips inline annotations like `[NEW]`, `[UPDATED — …]` from titles.
-- Re-opens the saved file and verifies Vietnamese diacritics on sample cells; exits non-zero on mojibake.
+- Re-opens the saved file and verifies Vietnamese diacritics on sample cells; exits non-zero on mojibake (VI-output projects only — for EN projects this emits a harmless `WARN: No Vietnamese-diacritic sample found` and proceeds).
 
-**Drafting requirements (still MANDATORY — they shape the md the script reads):**
-- **Layout** (see `.agents/skills/qc-tc-design-report/references/testcase-instruction-rules.md` → "Sheet Layout & Section Headers"): single sheet, ordered as `Screen I → I.1 GUI cases → I.2 FUNC cases → Screen II → II.1 GUI cases → II.2 FUNC cases → …`. Roman numerals I, II, III in document order. The screen name MUST match Section 4 of the latest audited UC file — do NOT paraphrase or translate.
-- **Sorting** (see same file → "Sheet Layout & Section Headers"): GUI before Functional. Within GUI: Screen Initialization → Item Interactions → Common UI cases → UI elements verify. Within FUNC: Happy path → Validation → Error/Exception.
-- **Encoding** (see Rules 0a–0d): write the md as UTF-8, preserve Vietnamese diacritics, never apply `unicodedata.normalize` / `unidecode` / Latin-1 conversion. The script verifies this on the way out.
+**Drafting requirements (still MANDATORY — they shape the md the script reads):** read `qc-func-tc-design/rules/testcase-instruction-rules.md`
+- Layout
+- Sorting
+- Encoding
 
 ### Step 5: Write Summary
 

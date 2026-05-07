@@ -111,8 +111,8 @@ Using the same 6-phase design logic as `generate-test-cases.md`, apply it **only
 **Test Case Writing rules (MANDATORY for new and updated TCs):** Apply `.agents/skills/qc-tc-design-report/references/testcase-instruction-rules.md`. Specifically:
 - **Test Case Writing rules → Rule 1 (UI Notation Standard)**: wrap on-screen components/labels/placeholders/values in `"Double Quotes"`.
 - **Test Case Writing rules → Rule 2 (Content Logic)**: Title starts with `Kiểm tra`/`Xác nhận`; Pre-conditions start with an action; Steps use imperative verbs; Expected Result starts with step number and explicitly describes UI state changes.
-- **Language & Encoding → Rule 0a**: preserve Vietnamese diacritics from the source UC document.
-- **Test cases example**: read `.agents/skills/qc-tc-design-report/references/Testcasse-refer.md` and align new/updated TCs to the same structural & writing style (TC ID format, Title phrasing, Pre-condition / Step / Expected Result layout, multi-line bullet style).
+- **Language & Encoding → Rule 0a** (VI-output projects only): preserve Vietnamese diacritics from the source UC document.
+- **Test cases example**: read the language-matched reference — `.agents/skills/qc-tc-design-report/references/Testcase-refer-vi.md` for Vietnamese projects, `.agents/skills/qc-tc-design-report/references/Testcase-refer-en.md` for English projects — and align new/updated TCs to the same structural & writing style (TC ID format, Title phrasing, Pre-condition / Step / Expected Result layout, multi-line bullet style).
 - For consistency, updated TCs must match the writing style of unchanged TCs in v[N] (do NOT mix styles).
 
 **Sorting rules:** See `.agents/skills/qc-tc-design-report/references/testcase-instruction-rules.md` → "Sheet Layout & Section Headers". GUI before Functional. Within GUI: Screen Initialization → Item Interactions → Common UI cases → UI elements verify. Within FUNC: Happy path → Validation → Error/Exception. When inserting new TCs into v[N+1], place them in the correct sorted position rather than appending at the end.
@@ -154,7 +154,7 @@ If the Step-4 md is a single file (not multi-part), point `--input-glob` at that
 - Layout produced: `Screen I header → I.1 GUI section header → all GUI TCs of screen I → I.2 FUNC section header → all FUNC TCs of screen I → Screen II header → II.1 → … → V. … → …` — the order encoded in your md drives the order in the xlsx.
 - Header rows go in column B only (other columns blank, not counted as TCs).
 - Strips inline annotations (`[NEW]`, `[UPDATED — Reason: …]`) from titles before writing — your draft md keeps them, the xlsx does not.
-- Verifies Vietnamese diacritics on sample cells after save and exits non-zero on mojibake.
+- Verifies Vietnamese diacritics on sample cells after save and exits non-zero on mojibake (VI-output projects only — for EN projects this emits a harmless `WARN: No Vietnamese-diacritic sample found` and proceeds).
 
 For **deleted TCs**: simply leave them out of the Step-4 md; the script writes whatever the md contains. Their removal is documented in the Step-6 summary.
 

@@ -10,9 +10,9 @@
 
 #### 1.1 — Load Existing Artifacts
 
-- Identify the highest version of the **existing test cases** file (`docs/QC-REPORT/testcases/[UC-ID]/`).
-- Identify the **current audited file** (UC Readiness Report) used to originally generate those test cases.
-- Identify the **latest version** of the audited file available now.
+- Identify the highest version of the existing `func-test-cases` file.
+- Identify the current `uc-review-report` used to originally generate those test cases.
+- Identify the latest version of the `uc-review-report` available now.
 - Load all three above. Do NOT generate any output files in this step.
 
 #### 1.2 — Determine the Source of Change
@@ -108,14 +108,15 @@ Using the same 6-phase design logic as `generate-test-cases.md`, apply it **only
 - **Updated TCs**: Rewrite only the affected fields (Steps, Expected Result, Pre-conditions) — keep the TC ID unchanged. Add a note: `[Updated vN — Reason: AC-XX modified]`.
 - **Deleted TCs**: Mark as DELETED in the draft — do NOT renumber remaining TCs to avoid traceability breaks.
 
-**Test Case Writing rules (MANDATORY for new and updated TCs):** Apply `.agents/skills/qc-tc-design-report/references/testcase-instruction-rules.md`. Specifically:
-- **Test Case Writing rules → Rule 1 (UI Notation Standard)**: wrap on-screen components/labels/placeholders/values in `"Double Quotes"`.
-- **Test Case Writing rules → Rule 2 (Content Logic)**: Title starts with `Kiểm tra`/`Xác nhận`; Pre-conditions start with an action; Steps use imperative verbs; Expected Result starts with step number and explicitly describes UI state changes.
-- **Language & Encoding → Rule 0a** (VI-output projects only): preserve Vietnamese diacritics from the source UC document.
-- **Test cases example**: read the language-matched reference — `.agents/skills/qc-tc-design-report/references/Testcase-refer-vi.md` for Vietnamese projects, `.agents/skills/qc-tc-design-report/references/Testcase-refer-en.md` for English projects — and align new/updated TCs to the same structural & writing style (TC ID format, Title phrasing, Pre-condition / Step / Expected Result layout, multi-line bullet style).
+**Test Case Writing rules (MANDATORY for new and updated TCs):** Apply all the rules in `qc-func-tc-design/rules/testcase-instruction-rules.md`.
+
+- **Test cases example**: read the language-matched reference — `qc-func-tc-design/references/Testcase-refer-vi.md` for Vietnamese test cases, `qc-func-tc-design/references/Testcase-refer-en.md` for English test cases — and align new/updated TCs to the same structural & writing style (TC ID format, Title phrasing, Pre-condition / Step / Expected Result layout, multi-line bullet style).
 - For consistency, updated TCs must match the writing style of unchanged TCs in v[N] (do NOT mix styles).
 
-**Sorting rules:** See `.agents/skills/qc-tc-design-report/references/testcase-instruction-rules.md` → "Sheet Layout & Section Headers". GUI before Functional. Within GUI: Screen Initialization → Item Interactions → Common UI cases → UI elements verify. Within FUNC: Happy path → Validation → Error/Exception. When inserting new TCs into v[N+1], place them in the correct sorted position rather than appending at the end.
+**Sorting rules:** See `qc-func-tc-design/rules/testcase-instruction-rules.md`
+- Layout
+- Sorting
+- Encoding
 
 **TC ID continuity rule:**
 - New TCs must continue from the highest existing TC ID (e.g., if TC_025 was the last, new TCs start at TC_026).
@@ -143,7 +144,7 @@ Before generating the `.xlsx`, write the complete updated test case list into th
 Source data comes from the **complete** md file generated in Step 4 (must already contain ALL TCs — unchanged + updated + newly added; deleted TCs excluded). Generate the xlsx by invoking the shared converter script — **do NOT write a new openpyxl script**:
 
 ```bash
-python .agents/skills/qc-tc-design-report/scripts/md_to_xlsx.py \
+python .claude/skills/qc-func-tc-design/scripts/md_to_xlsx.py \
   --input-glob "docs/QC-REPORT/testcases/[UC-ID]/[UC-ID]_*_part*.md" \
   --uc-id [UC-ID]
 ```
@@ -158,7 +159,7 @@ If the Step-4 md is a single file (not multi-part), point `--input-glob` at that
 
 For **deleted TCs**: simply leave them out of the Step-4 md; the script writes whatever the md contains. Their removal is documented in the Step-6 summary.
 
-**Drafting layout/sorting requirements still apply to Step 4** (see `.agents/skills/qc-tc-design-report/references/testcase-instruction-rules.md` → "Sheet Layout & Section Headers"). Specifically when redrafting the v[N+1] md:
+**Drafting layout/sorting requirements still apply to Step 4** (see `qc-func-tc-design/rules/testcase-instruction-rules.md` → "Sheet Layout & Section Headers"). Specifically when redrafting the v[N+1] md:
 - Preserve the existing screen / GUI / FUNC section headers from v[N].
 - Place new TCs **inside the correct section block** for their screen and type — GUI new cases below the matching `<RomanNumeral>.1.` header, FUNC new cases below `<RomanNumeral>.2.`. Do NOT append at the end of the md.
 - When the latest audited file adds a new screen, insert a new screen header block (next Roman numeral with its `.1` / `.2` sub-headers) at the appropriate position.

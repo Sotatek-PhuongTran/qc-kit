@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """Convert QC test case markdown drafts (*.md, possibly multi-part) into the
-official MBFS test case xlsx template.
+test case xlsx template (`templates/Testcase_template.xlsx`).
 
 Usage:
     python md_to_xlsx.py --input-glob "docs/QC-REPORT/testcases/UC161-166/UC161-166_*_v2_part*.md" --uc-id UC161-166
@@ -13,8 +13,8 @@ Layout produced (single sheet "Test cases"):
                        - test case rows                                   -> col A..F
 
 Column mapping (matches template "Test cases" sheet):
-    A = ID_TC | B = Test Title/Summary | C = Pre-conditions
-    D = Step  | E = Expected Result    | F = Priority
+    A = TC ID | B = Test Title/Summary of test cases | C = Pre-conditions
+    D = Test Steps | E = Expected Result | F = Priority
 """
 from __future__ import annotations
 
@@ -32,9 +32,10 @@ from openpyxl.styles import Alignment, Font
 
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 DEFAULT_TEMPLATE = os.path.normpath(
-    os.path.join(SCRIPT_DIR, "..", "templates", "[MBFS] Template TestCase - Mobile.xlsx")
+    os.path.join(SCRIPT_DIR, "..", "templates", "Testcase_template.xlsx")
 )
 SHEET_NAME = "Test cases"
+EXPECTED_HEADER_FIRST_CELL = "TC ID"
 
 PART_NUM_RE = re.compile(r"part(\d+)", re.IGNORECASE)
 TABLE_HEADER_RE = re.compile(r"^\|\s*TC\s*ID\s*\|", re.IGNORECASE)
@@ -172,9 +173,14 @@ def write_workbook(items: list[Item], template_path: str, output_path: str) -> t
     wb = load_workbook(output_path)
     if SHEET_NAME not in wb.sheetnames:
         raise SystemExit(
-            f"Template missing expected sheet '{SHEET_NAME}'. Found: {wb.sheetnames}"
+            f"Template missing expected sheet '{SHEET_NAME}'. Found sheets: {wb.sheetnames}"
         )
     ws = wb[SHEET_NAME]
+    first = ws.cell(row=1, column=1).value
+    if not (isinstance(first, str) and first.strip().lower() == EXPECTED_HEADER_FIRST_CELL.lower()):
+        raise SystemExit(
+            f"Sheet '{SHEET_NAME}' row-1 col-A is {first!r}, expected '{EXPECTED_HEADER_FIRST_CELL}'."
+        )
 
     if ws.max_row >= 2:
         ws.delete_rows(2, ws.max_row - 1)
@@ -209,6 +215,8 @@ def write_workbook(items: list[Item], template_path: str, output_path: str) -> t
 
 def verify_diacritics(output_path: str, sample_target: int = 5) -> None:
     wb = load_workbook(output_path)
+    if SHEET_NAME not in wb.sheetnames:
+        return
     ws = wb[SHEET_NAME]
     samples: list[tuple[int, int, str]] = []
     for r in range(2, ws.max_row + 1):
@@ -284,7 +292,7 @@ def main(argv: list[str] | None = None) -> int:
         raise SystemExit(f"Refusing to overwrite existing file: {output_path}")
 
     tc, hdr = write_workbook(items, args.template, output_path)
-    print(f"Wrote {tc} test cases + {hdr} header rows to '{SHEET_NAME}' sheet.")
+    print(f"Wrote {tc} test cases + {hdr} header rows.")
 
     verify_diacritics(output_path)
     return 0

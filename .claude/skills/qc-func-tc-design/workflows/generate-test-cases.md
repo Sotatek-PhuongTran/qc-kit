@@ -62,6 +62,9 @@ This phase focuses exclusively on visual fidelity:
 
 **Test Case Writing rules (MANDATORY at drafting time):** Apply all the rules in `qc-func-tc-design/rules/testcase-instruction-rules.md`.
 
+- **Test cases example**: read the language-matched reference — `qc-func-tc-design/references/Testcase-refer-vi.md` for Vietnamese test cases, `qc-func-tc-design/references/Testcase-refer-en.md` for English test cases — and align new/updated TCs to the same structural & writing style (TC ID format, Title phrasing, Pre-condition / Step / Expected Result layout, multi-line bullet style).
+- For consistency, updated TCs must match the writing style of unchanged TCs in v[N] (do NOT mix styles).
+
 ### Step 3: Pre-Execution Traceability Matrix
 
 - In the report file, build the `Requirement Traceability Matrix` mapping the file requirement ACs to the drafted Test Case IDs.
@@ -73,19 +76,19 @@ After Steps 1–3 are verified, generate the `.xlsx` by invoking the shared conv
 The script was written based on the `test-case-template` in the `qc-func-tc-design\templates` folder, if the template changed, you need to update the script.
 
 ```bash
-python .agents/skills/qc-tc-design-report/scripts/md_to_xlsx.py \
+python .claude/skills/qc-func-tc-design/scripts/md_to_xlsx.py \
   --input-glob "docs/QC-REPORT/testcases/[UC-ID]/[UC-ID]_*_part*.md" \
   --uc-id [UC-ID]
 ```
 
 First-time setup (run once per machine):
 ```bash
-pip install -r .agents/skills/qc-tc-design-report/scripts/requirements.txt
+pip install -r .claude/skills/qc-func-tc-design/scripts/requirements.txt
 ```
 
 The script handles all of the following automatically — do not re-implement:
-- Reads the template at `.agents/skills/qc-tc-design-report/templates/[MBFS] Template TestCase - Mobile.xlsx` and writes into the `Test cases` sheet (single sheet, KEEP template's column headers in row 1; do NOT rename the sheet, do NOT add extra columns).
-- Auto-versioning: scans `docs/QC-REPORT/testcases/[UC-ID]/` for any existing `*_v{N}.xlsx` whose name contains the UC id, picks the next version. Refuses to overwrite.
+- Reads the template at `qc-func-tc-design/templates/Testcase_template.xlsx` and writes into the `Test cases` sheet (single sheet only — the previous multi-sheet `GUI` / `FUNCTION` layout has been retired; KEEP template's column headers in row 1; do NOT rename the sheet, do NOT add extra columns).
+- Auto-versioning: scans test cases folder for any existing `*_v{N}.xlsx` whose name contains the UC id, picks the next version. Refuses to overwrite.
 - Merges multi-part draft files in `partN` order.
 - Inserts header rows (text in column B only, other columns blank, NOT counted as test cases) for `## <Roman>. <screen-line>` (screen — `Màn hình:` for VI / `Screen:` for EN) and `### <Roman>.1./.2. …` (GUI / FUNC sections). The script keys off the `##` / `###` prefix only, so any language wording is accepted.
 - Strips inline annotations like `[NEW]`, `[UPDATED — …]` from titles.

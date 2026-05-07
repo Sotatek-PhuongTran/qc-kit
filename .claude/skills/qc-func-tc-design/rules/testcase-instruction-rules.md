@@ -2,7 +2,7 @@
 
 ### Output Language Selection (READ FIRST)
 
-The output language of test cases is governed by `.claude/rules/global-rules.md`:
+The output language of test cases is governed by `rules/global-rules.md`:
 - **Input UC = Vietnamese** → output test cases in **Vietnamese** → follow the **VI** column of every example below and use `references/Testcase-refer-vi.md` as the style reference.
 - **Input UC = English (or any non-Vietnamese language)** → output test cases in **English** → follow the **EN** column of every example below and use `references/Testcase-refer-en.md` as the style reference.
 
@@ -25,7 +25,7 @@ The agent MUST detect the project's working language from the source UC document
 - `.encode('latin-1', 'ignore')` / `.encode('cp1252', 'ignore')` — corrupts non-Latin-1 chars
 - Any transliteration library
 
-**Rule 0c — Use the shared converter; do NOT write a new script.** xlsx generation is performed by `.agents/skills/qc-tc-design-report/scripts/md_to_xlsx.py` (see `generate-test-cases.md` Step 4 / `update-test-cases.md` Step 5). The agent invokes this script and does NOT write its own openpyxl populator. The script is UTF-8, opens md with `encoding='utf-8'`, writes Unicode literals, and self-verifies before exit. If you must extend the script, preserve these properties — never add `# -*- coding: cp1252 -*-`, never normalize/transliterate.
+**Rule 0c — Use the shared converter; do NOT write a new script.** xlsx generation is performed by `qc-func-tc-design/scripts/md_to_xlsx.py` (see `generate-test-cases.md` Step 4 / `update-test-cases.md` Step 5). The agent invokes this script and does NOT write its own openpyxl populator. The script is UTF-8, opens md with `encoding='utf-8'`, writes Unicode literals, and self-verifies before exit. If you must extend the script, preserve these properties — never add `# -*- coding: cp1252 -*-`, never normalize/transliterate.
 
 **Rule 0d — Self-verification before delivery.** After generating the xlsx, open it and spot-check at least 3 rows containing non-ASCII text. If any cell shows: ASCII-only Vietnamese (no dấu, VI projects only), `?` boxes, mojibake (e.g., `Ä\x90`, `Ã©`), or any character that doesn't match the source — STOP, debug the script, regenerate. Do NOT deliver a partially-stripped output.
 
@@ -157,7 +157,7 @@ Functional Expected Result example:
 
 ### Test cases example reference (pick by output language):
 
-- **Vietnamese projects** → read `.agents/skills/qc-tc-design-report/references/Testcase-refer-vi.md`
-- **English projects** → read `.agents/skills/qc-tc-design-report/references/Testcase-refer-en.md`
+- **Vietnamese projects** → read `qc-func-tc-design/references/Testcase-refer-vi.md`
+- **English projects** → read `qc-func-tc-design/references/Testcase-refer-en.md`
 
 The agent MUST read **only** the file matching the project's output language and align new/updated TCs to the same structural & writing style (TC ID format, Title phrasing, Pre-condition / Step / Expected Result layout, multi-line bullet style).

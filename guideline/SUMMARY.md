@@ -1,4 +1,4 @@
-# Summary
+# Table of contents
 
 * [Trang chủ](README.md)
 
@@ -7,7 +7,6 @@
 * [QC-kit và lợi ích](intro/qc-kit.md)
 * [AI Agentic là gì?](intro/ai-agentic.md)
 * [Các AI tools tích hợp](intro/ai-tools.md)
-* [Lộ trình đọc](intro/reading-paths.md)
 
 ## Phần II — Cài đặt môi trường
 

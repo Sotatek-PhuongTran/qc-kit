@@ -4,65 +4,42 @@
 
 ## Phần I — Giới thiệu
 
-* [QC-kit là gì?](intro/what-is-qc-kit.md)
-* [AI Agentic & Claude Code](intro/ai-agentic.md)
-* [Lợi ích cho team manual QC](intro/benefits.md)
+* [QC-kit và lợi ích](intro/qc-kit.md)
+* [AI Agentic là gì?](intro/ai-agentic.md)
+* [Các AI tools tích hợp](intro/ai-tools.md)
 * [Lộ trình đọc](intro/reading-paths.md)
 
-## Phần II — Bắt đầu nhanh
+## Phần II — Cài đặt môi trường
 
-* [Yêu cầu môi trường](quickstart/prerequisites.md)
-* [Cài Claude qua API key + Antigravity](quickstart/install-claude.md)
-* [Lấy QC-kit về máy](quickstart/get-qc-kit.md)
+* [Yêu cầu môi trường](env/prerequisites.md)
+* [Claude Code](env/claude-code.md)
+* [Antigravity](env/antigravity.md)
+* [OpenAI Codex CLI](env/codex-cli.md)
 
-## Phần III — Hiểu cấu trúc QC-kit
+## Phần III — Giới thiệu cấu trúc
 
-* [Sơ đồ tổng quan](structure/overview.md)
-* [Các skill hiện tại](structure/skills.md)
-* [Rules — luật chung & đặt tên](structure/rules.md)
-* [Config — project-config & path-registry](structure/config.md)
-* [Templates](structure/templates.md)
-* [Quy tắc đặt tên file & versioning](structure/naming.md)
+* [Sơ đồ tổng quan & luồng hoạt động](structure/overview.md)
+* [Rules](structure/rules.md)
+* [Config](structure/config.md)
+* [Skills](structure/skills.md)
 
-## Phần IV — Apply QC-kit vào dự án
+## Phần IV — Cách sử dụng
 
-* [Copy QC-kit](apply/copy-kit.md)
-* [Cách chạy kit theo từng giai đoạn](apply/run-by-stage.md)
-* [Khi nào sửa path-registry & project-config](apply/when-edit-config.md)
-* [Default permission](apply/permissions.md)
-* [Cấu trúc thư mục docs/BA/](apply/docs-ba-structure.md)
-* [Checklist verify](apply/verify-checklist.md)
+* [Bắt đầu](usage/getting-started.md)
+* [Step 0 — Thông tin chung](usage/step0-info.md)
+* [Step 1 — Review requirement](usage/step1-review-requirement.md)
+* [Step 2 — Create test cases](usage/step2-create-test-cases.md)
+* [Step 3 — Update test cases](usage/step3-update-test-cases.md)
 
-## Phần V — Workflow tổng quan
-
-* [Luồng công việc BA → QC → Test](workflow/ba-qc-test-flow.md)
-* [Vai trò](workflow/roles.md)
-* [Decision tree](workflow/decision-tree.md)
-
-## Phần VI — Hướng dẫn từng skill
-
-* [qc-project-onboarding](skills/qc-project-onboarding.md)
-* [qc-uc-read](skills/qc-uc-read.md)
-* [qc-qna](skills/qc-qna.md)
-* [qc-func-scenario-design](skills/qc-func-scenario-design.md)
-* [qc-func-tc-design](skills/qc-func-tc-design.md)
-
-## Phần VII — Best practices & Tips
+## Phần V — Best practices & Tips
 
 * [Chuẩn bị requirement chất lượng](best-practices/prepare-requirements.md)
 * [Viết prompt hiệu quả](best-practices/effective-prompting.md)
 * [Khi nào tin AI, khi nào review tay](best-practices/trust-ai.md)
-* [Communication với BA về gap question](best-practices/ba-communication.md)
+* [Communication với BA](best-practices/ba-communication.md)
 * [Kỷ luật versioning](best-practices/versioning-discipline.md)
 * [Tip cho input đa ngôn ngữ](best-practices/multilingual.md)
 
-## Phần VIII — FAQ & Troubleshooting
+## Phần VI — FAQ
 
-* [FAQ](faq.md)
-
-## Phụ lục
-
-* [A. Cheatsheet đặt tên file](appendix/naming-cheatsheet.md)
-* [B. Bảng path-registry mặc định](appendix/default-path-registry.md)
-* [C. Glossary](appendix/glossary.md)
-* [D. Liên kết tham khảo](appendix/references.md)
+* [FAQ & Troubleshooting](faq.md)

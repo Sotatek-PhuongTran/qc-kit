@@ -1,0 +1,8 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(git mv *)",
+      "Edit(/.claude/skills/qc-func-tc-design/**)"
+    ]
+  }
+}

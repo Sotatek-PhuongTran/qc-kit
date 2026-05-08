@@ -188,4 +188,4 @@ Mỗi version cũ giữ nguyên làm history. Sau 1 thời gian, folder `docs/QC
 
 ✅ **Step 3 hoàn tất.** Đây cũng là step cuối của Phần IV.
 
-**Tiếp theo:** [Phần V — Best practices & Tips](../best-practices/prepare-requirements.md)
+**Tiếp theo:** Sang tab **Best Practice** để xem các tips dùng QC-kit hiệu quả, hoặc tab **Q\&A** nếu gặp vấn đề.

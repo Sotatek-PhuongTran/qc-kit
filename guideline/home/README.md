@@ -34,10 +34,11 @@
 
 ## Bắt đầu ngay
 
-* 🚀 **Mới bắt đầu?** Đọc [QC-kit và lợi ích](intro/qc-kit.md)
-* ⚙️ **Cài đặt môi trường?** Đến [Phần II](env/prerequisites.md)
-* 📦 **Apply cho dự án mới?** Đến [Bắt đầu](usage/getting-started.md)
-* ❓ **Gặp vấn đề?** Xem [FAQ & Troubleshooting](faq.md)
+* 🚀 **Mới bắt đầu?** Đến tab **Documentation** → "QC-kit và lợi ích"
+* ⚙️ **Cài đặt môi trường?** Đến tab **Documentation** → "Yêu cầu môi trường"
+* 📦 **Apply cho dự án mới?** Đến tab **Documentation** → "Bắt đầu"
+* 💡 **Tip & best practice?** Đến tab **Best Practice**
+* ❓ **Gặp vấn đề?** Đến tab **Q\&A** → "FAQ & Troubleshooting"
 
 ***
 

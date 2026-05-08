@@ -132,7 +132,7 @@ Trước khi chạy Step 0, làm rõ với BA:
 - ✅ Đặt tên folder UC nhất quán: `UC-<ID>-<feature-name>` (vd `UC-101-user-login`)
 - ✅ Mỗi UC 1 folder, không gộp nhiều UC
 
-Xem chi tiết về tài liệu BA tại [Best practices — Chuẩn bị requirement chất lượng](../best-practices/prepare-requirements.md).
+Xem chi tiết về tài liệu BA tại tab **Best Practice** → "Chuẩn bị requirement chất lượng".
 
 ## Bước 6 — Mở dự án trong AI tool
 

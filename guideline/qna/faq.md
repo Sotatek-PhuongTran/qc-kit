@@ -10,7 +10,7 @@ Trang này tổng hợp các vấn đề thường gặp khi dùng QC-kit. Mỗi
 
 **Cách xử lý:**
 1. Chạy `/qc-project-onboarding` ở Update mode → skill sẽ phỏng vấn lại các path còn thiếu
-2. Hoặc sửa tay `.claude/config/path-registry.md` (xem [Step 0](usage/step0-info.md))
+2. Hoặc sửa tay `.claude/config/path-registry.md` (xem tab **Documentation** → "Step 0 — Thông tin chung")
 
 ---
 
@@ -32,7 +32,7 @@ Trang này tổng hợp các vấn đề thường gặp khi dùng QC-kit. Mỗi
 - Test cases → `generate test cases cho UC-XXX`
 - Onboarding → `/qc-project-onboarding` (slash command)
 
-Xem chi tiết tại [Phần IV — Cách sử dụng](usage/getting-started.md).
+Xem chi tiết tại tab **Documentation** → "Phần IV — Cách sử dụng".
 
 ---
 
@@ -109,7 +109,7 @@ Hỏi IT team support nếu không tự whitelist được.
 - Label UI giữ nguyên ngôn ngữ gốc (Anh/Hàn/Nhật) — đó là quy ước, không phải lỗi
 - Nếu cần force VN: re-prompt "trả lời bằng tiếng Việt"
 
-Xem [Tip cho input đa ngôn ngữ](best-practices/multilingual.md).
+Xem tab **Best Practice** → "Tip cho input đa ngôn ngữ".
 
 ---
 
@@ -136,7 +136,7 @@ Xem [Tip cho input đa ngôn ngữ](best-practices/multilingual.md).
 **Cách xử lý:**
 - Khôi phục từ Git history: `git log <file>` → `git checkout <commit> -- <file>`
 - Nhắc team tuân thủ rule: **không bao giờ overwrite, luôn tăng v[N]**
-- Xem [Kỷ luật versioning](best-practices/versioning-discipline.md)
+- Xem tab **Best Practice** → "Kỷ luật versioning"
 
 ---
 
@@ -232,7 +232,7 @@ Xem [Tip cho input đa ngôn ngữ](best-practices/multilingual.md).
 - Có thể thêm cột `Answer` nếu cần
 - Gửi BA file mẫu hoặc 1-2 câu hỏi ví dụ đã được trả lời
 
-Xem [Communication với BA](best-practices/ba-communication.md).
+Xem tab **Best Practice** → "Communication với BA về gap question".
 
 ---
 
@@ -287,7 +287,7 @@ Xem [Communication với BA](best-practices/ba-communication.md).
 
 ### Q25. Tôi muốn customize template Testcase để team dùng quy ước riêng
 
-**Trả lời:** Được, nhưng phải đồng bộ với skill. Xem [Step 2 — Khi nào sửa Testcase template](usage/step2-create-test-cases.md). Sau khi sửa template, **bắt buộc** chạy prompt:
+**Trả lời:** Được, nhưng phải đồng bộ với skill. Xem tab **Documentation** → "Step 2 — Create test cases" (mục "Khi nào sửa Testcase template"). Sau khi sửa template, **bắt buộc** chạy prompt:
 
 ```
 Tôi đã update test cases template, hãy check template hiện tại và đề xuất
@@ -317,7 +317,7 @@ Liên hệ team maintain QC-kit nếu cần guidance.
 
 Nếu bạn gặp vấn đề ngoài danh sách trên:
 
-1. Xem chi tiết SKILL.md tương ứng (link trong [Phần III — Skills](structure/skills.md))
-2. Đọc [Phần V — Best practices](best-practices/prepare-requirements.md)
+1. Xem tab **Documentation** → "Skills" để biết chi tiết từng skill
+2. Đọc tab **Best Practice** để có tips & tricks
 3. Hỏi QC Lead của dự án
 4. Đề xuất cải tiến QC-kit qua kênh team đã thống nhất

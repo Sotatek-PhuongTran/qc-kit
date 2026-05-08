@@ -106,7 +106,7 @@ Một số AC AI không verify được:
 
 AI sinh 30 test case → bạn copy thẳng vào file deliverable mà không đọc → tester phát hiện 5 case sai → uy tín QC giảm.
 
-✅ **Luôn skim output trước khi handover** (xem checklist review ở [Step 2](../usage/step2-create-test-cases.md)).
+✅ **Luôn skim output trước khi handover** (xem checklist review ở tab **Documentation** → "Step 2 — Create test cases").
 
 ### ❌ Ignore khi AI bảo "không chắc"
 

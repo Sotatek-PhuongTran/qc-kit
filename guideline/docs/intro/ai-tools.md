@@ -52,4 +52,4 @@ Xem chi tiết tại [Phần II — Cài đặt môi trường](../env/prerequis
 
 ***
 
-**Tiếp theo:** [Lộ trình đọc](/broken/pages/lbojSf6VbJCLbTR1qziM)
+**Tiếp theo:** [Yêu cầu môi trường](../env/prerequisites.md)

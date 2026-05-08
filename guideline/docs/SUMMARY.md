@@ -1,6 +1,6 @@
 # Table of contents
 
-* [Trang chủ](README.md)
+* [Documentation](README.md)
 
 ## Phần I — Giới thiệu
 
@@ -29,16 +29,3 @@
 * [Step 1 — Review requirement](usage/step1-review-requirement.md)
 * [Step 2 — Create test cases](usage/step2-create-test-cases.md)
 * [Step 3 — Update test cases](usage/step3-update-test-cases.md)
-
-## Phần V — Best practices & Tips
-
-* [Chuẩn bị requirement chất lượng](best-practices/prepare-requirements.md)
-* [Viết prompt hiệu quả](best-practices/effective-prompting.md)
-* [Khi nào tin AI, khi nào review tay](best-practices/trust-ai.md)
-* [Communication với BA](best-practices/ba-communication.md)
-* [Kỷ luật versioning](best-practices/versioning-discipline.md)
-* [Tip cho input đa ngôn ngữ](best-practices/multilingual.md)
-
-## Phần VI — FAQ
-
-* [FAQ & Troubleshooting](faq.md)

@@ -1,49 +1,48 @@
 ---
 name: qc-project-onboarding
-description: Project onboarding skill for the QC Lead. This MUST be the very first skill executed when applying the QC Kit to a new project. It validates and populates the two foundational config files — project-config.md and path-registry.md — so that all downstream skills (qc-uc-read, qc-qna, qc-func-scenario-design, qc-func-tc-design, etc.) have the context and paths they need to run. Trigger ONLY when the user explicitly invokes this skill (e.g., /qc-project-onboarding).
+description: Project onboarding skill for the QC Lead. MUST be the very first skill executed when applying the QC Kit to a new project. Validates and populates the two meta-config files (project-config.md and path-registry.md), then auto-triggers qc-context-master to generate project-context-master.md and bootstrap feature-scope.xlsx if all inputs are ready. Trigger ONLY when the user explicitly invokes this skill (e.g., /qc-project-onboarding).
 ---
 
 # QC Project Onboarding Skill
 
 ## Purpose
 
-This skill is the **entry point** of the QC Kit. Before any downstream skill (UC review, scenario design, test case design, Q&A) can run safely, two config files MUST be filled in:
+This skill is the **entry point** of the QC Kit. It bootstraps the two meta-config files that every downstream skill depends on:
 
-1. `.claude/config/project-config.md` — project overview, context, links, environments, accounts, integrations.
-2. `.claude/config/path-registry.md` — `## Artifact Path Table` mapping logical artifact names to real folder paths.
+1. `.claude/config/project-config.md` — high-level project metadata.
+2. `.claude/config/path-registry.md` — `## Artifact Path Table` mapping logical names → real paths.
 
-This skill performs a **gap audit** of those two files, **interviews the user** to collect missing info, **writes** the answers back into the files (bumping their `Version` field for tracking), and finally **hands the user a usage guideline** for the rest of the kit.
-
-If the user refuses or is unable to provide mandatory information, the skill MUST stop and warn the user that downstream skills cannot run.
+After Steps 1 & 2 complete, if `qc-lead-common-files` is configured and the folder is non-empty, this skill **auto-triggers `qc-context-master`** to generate `project-context-master.md` and bootstrap `feature-scope.xlsx`. From then on, the user only needs to invoke `qc-context-master` directly to regenerate or update project-context / feature-scope.
 
 ---
 
 ## Trigger Conditions
 
-- Run this skill ONLY when the user explicitly invokes it (e.g., `/qc-project-onboarding`).
+- Run ONLY when the user explicitly invokes the skill (e.g., `/qc-project-onboarding`).
 - Do NOT auto-trigger on natural-language phrases — onboarding is a deliberate action by the QC Lead.
 
 ---
 
-## Input Contract
+## Inputs
 
-- `.claude/config/project-config.md` — read full content, parse sections 1–6 and the header version table.
-- `.claude/config/path-registry.md` — read full content, parse the `## Artifact Path Table`.
+| Input | Source |
+|---|---|
+| Existing `project-config.md` | `.claude/config/project-config.md` |
+| Existing `path-registry.md` | `.claude/config/path-registry.md` |
+| User answers during interview | Interactive |
 
 ---
 
-## Output Contract
+## Outputs
 
-- Updated `.claude/config/project-config.md`:
-  - Sections 1 & 2 MUST be filled.
-  - Sections 3–6 filled if user provides info.
-  - Header table MUST be updated: `Created` (today's date), `Author` (user's name), `Version` bumped to `v[N+1]`.
-- Updated `.claude/config/path-registry.md`:
-  - Every row of `## Artifact Path Table` MUST have a real `Path` value (no `docs/???` placeholder remaining) and a clear `Mô tả`.
-  - If the file has a version field, bump it to `v[N+1]`.
-- A short **handover message** to the user containing the QC Kit usage guideline (TBD — placeholder section below).
+| Output | Path | Versioning |
+|---|---|---|
+| `project-config.md` | `.claude/config/project-config.md` | In-place. Header `Version` bumps `v1 → v2 → v3 …` ONLY if content actually changed. |
+| `path-registry.md` | `.claude/config/path-registry.md` | In-place. Bumps version if a header version field exists; else just updates content. |
 
-> Versioning note: Both config files live at a **fixed path** (`.claude/config/...`) because every downstream skill references them. Therefore the file **path and filename do NOT change**; only the `Version` field inside the header is bumped (`v1` → `v2` → `v3`...). This is an exception to the standard naming-convention rule that creates a new file per version.
+> **Versioning exception:** meta-config files have fixed paths because every downstream skill references them. Filename and path do NOT change; only the `Version` header field is bumped.
+
+> **Indirect outputs (via auto-trigger):** when pre-flight passes, this skill invokes `qc-context-master` which produces `project-context-master.md` and `feature-scope.xlsx`. This skill itself NEVER writes those two artifacts directly.
 
 ---
 
@@ -51,90 +50,92 @@ If the user refuses or is unable to provide mandatory information, the skill MUS
 
 ### Phase 0 — Silent Audit (NO user-facing output)
 
-This phase runs **silently** — do NOT show any audit table, summary, or analysis to the user.
+Run silently — do NOT print any audit table or analysis.
 
-1. Read `.claude/config/project-config.md` and `.claude/config/path-registry.md`.
-2. Determine the state of `project-config.md` (internal, do not print):
-   - For each of sections 1–6, classify as **Filled** (real content) or **Empty/Placeholder** (template tokens like `[Insert ...]`, `[Cung cấp ...]`, `[E-commerce / Finance / ...]`, or unchanged template URLs `https://[company]....`).
-3. Determine the state of `path-registry.md` (internal):
-   - For each row in `## Artifact Path Table`, classify as **Configured** (concrete `Path`, no `???`) or **Unconfigured** (`docs/???`, empty, or placeholder).
-4. Compute the **mode** for the greeting:
-   - **First-time mode** — BOTH files have all rows/sections in Empty/Unconfigured state.
-   - **Update mode** — at least one section or row is already Filled/Configured.
-5. Proceed directly to Phase 1 — do NOT ask the user to confirm; the greeting itself is the entry point.
+1. Read both meta-config files. Treat as missing-content if a section uses placeholder tokens (`[Insert ...]`, `[Cung cấp ...]`, template URLs `https://[company]....`, `docs/???`, etc.).
+2. Determine `mode`:
+   - **First-time mode** — BOTH files entirely empty/placeholder.
+   - **Update mode** — at least one file has real content.
+3. Proceed directly to Phase 1.
 
-### Phase 1 — Greeting + Round 1: project-config.md
+### Phase 1 — Greeting + Step 1: project-config.md
 
-Output exactly ONE of the two greeting blocks below (verbatim, hard-coded — do NOT paraphrase), then immediately show the current full content of `project-config.md` and ask for input.
+Output exactly ONE of the two greeting blocks below (verbatim, hard-coded — do NOT paraphrase), then immediately show the current content of `project-config.md` and ask for input.
 
-#### Greeting A — First-time mode (use when BOTH files are empty)
+#### Greeting A — First-time mode
 
 ```
 👋 Chào bạn! Tôi là skill `qc-project-onboarding` — bước đầu tiên khi áp dụng QC Kit cho một dự án mới.
 
-Tôi nhận thấy đây là **lần đầu** bạn chạy onboarding cho dự án này (2 file cấu hình `project-config.md` và `path-registry.md` chưa có dữ liệu thực).
+Tôi nhận thấy đây là **lần đầu** bạn chạy onboarding cho dự án này (`project-config.md` và `path-registry.md` chưa có dữ liệu thực).
 
-Để các skill khác (`qc-uc-read`, `qc-func-scenario-design`, `qc-func-tc-design`, `qc-qna`) chạy được, tôi cần bạn cùng điền 2 file cấu hình. Quy trình gồm **2 lượt**:
+Quy trình gồm **2 bước cấu hình** + tự động tổng hợp tri thức dự án:
 
-1. **Lượt 1 — `project-config.md`:** thông tin tổng quan dự án (6 mục, trong đó **mục 1 và 2 là bắt buộc**).
-2. **Lượt 2 — `path-registry.md`:** đường dẫn thật cho từng loại tài liệu (artifact).
+1. **Bước 1 — `project-config.md`:** thông tin tổng quan dự án (6 mục, mục 1–2 bắt buộc).
+2. **Bước 2 — `path-registry.md`:** đường dẫn thật cho từng loại artifact.
+3. **Tự động:** sau khi xong Bước 2, nếu common files đã sẵn sàng, tôi sẽ tự gọi `qc-context-master` để tạo `project-context-master.md` và `feature-scope.xlsx`.
 
-Bắt đầu **Lượt 1** ngay dưới đây 👇
+Bắt đầu **Bước 1** ngay dưới đây 👇
 ```
 
-#### Greeting B — Update mode (use when at least one file already has content)
+#### Greeting B — Update mode
 
 ```
 👋 Chào bạn! Tôi là skill `qc-project-onboarding`.
 
-Tôi thấy 2 file cấu hình đã có nội dung — bạn đang muốn **cập nhật** thông tin cấu hình dự án.
+Tôi thấy ít nhất 1 trong 2 file cấu hình đã có nội dung — bạn đang muốn **cập nhật**.
 
-Quy trình vẫn gồm **2 lượt**:
+Quy trình:
 
-1. **Lượt 1 — `project-config.md`:** rà soát và cập nhật thông tin tổng quan dự án.
-2. **Lượt 2 — `path-registry.md`:** rà soát và cập nhật đường dẫn artifact.
+1. **Bước 1 — `project-config.md`:** rà soát + cập nhật.
+2. **Bước 2 — `path-registry.md`:** rà soát + cập nhật.
+3. **Tự động:** sau khi xong Bước 2, nếu common files sẵn sàng, tôi sẽ tự gọi `qc-context-master` để đồng bộ `project-context-master.md` và `feature-scope.xlsx`.
 
-Tôi sẽ show lại nội dung hiện tại của từng file để bạn quyết định mục nào cần update. Bắt đầu **Lượt 1** ngay dưới đây 👇
+Bắt đầu **Bước 1** ngay dưới đây 👇
+
+> 💡 Lưu ý: nếu bạn chỉ muốn update `project-context-master.md` hoặc `feature-scope.xlsx` mà KHÔNG cần đụng meta-config, hãy gọi trực tiếp `/qc-context-master`.
 ```
 
-#### After greeting, immediately show project-config.md content
+#### After greeting — show project-config.md content
 
-Display the current content of `project-config.md` to the user as a single block, broken down by all 6 sections. Format:
+Display the current content of `project-config.md` as a single block, broken down by all 6 sections. Format:
 
 ```
-📄 **Nội dung hiện tại của `project-config.md`:** 
+📄 **Nội dung hiện tại của `project-config.md`:**
+
+**Header**
+| Project | <giá trị hiện tại> |
+| Created | <giá trị hiện tại> |
+| Author  | <giá trị hiện tại> |
+| Version | <giá trị hiện tại> |
 
 **Mục 1 — Project Overview** ✅ Bắt buộc
-- Description: <giá trị hiện tại hoặc "(chờ bạn cung cấp)">
-- Domain: <giá trị hiện tại hoặc "(chờ bạn cung cấp)">
-- Target Audience: <giá trị hiện tại hoặc "(chờ bạn cung cấp)">
+- Description: <giá trị hiện tại hoặc "(chưa có)">
+- Domain: <giá trị hiện tại hoặc "(chưa có)">
+- Target Audience: <giá trị hiện tại hoặc "(chưa có)">
 
 **Mục 2 — Project Context** ✅ Bắt buộc
-<nội dung hiện tại hoặc "(chờ bạn cung cấp)">
+<nội dung hiện tại hoặc "(chưa có)">
 
 **Mục 3 — Associated Links & Resources** ⚠️ Khuyến nghị
-<bảng hiện tại — nếu vẫn là placeholder mẫu thì ghi "(chờ bạn cung cấp — vẫn dùng template)">
+<bảng hiện tại hoặc "(chưa có — vẫn dùng template)">
 
 **Mục 4 — Environments** ⚠️ Khuyến nghị
-<bảng hiện tại hoặc "(chờ bạn cung cấp — vẫn dùng template)">
+<bảng hiện tại hoặc "(chưa có — vẫn dùng template)">
 
 **Mục 5 — Accounts & Credentials Structure** ⚠️ Khuyến nghị
-<bảng hiện tại hoặc "(chờ bạn cung cấp — vẫn dùng template)">
+<bảng hiện tại hoặc "(chưa có — vẫn dùng template)">
 > Lưu ý: chỉ cung cấp tài khoản TEST. KHÔNG nhập tài khoản production.
 
 **Mục 6 — Third-Party Integrations / APIs** ⚠️ Khuyến nghị
-<nội dung hiện tại hoặc "(chờ bạn cung cấp)">
+<nội dung hiện tại hoặc "(chưa có)">
 ```
 
 Then ask the user (verbatim — hard-coded):
 
 ```
-
 👉 Bạn muốn **cập nhật** mục nào? Vui lòng trả lời cho TẤT CẢ 6 mục theo định dạng:
-- Mục 1:
-   - Project name: [Cung cấp  thông tin tên dự án]
-   - Description: [Cung cấp mô tả  ngắn gọn về dự án]
-   - Domain: [E-commerce / Finance / Healthcare / etc]
+- Mục 1: <nội dung mới> hoặc "giữ nguyên"
 - Mục 2: <nội dung mới> / đường dẫn file context / hoặc "giữ nguyên"
 - Mục 3: <nội dung mới> hoặc "giữ nguyên" hoặc "bỏ qua"
 - Mục 4: <nội dung mới> hoặc "giữ nguyên" hoặc "bỏ qua"
@@ -144,79 +145,89 @@ Then ask the user (verbatim — hard-coded):
 ⚠️ Mục 1 và 2 là **bắt buộc** — không được "bỏ qua". Nếu chưa có dữ liệu cho 2 mục này, các skill khác sẽ KHÔNG chạy được.
 ```
 
-**Refusal handling for Round 1:** If after this prompt the user still leaves Section 1 or 2 unfilled (replies "bỏ qua" or refuses), stop the skill and output:
+**Refusal handling for Step 1:** If after this prompt the user still leaves Section 1 or 2 unfilled, stop the skill and output:
 > "⚠️ Mục 1 và 2 của `project-config.md` là bắt buộc. Khi nào có thông tin, vui lòng chạy lại `qc-project-onboarding`. Tôi sẽ KHÔNG ghi gì vào file lần này."
 
-### Phase 2 — Round 2: path-registry.md
+### Phase 2 — Step 2: path-registry.md
 
-After the user finishes answering Round 1, immediately proceed to Round 2. Show the current `## Artifact Path Table` content (full table, not just unconfigured rows — per user requirement, do NOT skip any row).
+After the user finishes Step 1, immediately proceed to Step 2. Show the current `## Artifact Path Table` content (full table, every row — do NOT skip).
 
 Output exactly:
 
 ```
-✅ Đã ghi nhận thông tin Lượt 1.
+✅ Đã ghi nhận thông tin Bước 1.
 
-📄 **Lượt 2 — Nội dung hiện tại của `path-registry.md` (`## Artifact Path Table`):**
+📄 **Bước 2 — Nội dung hiện tại của `path-registry.md` (`## Artifact Path Table`):**
 
 | Logical Name | Path hiện tại | Mô tả hiện tại | Trạng thái |
 |---|---|---|---|
 | <row 1>      | <path>        | <mô tả>        | ✅ Configured / ⚠️ Unconfigured |
-| <row 2>      | ...           | ...            | ... |
 | ...          |               |                | |
 
 📌 **Hướng dẫn cung cấp path:**
-- Mỗi `Path` là **đường dẫn folder thật** trên dự án này (ví dụ: `docs/QC/uc-read/<UC-ID>/`).
-- Path có thể chứa placeholder `<UC-ID>`, `<feature>`, `<YYYYMMDD>`, `<N>` — KHÔNG thay bằng giá trị cụ thể; skill khác sẽ tự thay tại runtime.
+- Mỗi `Path` là **đường dẫn folder thật** trên ổ đĩa.
 - Giữ nguyên gốc `docs/` để đảm bảo tương thích với các skill khác.
-- Path được lưu hiện tại là tối ưu nhất cho QC-kit, hãy thay đổi nếu bạn cần phân cấp thêm.
-- Vui lòng chỉ update path, đừng đổi logical name vì nó đã được mention ở các skills.
+- `Chỉ` update path, không thay đổi logical name vì nó đã được mention ở các skills và workflows.
 
+👉 Bạn muốn **cập nhật** dòng nào? Vui lòng trả lời cho TẤT CẢ các dòng theo định dạng:
+- `<logical-name>`: Path = `<path mới>` | Mô tả = `<mô tả mới>` — hoặc "giữ nguyên"
 ```
 
-**Refusal handling for Round 2:** If the user leaves a row at `docs/???` (Unconfigured) and chooses "giữ nguyên", warn once:
+**Required logical names for auto-trigger to succeed:** `High-level-files`, `feature-scope`, `project-context-master`, `requirement-common-files`. Onboarding ensures these rows exist in the table; if any is missing, append it during this step (ask user for path).
+
+**Refusal handling for Step 2:** If a row stays at `docs/???` (Unconfigured) and user picks "giữ nguyên", warn once:
 > "⚠️ Artifact `<logical-name>` vẫn chưa có path thật. Skill nào cần đọc/ghi artifact này sẽ dừng lại và hỏi bạn sau. Bạn có chắc muốn để vậy? (yes/no)"
 
-If user confirms `yes`, proceed but record this in the Phase 4 handover summary as "không cấu hình".
+### Phase 3 — Write Back & Version Bumps
 
-### Phase 3 — Write Back
+1. Apply Step 1 user answers to `project-config.md`. Bump `Version` IF anything actually changed. On first-time mode (header was placeholder), also fill `Created` (today, `YYYY-MM-DD`) and `Author` (from `userEmail` context if known, else ask).
+2. Apply Step 2 user answers to `path-registry.md`. Bump version IF anything changed.
 
-1. Edit `project-config.md` in place using the user's Round 1 answers. Preserve the existing markdown structure and table formatting. For each section the user said "giữ nguyên", do NOT touch.
-2. Edit `path-registry.md` in place using Round 2 answers: update only the `Path` and `Mô tả` cells of `## Artifact Path Table`. Do NOT touch the `## Skill → Artifact Mapping` table or the `## Quy tắc` section.
-3. **Bump the `Version` field** in the header of each file that was actually modified:
-   - `project-config.md` header: `v1` → `v2` → `v3` ... (parse current version, increment).
-   - On first-time onboarding (i.e., when header still shows placeholder `[Insert Date]`/`[Insert Author Name]`), also fill `Created` (today's date, format `YYYY-MM-DD`) and `Author` (user's name from `userEmail` context if known, else ask).
-   - `path-registry.md`: if a version field exists in its header, bump it the same way. (Currently this file has no header version table; if so, skip — do not invent one.)
-4. If a file had NO actual changes (all "giữ nguyên"), do NOT bump its version.
+### Phase 4 — Pre-flight Check + Auto-trigger qc-context-master
 
-### Phase 4 — Handover
+1. Resolve `High-level-files` logical name from path-registry. Pass conditions:
+   - Logical name exists in `## Artifact Path Table`.
+   - Path is concrete (no `docs/???`).
+   - Folder exists on disk.
+   - Folder contains at least 1 file.
 
-After writing, output to the user:
+2. **Pre-flight PASS:**
+   Output exactly:
+   ```
+   ✅ Bước 1 & 2 hoàn tất.
+   - `project-config.md`: <new version> — đã update: <list> | giữ nguyên: <list>
+   - `path-registry.md`: đã update: <list logical-names> | giữ nguyên: <list>
 
-```
-✅ **Onboarding hoàn tất.**
+   ➡️ High-level files đã sẵn sàng tại `<High-level-files path>`. Tôi sẽ tự động gọi `qc-context-master` để tạo `project-context-master.md` và cập nhật `feature-scope.xlsx`...
+   ```
+   Then **invoke `qc-context-master` skill via the Skill tool**. Do NOT ask the user — this is the documented kit flow.
 
-**Tóm tắt thay đổi:**
-- `project-config.md`: <new version> — đã cập nhật mục: <list> | giữ nguyên: <list> | bỏ qua: <list>
-- `path-registry.md`: đã cập nhật: <list logical-names> | giữ nguyên: <list> | chưa cấu hình: <list (nếu có, kèm cảnh báo)>
+3. **Pre-flight FAIL:**
+   Output:
+   ```
+   ✅ Bước 1 & 2 hoàn tất.
+   - `project-config.md`: <new version> — đã update: <list> | giữ nguyên: <list>
+   - `path-registry.md`: đã update: <list logical-names> | giữ nguyên: <list>
 
-📘 **Hướng dẫn sử dụng QC Kit:**
-<dán nội dung từ section "Usage Guideline" bên dưới — hiện đang là placeholder TBD>
+   ⚠️ Tôi CHƯA thể tự động gọi `qc-context-master` vì:
+   <reason — e.g., "qc-lead-common-files chưa cấu hình", "folder <path> chưa tồn tại", "folder rỗng">
 
-➡️ **Bước tiếp theo gợi ý:** chạy `qc-uc-read` để review use case đầu tiên.
-```
+   📋 **Bước tiếp theo:** chuẩn bị các tài liệu sau (WBS, Product Brief, System Architecture Diagram, Tech Stack, ...) tại `<resolved path>`, sau đó gọi `/qc-context-master` để hoàn tất tổng hợp tri thức dự án.
+   ```
+   Then STOP. Do NOT invoke qc-context-master.
 
 ---
 
 ## Usage Guideline (TBD)
 
-> _Placeholder — kit owner will provide the full guideline content. When available, paste it here or link to an external file._
+> _Placeholder — kit owner will provide the full guideline content._
 
 ---
 
 ## Boundaries
 
-- This skill ONLY edits `project-config.md` and `path-registry.md`. It MUST NOT create, edit, or delete any other file in the project.
-- It MUST NOT invent project information. If the user does not provide a value, leave the placeholder untouched (or skip the row).
-- For Section 5 (test account credentials), the skill MAY collect passwords because these are test-only credentials. The skill MUST refuse to record any credential the user identifies as production, and MUST remind the user of the existing in-file warning ("Không cung cấp các tài khoản có quyền hạn thay đổi dữ liệu trên môi trường thực").
-- It MUST NOT run any downstream skill automatically. Onboarding ends with a handover message; the user decides what to run next.
-- All user-facing communication MUST be in Vietnamese (per `global-rules.md` — Vietnamese input ⇒ Vietnamese output).
+- This skill ONLY edits `.claude/config/project-config.md` and `.claude/config/path-registry.md`. It MUST NOT directly create or edit `project-context-master.md`, `feature-scope.xlsx`, or any other artifact — those belong to `qc-context-master`.
+- It MUST NOT invent project information. If user does not provide a value, leave the placeholder untouched.
+- For Section 5 of `project-config.md` (test account credentials), the skill MAY collect passwords (test-only). It MUST refuse to record any credential the user identifies as production.
+- Auto-trigger of `qc-context-master` happens ONLY when pre-flight passes; otherwise the skill instructs the user to run it manually.
+- Output language follows source-input language per `global-rules.md`. SKILL.md itself is in English.

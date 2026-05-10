@@ -1,4 +1,6 @@
-## Update Test Cases (6-Step Mandatory Workflow & Logic)
+## Update Test Cases (Design Update Workflow)
+
+> **Scope:** This workflow produces ONLY the updated test case `.md` file. It is fully independent from the `.xlsx` artifact — no script invocation, no xlsx step. Conversion to `.xlsx` and chat-side reporting are orchestrated by `SKILL.md` → "Skill Execution Steps" (Steps B and C). Do NOT write a separate summary file in this workflow.
 
 > **Trigger conditions:** This workflow is triggered when EITHER of the following occurs:
 > 1. **Requirement change**: The audited UC Readiness Report has been updated (new version). Test cases need to be aligned with the changed requirements.
@@ -39,7 +41,7 @@ This step replaces the open-ended drafting of generate. The agent MUST focus ana
 Perform a **diff analysis** between the previous and latest audited file:
 
 1. **Identify changed ACs**: List all Acceptance Criteria (ACs) that were added, removed, or modified.
-2. **Map ACs to existing TCs**: Using the Requirement Traceability Matrix from the previous summary file, find which test cases are linked to each changed AC.
+2. **Map ACs to existing TCs**: Using the Requirement Traceability Matrix from the previous version's md prelude, find which test cases are linked to each changed AC.
 3. **Classify the impact** for each changed AC:
 
 | Change Type | Impact on Test Cases |
@@ -84,19 +86,18 @@ Action: [What the agent will do]
 **Step 2B.2 — For Cat 2 items:** Ask the user:
 > _"Feedback '[summary]' mô tả một hành vi chưa được ghi nhận trong tài liệu requirement (audited file [version]). Để đảm bảo traceability, bạn có thể xác nhận và bổ sung nội dung này vào file audited không? Sau khi cập nhật, tôi sẽ thiết kế test case tương ứng."_
 
-**Step 2B.3 — For Cat 1 items:** After designing the missing TCs, add a **Skill Improvement Flag**:
+**Step 2B.3 — For Cat 1 items:** After designing the missing TCs, prepare a **Skill Improvement Flag** to surface in the chat report (handed off to `SKILL.md` → Step C). Format:
 ```
 ⚠️ SKILL IMPROVEMENT SUGGESTION:
 Missing coverage for [type of validation/logic, e.g., "boundary value for max-length field"].
 Recommended addition to generate-test-cases.md → Phase 3 (Core Functional Testing):
 "[Suggested new rule or checklist item]"
 ```
-Present this to the user and ask:
-> _"Trường hợp này bị thiếu do skill chưa cover loại case này. Tôi đề xuất bổ sung vào `generate-test-cases.md` để tránh lặp lại. Bạn có muốn tôi cập nhật skill không?"_
+Do NOT write this flag into a file — it will be reported on chat.
 
 #### 2C — If Trigger is Type C (Both)
 
-Apply both 2A and 2B analyses sequentially. Consolidate the Impact Table and Feedback Analysis into a unified **Change Analysis Report** before proceeding to Step 3.
+Apply both 2A and 2B analyses sequentially. Consolidate the Impact Table and Feedback Analysis into a unified **Change Analysis Report** held in working memory before proceeding to Step 3.
 
 ---
 
@@ -106,7 +107,7 @@ Using the same 6-phase design logic as `generate-test-cases.md`, apply it **only
 
 - **New TCs**: Design from scratch using the 6-phase logic for the new or changed ACs.
 - **Updated TCs**: Rewrite only the affected fields (Steps, Expected Result, Pre-conditions) — keep the TC ID unchanged. Add a note: `[Updated vN — Reason: AC-XX modified]`.
-- **Deleted TCs**: Mark as DELETED in the draft — do NOT renumber remaining TCs to avoid traceability breaks.
+- **Deleted TCs**: Mark as DELETED in the working draft — do NOT renumber remaining TCs to avoid traceability breaks.
 
 **Test Case Writing rules (MANDATORY for new and updated TCs):** Apply all the rules in `qc-func-tc-design/rules/testcase-instruction-rules.md`.
 
@@ -124,108 +125,50 @@ Using the same 6-phase design logic as `generate-test-cases.md`, apply it **only
 
 ---
 
-### Step 4: Write Draft File (.md) (MANDATORY)
+### Step 4: Write the Updated .md File (MANDATORY)
 
-Before generating the `.xlsx`, write the complete updated test case list into the new md file.
+Write the COMPLETE updated test case list into a NEW version of the `.md` at the path defined in `path-registry.md` for `func-test-cases-draft`. Naming follows `rules/naming-convention.md` (immutable versions — increment v[N] → v[N+1], never overwrite).
 
-- The md file must contain ALL test cases — unchanged, updated, and newly added — in their final form.
-- For each changed TC, annotate inline:
-  - `[UPDATED — Reason: AC-XX modified]` next to the TC title.
-  - `[NEW — AC-XX]` next to the TC title for new cases.
-  - Do NOT include deleted TCs in the md file.
-- At the bottom of the md file, include the **Updated Requirement Traceability Matrix**:
-  - Merge old coverage + new coverage.
-  - Mark deleted TCs as `[DELETED]`. Mark new TCs as `[NEW]`. Mark updated TCs as `[UPDATED]`.
-  - Ensure 100% coverage for all active ACs in the latest audited file.
+The md must contain ALL test cases — unchanged, updated, and newly added — in their final form. Deleted TCs are excluded from the md body.
+
+**At the TOP of the md (or top of `part1` if multi-part), include the following required prelude:**
+
+```markdown
+# Test Cases — [UC-ID] [feature-name] (v[N+1])
+
+**Total test cases:** Y (Δ vs v[N]: +A new, ~U updated, -D deleted)
+**GUI / FUNC counts:** y_gui / y_func
+**Source UC (previous version):** [audited_filename_vX]
+**Source UC (current version):** [audited_filename_vY]
+**Update trigger:** [Type A — Requirement Change / Type B — User Feedback / Type C — Both]
+**Output language:** [VI / EN]
+
+#### Updated Requirement Traceability Matrix
+
+| AC ID | Acceptance Criteria | Linked Test Cases       | Status          |
+|---    |---                  |---                      |---              |
+| AC-01 | …                   | TC_001, TC_002          | Covered         |
+| AC-07 | …                   | TC_026                  | Covered [NEW]   |
+| AC-10 | …                   | —                       | Removed         |
+
 ---
-
-### Step 5: Output Generation (.xlsx)
-
-Source data comes from the **complete** md file generated in Step 4 (must already contain ALL TCs — unchanged + updated + newly added; deleted TCs excluded). Generate the xlsx by invoking the shared converter script — **do NOT write a new openpyxl script**:
-
-```bash
-python .claude/skills/qc-func-tc-design/scripts/md_to_xlsx.py \
-  --input-glob "docs/QC-REPORT/testcases/[UC-ID]/[UC-ID]_*_part*.md" \
-  --uc-id [UC-ID]
 ```
 
-If the Step-4 md is a single file (not multi-part), point `--input-glob` at that single file's path. The script:
-- Auto-bumps the version: detects the highest existing `*_v{N}.xlsx` in the folder whose name contains the UC id, writes `v{N+1}.xlsx`. Refuses to overwrite.
-- Writes everything into the **single `Test cases` sheet** of the template (one sheet only — the previous "GUI sheet / FUNCTION sheet" instruction was incorrect and has been retired). Sheet column headers in row 1 are kept from the template; do NOT rename the sheet or add columns.
-- Layout produced: `Screen I header → I.1 GUI section header → all GUI TCs of screen I → I.2 FUNC section header → all FUNC TCs of screen I → Screen II header → II.1 → … → V. … → …` — the order encoded in your md drives the order in the xlsx.
-- Header rows go in column B only (other columns blank, not counted as TCs).
-- Strips inline annotations (`[NEW]`, `[UPDATED — Reason: …]`) from titles before writing — your draft md keeps them, the xlsx does not.
-- Verifies Vietnamese diacritics on sample cells after save and exits non-zero on mojibake (VI-output projects only — for EN projects this emits a harmless `WARN: No Vietnamese-diacritic sample found` and proceeds).
+**Heading-level rules (MANDATORY — they govern what does and does not appear in the xlsx):**
+- The prelude MUST use only `#` (h1) and `####` (h4) heading levels — these are skipped by the converter, so the prelude does NOT leak into the xlsx.
+- Use `##` (h2) ONLY for screen headers (e.g., `## I. Màn hình: …` / `## I. Screen: …`).
+- Use `###` (h3) ONLY for GUI / FUNC section headers (e.g., `### I.1. …` / `### I.2. …`).
 
-For **deleted TCs**: simply leave them out of the Step-4 md; the script writes whatever the md contains. Their removal is documented in the Step-6 summary.
+**Inline annotations on changed TCs in the body:**
+- `[NEW — AC-XX]` next to the title of newly added TCs.
+- `[UPDATED — Reason: AC-XX modified]` next to the title of modified TCs.
+- Do NOT include deleted TCs in the md body — their removal is reflected in the Updated RTM (`Removed` status).
 
-**Drafting layout/sorting requirements still apply to Step 4** (see `qc-func-tc-design/rules/testcase-instruction-rules.md` → "Sheet Layout & Section Headers"). Specifically when redrafting the v[N+1] md:
+**Layout / Sorting / Encoding requirements (still apply when redrafting the v[N+1] md — see `qc-func-tc-design/rules/testcase-instruction-rules.md` → "Sheet Layout & Section Headers"):**
 - Preserve the existing screen / GUI / FUNC section headers from v[N].
 - Place new TCs **inside the correct section block** for their screen and type — GUI new cases below the matching `<RomanNumeral>.1.` header, FUNC new cases below `<RomanNumeral>.2.`. Do NOT append at the end of the md.
 - When the latest audited file adds a new screen, insert a new screen header block (next Roman numeral with its `.1` / `.2` sub-headers) at the appropriate position.
 - Sorting within a section: GUI before Functional. Within GUI: Screen Initialization → Item Interactions → Common UI cases → UI elements verify. Within FUNC: Happy path → Validation → Error/Exception.
 - Encoding (Rules 0a–0d): UTF-8 md, preserve dấu, no `unicodedata.normalize` / `unidecode` / Latin-1.
 
----
-
-### Step 6: Write Update Summary
-
-Save a summary file in the same folder as the Excel. The summary MUST include:
-
-```markdown
-## ✅ Test Cases Update Complete
-
-### Update Context
-- Trigger: [Type A — Requirement Change / Type B — User Feedback / Type C — Both]
-- Previous version: [filename]_v[N].xlsx ([X] cases)
-- New version: [filename]_v[N+1].xlsx ([Y] cases)
-- Audited file used (previous): [audited_filename_vX]
-- Audited file used (new): [audited_filename_vY]
-
----
-
-### Change Summary
-
-| Metric | Count |
-|---|---|
-| Total TCs in previous version | X |
-| TCs deleted | -D |
-| TCs updated (modified) | ~U |
-| TCs added (new) | +A |
-| **Total TCs in new version** | **Y** |
-
-#### Deleted Test Cases
-| TC ID | Title | Reason |
-|---|---|---|
-| TC_025 | [Title] | AC-10 removed from requirement |
-
-#### Updated Test Cases
-| TC ID | Title | Change Description |
-|---|---|---|
-| TC_012 | [Title] | Expected Result updated — AC-03 constraint modified |
-
-#### New Test Cases
-| TC ID | Title | Linked AC |
-|---|---|---|
-| TC_026 | [Title] | AC-07 (newly added) |
-
----
-
-### Updated Requirement Traceability Matrix
-| AC ID | Acceptance Criteria | Linked Test Cases | Status |
-|---|---|---|---|
-| AC-01 | ... | TC_001, TC_002 | Covered |
-| AC-07 | ... | TC_026 | Covered [NEW] |
-| AC-10 | ... | — | Removed |
-
----
-
-### Skill Improvement Flags (if any)
-[List any Cat 1 feedback items that suggest gaps in the generate skill]
-
-### Open Questions (if any)
-[List any Cat 2 feedback items pending user confirmation to update audited file]
-
-### Out-of-scope items
-[e.g., Performance testing, Load testing — not covered by this skill]
-```
+**Do NOT write a separate summary file.** The md (with its prelude) is the only design artifact this workflow produces. Detailed change tables (deleted / updated / new TCs), Cat 1 skill improvement flags, Cat 2 open requirement gaps, and out-of-scope items will be reported on chat by the orchestrator (`SKILL.md` → Step C).

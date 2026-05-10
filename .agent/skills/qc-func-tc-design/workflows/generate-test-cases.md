@@ -1,15 +1,15 @@
-## Generate Test Cases (5-Step Mandatory Workflow & Logic)
+## Generate Test Cases (Design Workflow)
+
+> **Scope:** This workflow produces ONLY the test case `.md` file(s). It is fully independent from the `.xlsx` artifact — no script invocation, no xlsx step. Conversion to `.xlsx` and chat-side reporting are orchestrated by `SKILL.md` → "Skill Execution Steps" (Steps B and C). Do NOT write a separate summary file in this workflow.
 
 ### Step 1: Input Analysis (MANDATORY)
 
 - Identify the highest version of all the input files (UC Readiness Report, Scenarios). Always select the highest version number available.
 - Read the provided documents and comprehend the use case in preparation for test case design.
-- Do NOT generate `testcases` files or write Python scripts in this step.
 
 ### Step 2: Detailed Drafting (MANDATORY)
 
-Write a draft file.
-Follow  6 distinct phases to design test cases:
+Apply the following 6 distinct phases to design test cases. The result of this step is the test case content that will be written to the `.md` in Step 4.
 
 #### Phase 1: Screen Initialization (Static States)
 
@@ -51,7 +51,7 @@ Verify the synergy between different functions on the same screen.
 #### Phase 5: UI-Level Non-Functional Testing
 
 - Security: Check for sensitive data masking (passwords) and input sanitization (SQL Injection/XSS) in UI fields.
-- U X/Loading: Verify the presence of loading indicators (spinners) during data fetching and button debounce to prevent double-clicks.
+- UX/Loading: Verify the presence of loading indicators (spinners) during data fetching and button debounce to prevent double-clicks.
 
 #### Phase 6: GUI & Visual Compliance (Design-to-Code)
 
@@ -60,57 +60,45 @@ This phase focuses exclusively on visual fidelity:
 - Design Alignment: Compare every object against the design file (Figma/Mockup) regarding position, color (HEX codes), spacing, and font sizes.
 - Responsive Design: Verify the UI rendering across various screen resolutions and aspect ratios.
 
-**Test Case Writing rules (MANDATORY at drafting time):** Apply all the rules in `qc-func-tc-design/rules/testcase-instruction-rules.md`.
+**Test Case Writing rules (MANDATORY):** Apply all the rules in `qc-func-tc-design/rules/testcase-instruction-rules.md` (Layout, Sorting, Encoding, etc.).
 
-- **Test cases example**: read the language-matched reference — `qc-func-tc-design/references/Testcase-refer-vi.md` for Vietnamese test cases, `qc-func-tc-design/references/Testcase-refer-en.md` for English test cases — and align new/updated TCs to the same structural & writing style (TC ID format, Title phrasing, Pre-condition / Step / Expected Result layout, multi-line bullet style).
-- For consistency, updated TCs must match the writing style of unchanged TCs in v[N] (do NOT mix styles).
+- **Test cases example**: read the language-matched reference — `qc-func-tc-design/references/Testcase-refer-vi.md` for Vietnamese test cases, `qc-func-tc-design/references/Testcase-refer-en.md` for English test cases — and align new TCs to the same structural & writing style (TC ID format, Title phrasing, Pre-condition / Step / Expected Result layout, multi-line bullet style).
 
-### Step 3: Pre-Execution Traceability Matrix
+### Step 3: Build the Requirement Traceability Matrix
 
-- In the report file, build the `Requirement Traceability Matrix` mapping the file requirement ACs to the drafted Test Case IDs.
-- Ensure 100% test coverage before progressing.
+- Build the `Requirement Traceability Matrix` mapping every Acceptance Criterion of the audited UC to the drafted Test Case IDs.
+- Verify 100% coverage. If any AC has no linked TCs, fix the drafting in Step 2 before proceeding.
+- The RTM will be embedded in the md prelude (Step 4), not in a separate file.
 
-### Step 4: Output Generation (.xlsx)
+### Step 4: Write the .md File (MANDATORY)
 
-After Steps 1–3 are verified, generate the `.xlsx` by invoking the shared converter script.
-The script was written based on the `test-case-template` in the `qc-func-tc-design\templates` folder, if the template changed, you need to update the script.
+Write the designed test cases into `.md` file(s) at the path defined in `path-registry.md` for `func-test-cases-draft`. Use a single file or multi-part files (`*_part1.md`, `*_part2.md`, …) depending on volume.
 
-```bash
-python .claude/skills/qc-func-tc-design/scripts/md_to_xlsx.py \
-  --input-glob "docs/QC-REPORT/testcases/[UC-ID]/[UC-ID]_*_part*.md" \
-  --uc-id [UC-ID]
-```
-
-First-time setup (run once per machine):
-```bash
-pip install -r .claude/skills/qc-func-tc-design/scripts/requirements.txt
-```
-
-The script handles all of the following automatically — do not re-implement:
-- Reads the template at `qc-func-tc-design/templates/Testcase_template.xlsx` and writes into the `Test cases` sheet (single sheet only — the previous multi-sheet `GUI` / `FUNCTION` layout has been retired; KEEP template's column headers in row 1; do NOT rename the sheet, do NOT add extra columns).
-- Auto-versioning: scans test cases folder for any existing `*_v{N}.xlsx` whose name contains the UC id, picks the next version. Refuses to overwrite.
-- Merges multi-part draft files in `partN` order.
-- Inserts header rows (text in column B only, other columns blank, NOT counted as test cases) for `## <Roman>. <screen-line>` (screen — `Màn hình:` for VI / `Screen:` for EN) and `### <Roman>.1./.2. …` (GUI / FUNC sections). The script keys off the `##` / `###` prefix only, so any language wording is accepted.
-- Strips inline annotations like `[NEW]`, `[UPDATED — …]` from titles.
-- Re-opens the saved file and verifies Vietnamese diacritics on sample cells; exits non-zero on mojibake (VI-output projects only — for EN projects this emits a harmless `WARN: No Vietnamese-diacritic sample found` and proceeds).
-
-**Drafting requirements (still MANDATORY — they shape the md the script reads):** read `qc-func-tc-design/rules/testcase-instruction-rules.md`
-- Layout
-- Sorting
-- Encoding
-
-### Step 5: Write Summary
-
-Save a summary file in the same folder as the md and xlsx files. Include:
+**At the TOP of the md (or top of `part1` if multi-part), include the following required prelude:**
 
 ```markdown
-## ✅ Test Design Complete
+# Test Cases — [UC-ID] [feature-name]
 
-| Artifact | File | Count |
-|---|---|---|
-| Test Cases | [filename].xlsx | X cases (Y GUI / Z FUNC) |
+**Total test cases:** X (GUI: Y, FUNC: Z)
+**Source UC:** [audited filename + version]
+**Source scenarios (if any):** [scenarios filename + version]
+**Output language:** [VI / EN]
 
-### Requirement Traceability Matrix
+#### Requirement Traceability Matrix
+
 | AC ID | Acceptance Criteria | Linked Test Cases | Status |
 |---|---|---|---|
-| AC-01 | ... | TC_UC001_GUI_01, TC_UC001_GUI_02 | Covered |
+| AC-01 | …                   | TC_001, TC_002    | Covered |
+| …     | …                   | …                 | …       |
+
+---
+```
+
+**Heading-level rules (MANDATORY — they govern what does and does not appear in the xlsx):**
+- The prelude MUST use only `#` (h1) and `####` (h4) heading levels — these are skipped by the converter, so the prelude does NOT leak into the xlsx.
+- Use `##` (h2) ONLY for screen headers (e.g., `## I. Màn hình: …` / `## I. Screen: …`).
+- Use `###` (h3) ONLY for GUI / FUNC section headers (e.g., `### I.1. …` / `### I.2. …`).
+
+After the prelude, write all screen / GUI / FUNC sections with their test case tables, following the layout and sorting rules in `qc-func-tc-design/rules/testcase-instruction-rules.md`.
+
+**Do NOT write a separate summary file.** The md (with its prelude) is the only design artifact this workflow produces. Anything noteworthy beyond the prelude (e.g., out-of-scope items, requirement gaps observed during drafting) will be reported on chat by the orchestrator (`SKILL.md` → Step C).

@@ -2,7 +2,9 @@
   "permissions": {
     "allow": [
       "Bash(git mv *)",
-      "Edit(/.claude/skills/qc-func-tc-design/**)"
+      "Edit(/.claude/skills/qc-func-tc-design/**)",
+      "Edit(/.claude/skills/qc-context-master/**)",
+      "PowerShell($claude = Get-Item \"c:\\\\Users\\\\Admin\\\\Desktop\\\\qc-kit\\\\.claude\"; $agent = Get-Item \"c:\\\\Users\\\\Admin\\\\Desktop\\\\qc-kit\\\\.agent\"; \"$\\($claude.LinkType\\) $\\($claude.Target\\)\"; \"$\\($agent.LinkType\\) $\\($agent.Target\\)\")"
     ]
   }
 }

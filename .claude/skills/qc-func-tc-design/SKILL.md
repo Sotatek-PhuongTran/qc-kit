@@ -15,15 +15,48 @@ This skill covers the following test types for **web applications**:
 
 ## Workflows
 
-This skill operates in two distinct workflows depending on the context:
-- **generate-test-cases**: `workflows\generate-test-cases.md`
-- **update-test-cases**: `workflows\update-test-cases.md`
-When the user invoke this skill, parse from user invocation - If missing, ask: _"Do you want to **generate-test-cases** or **update-test-cases**?"_ 
-- If the user selects **generate-test-cases**, load `workflows/generate-test-cases.md`. 
-- If the user selects **update-test-cases**, check if the `func-test-cases` of the <UC-ID> exists or provided by user. If it exists, load `workflows/update-test-cases.md`. If it does not exist, ask the user to provide the `test cases` directory.
+This skill operates in two user-invokable design workflows plus one auto-triggered post-processing workflow:
+- **generate-test-cases** (user-invokable): `workflows\generate-test-cases.md` — produces ONLY the test case `.md` file(s).
+- **update-test-cases** (user-invokable): `workflows\update-test-cases.md` — produces ONLY the updated test case `.md` file.
+- **convert-md-to-xlsx** (auto-triggered, NOT user-invokable): `workflows\convert-md-to-xlsx.md` — converts the finalized `.md` to `.xlsx` via the shared converter script.
+
+When the user invokes this skill, parse the workflow from the user invocation. If missing, ask: _"Do you want to **generate-test-cases** or **update-test-cases**?"_
+
+## Skill Execution Steps
+
+Once the design workflow is determined, execute the skill in the following ordered steps. The design workflow files (generate / update) describe ONLY the design logic for the `.md`; orchestration of the xlsx conversion and the chat-side reporting is owned by this section.
+
+### Step A — Run the Design Workflow (.md output only)
+
+- If **generate-test-cases**: load and execute `workflows/generate-test-cases.md` end-to-end.
+- If **update-test-cases**: first verify that `func-test-cases` for the `<UC-ID>` exists (or is provided by the user). If it does NOT exist, ask the user to provide the test cases directory before proceeding. Then load and execute `workflows/update-test-cases.md` end-to-end.
+
+The design workflow produces ONLY the test case `.md` file(s). The md itself contains a brief summary header at the top (total TC count + general info) and an in-md Requirement Traceability Matrix as a prelude (using `#` / `####` heading levels so the converter skips them). NO separate summary file is written.
+
+### Step B — Auto-trigger MD → XLSX Conversion
+
+After Step A produces the finalized `.md` file(s), AUTOMATICALLY load `workflows/convert-md-to-xlsx.md` and execute it end-to-end. That workflow:
+- Locates the md inputs from Step A.
+- Runs the shared converter script (`scripts/md_to_xlsx.py`).
+- Self-verifies the output (encoding, diacritics).
+
+This auto-trigger is non-optional — the `.xlsx` is a required deliverable. If the conversion workflow fails (script error, mojibake, missing prerequisites), STOP and report the error on chat. Do NOT silently rewrite the md or skip the xlsx.
+
+### Step C — Chat-side Reporting (no summary file)
+
+After Step B completes successfully, report the following on chat (NOT in a file):
+- Final artifact paths: the `.md` from Step A and the `.xlsx` from Step B.
+- Total test cases produced, with GUI / FUNC breakdown.
+- For **update-test-cases**: counts of new / updated / deleted TCs vs the previous version, and the trigger type (A — Requirement Change / B — User Feedback / C — Both).
+- Any noteworthy items the user should be aware of, e.g.:
+  - Open requirement gaps (Cat 2 feedback items pending audited-file confirmation).
+  - Skill improvement suggestions surfaced from Cat 1 feedback items.
+  - Out-of-scope items not covered by this skill (performance, load, security, etc.).
+
+Do NOT write a summary file under any circumstances.
 
 ## Input Contract
-Read the `path-registry.md` file to find the bellow file's location:
+Read the `path-registry.md` file to find the below file locations:
 For **generate-test-cases** workflow:
 - `uc-review-report` - read the latest version
 - (Optional) `func-test-scenarios` - read the latest version
@@ -36,21 +69,20 @@ For **update-test-cases** workflow:
 - `requirement-common-files`
 
 ## Output Contract
-Read the `path-registry.md` file to find the bellow file's location:
+Read the `path-registry.md` file to find the below file locations:
 
 For **generate-test-cases** workflow:
-- `func-test-cases-draft`
-- `func-test-cases`
-- `func-test-cases-summary`
+- `func-test-cases-draft` (.md, written in Step A)
+- `func-test-cases` (.xlsx, produced in Step B by auto-triggered conversion)
 
 For **update-test-cases** workflow:
-- `func-test-cases-draft` - updated version
-- `func-test-cases` - new version
-- `func-test-cases-summary` - new version
+- `func-test-cases-draft` (.md, new version, written in Step A)
+- `func-test-cases` (.xlsx, new version, produced in Step B by auto-triggered conversion)
 
+No summary file is produced. Noteworthy items are reported on chat in Step C.
 
 ## Out of Scope
-Do NOT generate test cases for performance, load, or security testing. Note them in the summary under "Out-of-scope items."
+Do NOT generate test cases for performance, load, or security testing. Mention any such out-of-scope items in the chat report (Step C).
 
 ## Knowledge & Competencies
 

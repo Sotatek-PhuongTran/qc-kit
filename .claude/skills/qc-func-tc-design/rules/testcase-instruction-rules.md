@@ -25,7 +25,7 @@ The agent MUST detect the project's working language from the source UC document
 - `.encode('latin-1', 'ignore')` / `.encode('cp1252', 'ignore')` — corrupts non-Latin-1 chars
 - Any transliteration library
 
-**Rule 0c — Use the shared converter; do NOT write a new script.** xlsx generation is performed by `qc-func-tc-design/scripts/md_to_xlsx.py` (see `generate-test-cases.md` Step 4 / `update-test-cases.md` Step 5). The agent invokes this script and does NOT write its own openpyxl populator. The script is UTF-8, opens md with `encoding='utf-8'`, writes Unicode literals, and self-verifies before exit. If you must extend the script, preserve these properties — never add `# -*- coding: cp1252 -*-`, never normalize/transliterate.
+**Rule 0c — Use the shared converter; do NOT write a new script.** xlsx generation is performed by `qc-func-tc-design/scripts/md_to_xlsx.py`, invoked exclusively from `workflows/convert-md-to-xlsx.md` (auto-triggered by the skill — see `SKILL.md` → "Skill Execution Steps"). The agent invokes this script and does NOT write its own openpyxl populator. The script is UTF-8, opens md with `encoding='utf-8'`, writes Unicode literals, and self-verifies before exit. If you must extend the script, preserve these properties — never add `# -*- coding: cp1252 -*-`, never normalize/transliterate.
 
 **Rule 0d — Self-verification before delivery.** After generating the xlsx, open it and spot-check at least 3 rows containing non-ASCII text. If any cell shows: ASCII-only Vietnamese (no dấu, VI projects only), `?` boxes, mojibake (e.g., `Ä\x90`, `Ã©`), or any character that doesn't match the source — STOP, debug the script, regenerate. Do NOT deliver a partially-stripped output.
 

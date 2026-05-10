@@ -20,6 +20,7 @@ trigger: always_on
 - All output files MUST follow the naming convention defined in `rules/naming-convention.md`.
 - NEVER overwrite a file. Create a new version instead (`v1`, `v2`, etc.).
 - All files MUST include a header with: document title, date created, author/agent name, and version.
+- Read the path-registry.md to find the path of the Input/Output files.
 
 ## Output Quality Standards
 

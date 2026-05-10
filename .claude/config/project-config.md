@@ -12,13 +12,7 @@ Tệp này đóng vai trò là biểu mẫu cấu hình cho dự án thực tế
 
 ---
 
-## 2. Project Context
-[Nhập thông tin chung về dự án mà QC nắm được, cần transfer cho Agent vào đây hoặc viết 1 file .md và mention ở đây để Agent tìm đọc.]
-
-
----
-
-## 3. Associated Links & Resources
+## 2. Associated Links & Resources
 
 Cung cấp các liên kết liên quan đến dự án, không bao gồm các link môi trường.
 
@@ -33,7 +27,7 @@ Cung cấp các liên kết liên quan đến dự án, không bao gồm các li
 
 ---
 
-## 4. Environments
+## 3. Environments
 
 Cung cấp links đến các môi trường đang được sử dụng. Điều này rất quan trọng cho việc thực thi kiểm thử và ngữ cảnh kiểm thử thủ công.
 
@@ -46,7 +40,7 @@ Cung cấp links đến các môi trường đang được sử dụng. Điều 
 
 ---
 
-## 5. Accounts & Credentials Structure
+## 4. Accounts & Credentials Structure
 
 Không cung cấp các tài khoản có quyền hạn thay đổi dữ liệu trên môi trường thực (production). Chỉ cung cấp các tài khoản kiểm thử.
 
@@ -59,7 +53,7 @@ Không cung cấp các tài khoản có quyền hạn thay đổi dữ liệu tr
 
 ---
 
-## 6. Third-Party Integrations / APIs
+## 5. Third-Party Integrations / APIs
 
 Liệt kê các dịch vụ hoặc API bên ngoài mà dự án phụ thuộc vào, những hệ thống này có thể cần cấu hình hoặc dữ liệu kiểm thử đặc biệt.
 

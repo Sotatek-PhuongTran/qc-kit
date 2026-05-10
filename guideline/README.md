@@ -14,7 +14,7 @@
 
 {% stepper %}
 {% step %}
-### Giới thiệu chung
+#### Giới thiệu chung
 
 * QC-kit
 * AI agentic
@@ -22,13 +22,9 @@
 {% endstep %}
 
 {% step %}
-###
-
-
+####
 {% endstep %}
 {% endstepper %}
-
-
 
 ***
 

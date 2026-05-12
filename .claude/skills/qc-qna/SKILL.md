@@ -8,14 +8,20 @@ description: Transfers open questions from the 'Unified Gap & Question Report' o
 
 This skill aims to extract unresolved questions identified during the requirement review process (located in the "Unified Gap & Question Report" section of the audited file) and transfer them into a dedicated Question Backlog file. This ensures that Business Analysts (BAs) can easily track, answer, and confirm the missing information.
 
+## Inputs
+
+Read the `path-registry.md` file to resolve the paths for the following logical names:
+- `uc-review-report` (the audited UC file)
+- `question-backlog` (existing question backlog file, if any)
+
 ## Step 1: Input Resolution & Clone Template
 
 1. Extract the `[UC-ID]` or Module/Function name from the User's prompt.
-2. Search for the audited UC file within the `docs/QC-REPORT/review-doc/` directory. If multiple versions of the audited file exist, you MUST select the file with the highest version number.
-3. Search for the question backlog file within the `docs/QC-REPORT/review-doc/` directory. If multiple versions of the question backlog file exist, you MUST select the file with the highest version number.
+2. Search for the audited UC file at the path resolved from `uc-review-report` in `path-registry.md`. If multiple versions of the audited file exist, you MUST select the file with the highest version number.
+3. Search for the question backlog file at the path resolved from `question-backlog` in `path-registry.md`. If multiple versions of the question backlog file exist, you MUST select the file with the highest version number.
 If the question backlog file already exists, skip the template cloning process, check if there are any answered questions in the backlog file that are not in the audited file. If there are, stop and warning the user that they should be re-audit the UC.
 If the question backlog file does not exist, follow the step 4 and 5 to create a new one.
-4. Read the master template from `skills\qc-qna\template\question-backlog_template.md`.
+4. Read the master template from `skills/qc-qna/templates/question-backlog_template.md`.
 5. Create the output file at the same folder with the audited file.
 
 
@@ -31,9 +37,9 @@ If the question backlog file does not exist, follow the step 4 and 5 to create a
 
 ## Input Contract
 
-- Audited file at: `docs/QC-REPORT/review-doc/` - find the UCID folder, Module or Function folder (highest version)
-- Question backlog file: `docs/QC-REPORT/review-doc/` - find the UCID folder, Module or Function folder (highest version, if exists)
+- Audited file: resolve path from `uc-review-report` in `path-registry.md` — find the UCID/Module/Function folder (highest version)
+- Question backlog file: resolve path from `question-backlog` in `path-registry.md` — find the UCID/Module/Function folder (highest version, if exists)
 
 ## Output Contract
 
-- **Output path:** `docs/QC-REPORT/review-doc/` - find the UCID folder, Module or Function folder (highest version, if exists)
+- **Output path:** resolve from `question-backlog` in `path-registry.md` — find the UCID/Module/Function folder (highest version, if exists)

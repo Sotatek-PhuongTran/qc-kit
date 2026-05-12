@@ -3,7 +3,7 @@
 test case xlsx template (`templates/Testcase_template.xlsx`).
 
 Usage:
-    python md_to_xlsx.py --input-glob "docs/QC-REPORT/testcases/UC161-166/UC161-166_*_v2_part*.md" --uc-id UC161-166
+    python md_to_xlsx.py --input-glob "docs/QC/test-cases/functional-test/UC161-166/UC161-166_*_v2_part*.md" --uc-id UC161-166
 
 Layout produced (single sheet "Test cases"):
     Row 1            : original column headers from template (untouched)

@@ -24,7 +24,7 @@ Read the `path-registry.md` file to find below files if the path is not already 
 
 Read the `path-registry.md` file to find below files if the path is not already mentioned:
 - `project-context-master`
-- `feature-scope`
+- `qc-dashboard`
 - `uc-review-report`
 
 **Before generating anything**, read all provided documents fully and build a clear understanding of:
@@ -134,7 +134,7 @@ After generating both files, provide a brief summary:
 
 | Artifact | File | Count |
 |---|---|---|
-| Test Scenarios | docs/QC-REPORT/scenarios/[UC-ID]/[UC-ID]_[feature-name]_scenarios_[YYYYMMDD].md | X scenarios across Y UCs |
+| Test Scenarios | path resolved from `func-test-scenarios` in `path-registry.md` (file pattern: `[UC-ID]_[feature-name]_scenarios_[YYYYMMDD]_v[N].md`) | X scenarios across Y UCs |
 
 ### Coverage breakdown by test type:
 - Functional: X test scenarios

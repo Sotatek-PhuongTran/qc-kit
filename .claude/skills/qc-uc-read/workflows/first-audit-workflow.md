@@ -34,8 +34,8 @@ This is so test cases written downstream from the audit file have the exact verb
 **Input-type routing:**
 | Input type           | Action  |
 | -------------------- | -------------------|
-|PDF provided          | Invoke the `.agents\skills\pdf\SKILL.md` skill to extract text, tables, images first. Do NOT use the Read tool directly on PDF files.|
-|DOCX provided          | Invoke the `.agents\skills\docx\SKILL.md` skill to extract text, tables, images first. Do NOT use the Read tool directly on DOCX files.|
+|PDF provided          | Invoke the `pdf` skill to extract text, tables, images first. Do NOT use the Read tool directly on PDF files.|
+|DOCX provided          | Invoke the `docx` skill to extract text, tables, images first. Do NOT use the Read tool directly on DOCX files.|
 | File path provided   | Read the file using the appropriate tools|
 | Image file provided  | Use the Read tool — it renders images inline; describe all visible UI elements, labels, states, and flows in detail |
 | Pasted text provided | Treat as a document; parse directly from the prompt |

@@ -1,6 +1,6 @@
 ---
 name: qc-context-master
-description: Generates and maintains the project's knowledge core — project-context-master.md (10-section project context distilled from common files) and feature-scope.xlsx (Feature list with append-only/soft-delete + Input readiness row 2). Auto-triggered by qc-project-onboarding after meta-config is set up. Also invoke directly when the user wants to regenerate or update project context, sync feature list with WBS, or resolve open questions. Trigger on /qc-context-master, "tổng hợp project context", "update project context", "update feature scope", "đồng bộ feature list".
+description: Generates and maintains the project's knowledge core — project-context-master.md (10-section project context distilled from common files) and qc-dashboard.md (Feature/UC list with append-only/soft-delete; owns columns Site, ID, Module, name, In scope?). Auto-triggered by qc-project-onboarding after meta-config is set up. Also invoke directly when the user wants to regenerate or update project context, sync the feature list with the WBS, or resolve open questions. Trigger on /qc-context-master, "tổng hợp project context", "update project context", "update feature list", "đồng bộ feature list".
 ---
 
 # QC Context Master Skill
@@ -16,17 +16,18 @@ description: Generates and maintains the project's knowledge core — project-co
 Read the `path-registry.md` file to find below files if the path is not already mentioned:
 - `High-level-files`
 - `requirement-common-files`
-- Existing `config/project-context-master.md` (if any)
-- Existing `feature-scope`
+- Existing `project-context-master` (if any)
+- Existing `qc-dashboard` (if any)
 - Existing `config/project-config.md` (cross-reference for §1, §4, §8)
 - Site abbreviation mapping (auto-managed): `.claude/skills/qc-context-master/state/site-abbreviations.md`
-- Template `/skills/qc-context-master/templates/project-context-template.md`
+- Template `templates/project-context-template.md`
+- Template `templates/qc-dashboard-template.md`
 
 ## Outputs
 Read the `path-registry.md` file to find below files if the path is not already mentioned:
 - `project-context-master`
-- `feature-scope`
-- `skills/qc-context-master/state/site-abbreviations.md`: Append-only mapping table.
+- `qc-dashboard` — markdown table. This skill writes ONLY columns: `Site`, `<ID label>`, `Module`, `Feature/Use case name`, `In scope?`. Status columns (Specs/WF/Test scenario/Test cases/Execute) are owned by `qc-dashboard-sync` and MUST be left untouched.
+- `.claude/skills/qc-context-master/state/site-abbreviations.md` — append-only mapping table.
 
 ## Workflow
 
@@ -34,7 +35,7 @@ Read the `path-registry.md` file to find below files if the path is not already 
 
 Run silently — do NOT print any audit table.
 
-1. Read existing `project-context-master` (if any) and `feature-scope` (if any).
+1. Read existing `project-context-master` (if any) and `qc-dashboard` (if any).
 2. Determine `mode`:
    - **First-time generation** — `project-context-master` does not exist or is empty.
    - **Update run** — file exists with real content.
@@ -43,12 +44,13 @@ Run silently — do NOT print any audit table.
 ### Phase 1 — Pre-flight Check
 
 1. Resolve `High-level-files` logical name. If unconfigured, folder missing, or empty → STOP and output:
-   > "Không tìm thấy High-level files (WBS, Product Brief, System Architecture Diagram, Tech Stack, ...) tại `<path>`. Vui lòng chuẩn bị các tài liệu này, sau đó chạy lại `/qc-context-master`."
+   > "Không tìm thấy high-level files (WBS, Product Brief, System Architecture Diagram, Tech Stack, ...) tại `<path>`. Vui lòng chuẩn bị các tài liệu này, sau đó chạy lại `/qc-context-master`."
 
-2. Resolve `feature-scope` logical name. If file does not exist, → STOP and output:
-   > "Không tìm thấy Feature Scope tại `<path>`. Vui lòng chạy cung cấp file sau đó chạy lại `/qc-context-master`."
+2. Resolve `qc-dashboard` logical name from path-registry. The file does NOT need to exist yet — the skill will create it from template in Phase 5 if missing. Just verify the path is registered; if the logical name is missing from path-registry, STOP and ask the user to register it.
 
-3. Read template `.claude/skills/qc-context-master/templates/project-context-template.md`.
+3. Read templates:
+   - `.claude/skills/qc-context-master/templates/project-context-template.md`
+   - `.claude/skills/qc-context-master/templates/qc-dashboard-template.md`
 
 ### Phase 2 — Greeting
 
@@ -61,9 +63,9 @@ Bắt đầu tổng hợp tri thức dự án.
 
 Tôi sẽ:
 1. Đọc common files (WBS, Product Brief, System Architecture Diagram, Tech Stack, ...) tại `<High-level-files path>`.
-2. Trích xuất 10 mục cho `project-context-master.md`.
-3. Đồng bộ `feature-scope.xlsx`: thêm features mới từ WBS, soft-delete features đã bị remove.
-4. Hỏi bạn các điểm còn thiếu — phần nào không trả lời được sẽ ghi vào Open Questions.
+2. Trích xuất 10 mục cho `project-context-master.md`, kèm confidence score + evidence cho mỗi mục.
+3. Đồng bộ `qc-dashboard.md`: tạo file từ template nếu chưa có; thêm features mới từ WBS; soft-delete (`In scope? = Removed`) features đã bị remove. Không touch các cột status.
+4. Phỏng vấn nhiều lượt (Pass A confirm → Pass B refine → Pass C direct Q&A) — mỗi lượt đều có option `skip`. Mục bị skip sẽ giữ tag `[AI-proposed]` và đẩy câu hỏi high-level vào Open Questions.
 
 Bắt đầu...
 ```
@@ -76,8 +78,8 @@ Bắt đầu...
 Tôi sẽ:
 1. Re-read common files để check cập nhật.
 2. Carry-over Open Questions từ lần trước, resolve những câu giờ đã có data.
-3. Đồng bộ `feature-scope.xlsx`: append features mới, soft-delete features bị remove, re-add nếu cần.
-4. Refresh các mục `project-context-master.md` từ nội dung mới nhất.
+3. Đồng bộ `qc-dashboard.md`: append features mới, soft-delete (`In scope? = Removed`) features bị remove, re-add (`In scope? = Yes`) nếu cần.
+4. Refresh các mục `project-context-master.md` từ nội dung mới nhất, re-score confidence; phỏng vấn nhiều lượt (Pass A/B/C, có `skip`) cho các mục còn thiếu hoặc còn tag `[AI-proposed]` từ lần trước.
 
 Bắt đầu...
 ```
@@ -117,40 +119,84 @@ Scan WBS / Product Brief / Architecture Diagram for site/portal mentions (User, 
 - New site, name ≤ 4 chars → use as-is, append to mapping.
 - New site, name > 4 chars → ask user: `"Site '<full name>' viết tắt thành gì? (gợi ý: <first 4 chars>)"`. Append answer to mapping.
 
-The mapping is the source of truth for Feature ID prefixes in 5.3.
+Site values from this mapping populate column 1 of the dashboard.
 
-#### 5.3 Update Feature list sheet
+#### 5.3 Sync dashboard (qc-dashboard.md)
 
-Schema (15 columns A–O — DO NOT alter):
-| A | B | C | D | E | F | G | H | I | J | K | L | M | N | O |
-|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
-| Feature ID | Site | Module | Screen name | API | Feature | Actor / Role | Requirement Refs | Wireframe Refs | Priority | Risk Level | Complexity | In Scope? | Confidence | Notes / Assumptions |
+Schema — exactly 10 columns; this skill OWNS the first 5 columns and MUST NOT touch the last 5:
 
-Logic:
+| # | Column                     | Owner               |
+|---|----------------------------|---------------------|
+| 1 | `Site`                     | qc-context-master   |
+| 2 | `<ID label>`               | qc-context-master   |
+| 3 | `Module`                   | qc-context-master   |
+| 4 | `Feature/Use case name`    | qc-context-master   |
+| 5 | `In scope?`                | qc-context-master   |
+| 6 | `Specs stt`                | qc-dashboard-sync   |
+| 7 | `WF stt`                   | qc-dashboard-sync   |
+| 8 | `Test scenario stt`        | qc-dashboard-sync   |
+| 9 | `Test cases stt`           | qc-dashboard-sync   |
+| 10 | `Execute stt`             | — (pending)         |
 
-1. **Read existing rows.** Compute `max_id_number` = highest XXX across all existing Feature IDs (regardless of site prefix).
+##### 5.3.A First-time creation (dashboard does not exist)
 
-2. **Extract candidates** (site, feature) pairs from WBS / Product Brief / Architecture.
+1. Resolve `qc-dashboard` path from path-registry.
+2. Detect ID convention from common files: scan for the dominant pattern (`UC-[A-Z]+-\d+`, `F-\d+`, `FEAT-\d+`, ...). If found, ask user to confirm:
+   > "Phát hiện dự án dùng định danh dạng `<example>`. Tên cột định danh trong dashboard nên là gì? (gợi ý: `Use Case ID`, `Feature ID`, `Story ID`)"
 
-3. **Match against existing rows** by `(Site, Feature)` (case-insensitive normalized).
+   If no pattern found, ask both ID format AND column label.
+3. Read template `templates/qc-dashboard-template.md`. Replace placeholder `{{ID_LABEL}}` (appears twice — header row + notes section) with the chosen label.
+4. Write the populated template to the resolved `qc-dashboard` path. Body table is empty at this point (just header + separator row).
+5. Proceed to 5.3.C with an empty existing-row set.
 
-4. **For each candidate:**
-   - Already exists → SKIP (preserve manual edits).
-   - New → reserve Feature ID = `<site-abbr>-<XXX>` where XXX = `max_id_number + 1` (then increment `max_id_number`). Fill 15 columns best-effort from common files. Default M = `Yes`. For any column where info is missing, leave blank and add a corresponding row to Section 10 Open Questions (e.g., `"User-005 — missing Risk Level"`).
+##### 5.3.B Update run (dashboard exists)
 
-5. **Group new rows by site, then append.** Sort the batch of new rows by Site (alphabetical) before appending to the bottom of the sheet. Do NOT reshuffle existing rows.
+1. Read `qc-dashboard`. Parse the markdown table:
+   - Header row → identify `<ID label>` from column 2.
+   - Data rows → build `existingIndex = { ID → { row index, Site, Module, Name, In scope? } }`.
+   - Capture the notes/ghi-chú block below the table verbatim for later re-render.
+2. Validate column count = 10. If schema mismatch (count differs, or header column 2 label changed unexpectedly), STOP and ask user.
 
-6. **Soft-delete sweep:** for every existing row with `M = "Yes"` whose `(Site, Feature)` is NO LONGER present in current common files:
-   - Set `M = "No"`.
-   - Append note to `O`: `"[YYYY-MM-DD] Removed from WBS — soft-deleted."`. Preserve any prior note text (newline-append).
+##### 5.3.C Compute deltas
 
-7. **Re-add sweep:** for every existing row with `M = "No"` whose `(Site, Feature)` IS present again:
-   - Set `M = "Yes"`.
-   - Append note to `O`: `"[YYYY-MM-DD] Re-added to WBS."`.
+Extract candidates from common files: each is `(Site, ID, Module, Feature/Use case name)`. ID is taken from the common file's own identifier (UC ID / Feature ID — whatever the project uses). If a candidate has no explicit ID in source materials, generate one following the detected convention and bump the counter.
 
-> The skill NEVER deletes rows. Manual edits in any column EXCEPT M (and append-only on O when soft-delete/re-add fires) are preserved.
+For each candidate:
+- `ID` exists in `existingIndex`:
+  - If `In scope?` = `Removed` → set to `Yes`, record a re-add note for the user report.
+  - Else → SKIP (preserve manual edits to Module / Name / Site).
+- `ID` is new → append new row: `| <Site> | <ID> | <Module> | <Feature/Use case name> | Yes | | | | | |` (status columns deliberately blank).
 
-### Phase 6 — Extract project-context Sections + Interview
+For each `existingIndex` row whose ID is NOT in current candidates:
+- If `In scope?` = `Yes` → set to `Removed`. Record for user report.
+- Else (`No` or `Removed` already) → leave unchanged.
+
+> The skill NEVER deletes rows. NEVER writes to columns 6–10 (status + execute). Manual edits to columns 1, 3, 4 on existing rows are preserved.
+
+##### 5.3.D Re-render dashboard
+
+Compose the full markdown file:
+- Frontmatter / introductory note block from template (or preserved from existing file).
+- Header row with `<ID label>` preserved.
+- Separator row.
+- Data rows in this order: existing rows (in their original order) → new rows (sorted by Site alphabetical, then by ID).
+- Notes/ghi-chú block (preserved verbatim).
+
+Write back to `qc-dashboard` path. This is a full overwrite of the markdown file, but content is preserved row-by-row.
+
+##### 5.3.E Report to user
+
+If any soft-delete or re-add happened, output a short block before continuing to Phase 6:
+```
+**Dashboard sync:**
+- Mới thêm: <N> features (<list IDs>)
+- Soft-deleted (In scope? → Removed): <N> features (<list IDs>) — vui lòng kiểm tra xem đây là remove cố ý hay chỉ tạm vắng khỏi WBS.
+- Re-added (In scope? → Yes): <N> features (<list IDs>)
+```
+
+If none of the above happened, no output for this sub-phase.
+
+### Phase 6 — Extract, Propose, and Interview
 
 #### 6.1 Extraction priority
 
@@ -162,7 +208,7 @@ For each section, follow this priority: `High-level-files` → `requirement-comm
 | 2 | Business Goal (goal, problem/pain point, success criteria) | Product Brief, WBS | ✅ Required |
 | 3 | Scope Summary (in scope, out of scope, assumptions, dependencies) | WBS, Product Brief, common rules | ✅ Required |
 | 4 | Users and Roles (table: role, description, permissions, workflows) | Architecture, common files, project-config.md §5 | ✅ Required |
-| 5 | System Overview (architecture summary; embed Sites table from mapping; link to feature-scope file) | Architecture, Tech Stack | ✅ Required |
+| 5 | System Overview (architecture summary; embed Sites table from mapping; link to qc-dashboard file) | Architecture, Tech Stack | ✅ Required |
 | 6 | Requirement Sources (table: PRD/BRD, wireframe, API spec, business rules, change log) | path-registry.md + ask user | ✅ Required |
 | 7 | Quality Context (critical flows, high-risk areas, NFR notes, known constraints) | common files | ✅ Required |
 | 8 | Environment Context (platform coverage, test environments) | project-config.md §4 + common files | ✅ Required |
@@ -171,59 +217,123 @@ For each section, follow this priority: `High-level-files` → `requirement-comm
 
 For Section 5 specifically:
 - Embed the `Sites` sub-table from the site-abbreviations mapping (just `Full name | Abbreviation`).
-- End with a line linking to the feature-scope file using the path resolved from path-registry.
+- End with a line linking to the qc-dashboard file using the path resolved from path-registry.
 
-#### 6.2 Show consolidated gap table + ask user
+#### 6.2 Confidence scoring per section
 
-Show the user ONE table of GAPS (sections where common files do not provide enough info), then ask:
+After drafting each §1–§9:
+
+1. Score `confidence` based on coverage of required sub-items from sources:
+   - **High (≥70%)** — most sub-items backed by explicit source references.
+   - **Medium (40–69%)** — partial source coverage; some sub-items inferred from context.
+   - **Low (1–39%)** — mostly inferred from indirect signals; minimal source backing.
+   - **Empty (0%)** — no source data found at all.
+2. Collect `evidence`: list of `<file> §<section/line>` references that back the draft. Empty sections have no evidence.
+3. Append the tag at the END of the section's content (before the next `##` header):
+   ```
+   _[AI-proposed | confidence: NN% | evidence: <file §x.y>, <file §a.b>]_
+   ```
+   Empty sections use `evidence: —`.
+
+This tag is the source of truth for which sections go into which interview pass and which remain pending review.
+
+#### 6.3 Multi-pass interview
+
+Run THREE passes in order. Each pass MUST offer a `skip` option; skipping never blocks the skill.
+
+##### Pass A — High-confidence review (sections with confidence ≥70%)
+
+Show ONE consolidated table:
 
 ```
-**Tổng hợp project-context — các điểm cần bạn cung cấp / xác nhận:**
+**Pass A — Đề xuất confidence cao (xác nhận nhanh):**
 
-| § | Mục | Thông tin còn thiếu |
-|---|---|---|
-| 2 | Business Goal | Success criteria chưa rõ trong Product Brief. |
-| 4 | Users and Roles | Permissions của role 'Vendor' chưa nêu. |
-| ... |
+| § | Section | Tóm tắt đề xuất (1 dòng) | Confidence | Evidence |
+|---|---|---|---|---|
+| 1 | Project Identity | <summary> | 90% | project-config §1; Product Brief §2 |
+| 5 | System Overview | <summary> | 85% | Architecture diagram §3; Tech Stack §2 |
 
-👉 Bạn cung cấp ngay được mục nào? Trả lời theo định dạng:
-- §<N>: <nội dung> hoặc "chưa có" hoặc "để sau"
+👉 Trả lời:
+- `accept all` — chấp nhận toàn bộ.
+- `modify §<N>: <nội dung sửa>` — sửa từng mục (lặp lại cho nhiều mục).
+- `skip §<N>` — bỏ qua mục đó (giữ tag `[AI-proposed]`; đẩy high-level question vào §10).
+- `skip all` — bỏ qua toàn bộ pass.
 ```
 
-Behavior per answer:
-- User provides text → fill that section directly; if there is a corresponding Open Question carried over, mark it `Resolved`.
-- "chưa có" / "để sau" → leave a placeholder in that section + add a row to Section 10 Open Questions with status `Open` (new ID continuing the sequence).
+##### Pass B — Medium + Low confidence refinement (sections 1–69%)
 
-All 10 sections are required, but unresolvable info is acceptable as Open Questions — do NOT block the skill.
+For EACH affected section, show a block (one at a time or grouped — choose based on count; if >3 sections, group):
 
-### Phase 7 — Update Input readiness Row 2
+```
+**Pass B — §<N> <Section name>** (confidence: NN%)
 
-Schema (6 columns A–F — DO NOT alter):
-| A | B | C | D | E | F |
-|---|---|---|---|---|---|
-| Feature ID | Input Needed | Status | Current status | Next Action | Owner |
+*Đề xuất hiện tại:*
+> <content draft, 3–8 dòng>
 
-Row 2 is the dedicated row for `project-context-master.md` readiness. The skill ONLY updates columns C, D, E. Do NOT touch A2 (blank), B2 (`"Project context"`), F2 (`"QC"`).
+*Evidence:* <refs>
+*Còn thiếu:* <bullet list các sub-items chưa có nguồn>
 
-Determine status:
-- **All 10 sections fully filled, no Open Questions with status `Open`:**
-  - C2 = `"Ready"`
-  - D2 = `"Completed with full content for all sections."`
-  - E2 = `"—"`
-- **Some sections placeholder OR ≥1 Open Question still `Open`:**
-  - C2 = `"Partial"`
-  - D2 = comma-separated list of section §s with gaps (e.g. `"§2 (Business Goal), §7 (Quality Context)"`)
-  - E2 = short next action (e.g. `"User to provide Business Goal success criteria; finalize NFR list."`)
+👉 Trả lời:
+- `<nội dung bổ sung>` — Agent merge vào draft và remove tag.
+- `accept` — giữ draft hiện tại (giữ tag `[AI-proposed]`).
+- `skip` — bỏ qua (giữ tag; đẩy gap thành high-level question vào §10).
+```
 
-The skill does NOT add or modify any other rows in `Input readiness`.
+##### Pass C — Direct Q&A for empty sections (confidence = 0%)
 
-### Phase 8 — Write project-context-master.md
+For EACH empty section, ask 2–4 TARGETED questions (không hỏi chung chung):
 
-1. Render the populated template into `config/project-context-master.md`. Overwrite if exists.
+```
+**Pass C — §<N> <Section name>** (chưa có dữ liệu từ common files)
+
+Để hoàn thiện mục này, cần biết:
+1. <câu hỏi cụ thể 1>
+2. <câu hỏi cụ thể 2>
+3. <câu hỏi cụ thể 3>
+
+👉 Trả lời:
+- Trả lời từng câu (đánh số) — Agent compose nội dung section từ answers và remove tag.
+- Trả lời một phần — Agent fill phần có; phần còn lại đẩy vào §10.
+- `skip` — bỏ qua mục này (placeholder `_<Pending — see Q-XXX>_`; high-level question vào §10).
+```
+
+#### 6.4 Tag lifecycle
+
+| User action | Tag handling |
+|---|---|
+| `accept` toàn bộ / từng mục | **Remove** tag — content trở thành user-owned. |
+| `modify §<N>: ...` (Pass A) | **Remove** tag — content user-owned sau khi merge. |
+| Bổ sung nội dung (Pass B) | **Remove** tag — content user-owned sau khi merge. |
+| Trả lời Q&A (Pass C) | **Remove** tag — content được compose từ answers. |
+| Trả lời một phần (Pass C) | **Keep** tag với confidence cập nhật + evidence bao gồm "user input <date>"; phần còn thiếu đẩy vào §10. |
+| `skip` (mọi pass) | **Keep** tag nguyên trạng — signal pending review cho run sau. |
+
+Trong run kế tiếp (update mode), section nào còn tag `[AI-proposed]` sẽ được re-evaluate (re-score, có thể lên Pass A/B/C lại tùy confidence mới).
+
+#### 6.5 Open Questions §10 — scope rule
+
+Section 10 chỉ chứa câu hỏi **high-level / tổng quan** để track, KHÔNG phải mọi gap chi tiết. Detail gaps được resolve in-flow ở Pass B/C.
+
+Ví dụ câu hỏi đủ điều kiện vào §10:
+- "Stakeholder nào sẽ review/ký duyệt §<N> sau khi Agent đề xuất?"
+- "Roadmap sau v1.0 đã có chưa? (ảnh hưởng scope và §2 Business Goal)"
+- "Defect SLA và severity thresholds chưa được định nghĩa — cần input từ ai?"
+- "Có thêm role/persona nào ngoài danh sách hiện tại không? (kéo theo cập nhật §4)"
+
+KHÔNG đưa vào §10:
+- "Permission cụ thể của role Vendor là gì?" (→ Pass B/C resolve trực tiếp).
+- "Field `email` có bắt buộc không?" (→ thuộc UC detail, ngoài scope project-context).
+
+All 10 sections are required; unresolvable info is acceptable as `[AI-proposed]` tag still present + high-level Q in §10 — do NOT block the skill.
+
+### Phase 7 — Write project-context-master.md
+
+1. Render the populated template into the `project-context-master` path. Overwrite if exists.
 2. Section 10 Open Questions table format: `| ID | Question | Impact | Owner | Status |`. Status ∈ {`Open`, `Resolved`}. IDs continue sequence; do NOT renumber resolved questions.
 3. Preserve original-language labels for non-Vietnamese/English sources with English annotations in parentheses, per global-rules.
+4. Persist the `_[AI-proposed | confidence: NN% | evidence: ...]_` tag verbatim at the end of any section that user did not confirm (skipped or partially answered). Sections that were `accept`-ed, `modify`-ed, supplemented, or fully answered in Q&A MUST NOT carry the tag.
 
-### Phase 9 — Handover
+### Phase 8 — Handover
 
 Output:
 
@@ -231,11 +341,9 @@ Output:
 ✅ **Tổng hợp tri thức dự án hoàn tất.**
 
 **Tóm tắt:**
-- `project-context-master.md`: <created / updated> — sections filled: <count>/10, open questions: <open count> open / <resolved count> resolved
-- `feature-scope.xlsx`:
-  - `Feature list`: +<N> rows mới | soft-delete: <N> | re-add: <N>
-  - `Input readiness` row 2: status = <Ready / Partial>
+- `project-context-master.md`: <created / updated> — sections filled: <count>/10 | user-confirmed: <N>/10 | còn tag `[AI-proposed]`: <N> (§<list>) | open questions: <open count> open / <resolved count> resolved
+- `qc-dashboard.md`: <created / updated> — +<N> rows mới | soft-delete (→ Removed): <N> | re-add (→ Yes): <N>
 - Site abbreviations: <list>
 
-➡️ **Bước tiếp theo gợi ý:** chạy `qc-uc-read` để review use case đầu tiên.
+➡️ **Bước tiếp theo gợi ý:** chạy `/qc-dashboard-sync` để đồng bộ trạng thái tài liệu, hoặc `/qc-uc-read` để review use case đầu tiên.
 ```

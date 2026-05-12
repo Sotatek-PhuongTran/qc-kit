@@ -45,7 +45,7 @@ Briefly describe what will be tested (in scope) and what will not be tested (out
 ## 5. System Overview
 
 Briefly describe the system architecture and the number of sites, modules, and screens.
-The details will be written in the feature-scope file.
+The detailed feature/UC list is maintained in the qc-dashboard file.
 
 ### Sites
 
@@ -53,9 +53,9 @@ The details will be written in the feature-scope file.
 |---|---|
 |  |  |
 
-### Feature scope file
+### QC Dashboard
 
-- Path: <link to feature-scope.xlsx resolved from path-registry>
+- Path: <link to qc-dashboard.md resolved from path-registry>
 
 ## 6. Requirement Sources
 

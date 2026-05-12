@@ -17,22 +17,19 @@ This skill covers the following test types for **web applications and APIs**:
 - Acceptance Testing
 
 ## Output Files
-
-| Artifact       | Output Path                                                            |
-| -------------- | ---------------------------------------------------------------------- |
-| Test Scenarios | `docs/QC-REPORT/scenarios/[UC-ID]/[UC-ID]_[feature-name]_scenarios_[YYYYMMDD].md`   |
-
+Read the `path-registry.md` file to find below files if the path is not already mentioned:
+- `func-test-scenarios`
 
 ## Input
 
-The user will provide one or more of the following (same artefact types as `uc-review`):
-
-- UC requirement document (Markdown, PDF, Word, plain text)
-- The `uc-review` readiness report (the output from the `uc-readiness-review` skill)
-- Supporting artefacts: wireframes, API specs, design docs
+Read the `path-registry.md` file to find below files if the path is not already mentioned:
+- `project-context-master`
+- `qc-dashboard`
+- `uc-review-report`
 
 **Before generating anything**, read all provided documents fully and build a clear understanding of:
 
+- Cunrent status 
 - All UC IDs and their names (e.g., `UC-001`, `UC_LOGIN`)
 - All functions/features described within each UC
 - The main flow, alternative flows, error flows
@@ -137,7 +134,7 @@ After generating both files, provide a brief summary:
 
 | Artifact | File | Count |
 |---|---|---|
-| Test Scenarios | docs/QC-REPORT/scenarios/[UC-ID]/[UC-ID]_[feature-name]_scenarios_[YYYYMMDD].md | X scenarios across Y UCs |
+| Test Scenarios | path resolved from `func-test-scenarios` in `path-registry.md` (file pattern: `[UC-ID]_[feature-name]_scenarios_[YYYYMMDD]_v[N].md`) | X scenarios across Y UCs |
 
 ### Coverage breakdown by test type:
 - Functional: X test scenarios

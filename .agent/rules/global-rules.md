@@ -42,3 +42,7 @@ trigger: always_on
 ## Security & Privacy
 - Data Security: NEVER share sensitive data (PII, passwords, proprietary code) with public models.
 - NEVER store passwords or sensitive credentials in any output file.
+
+## Agent Work Log
+
+- Whenever a skill is executed, the agent MUST append a log row to the `agent-work-log` file (look up the `logical-name` in `path-registry.md` for the actual path).

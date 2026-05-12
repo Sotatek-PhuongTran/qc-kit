@@ -1,13 +1,18 @@
 # Project Configuration
 
+> **Project:** Multi vendor platform
+> **Created:** 2026-05-10
+> **Author:** QC Lead
+> **Version:** v1
+
 Tệp này đóng vai trò là biểu mẫu cấu hình cho dự án thực tế sử dụng Framework JOYs. Hãy điền các thông tin chi tiết dưới đây để các BA, QA và các AI Agent hiểu được bối cảnh, các liên kết và môi trường của dự án đang được kiểm thử.
 
 ---
 
 ## 1. Project Overview
 
-> **Project name:** [Cung cấp  thông tin tên dự án]
-> **Description:** [Cung cấp mô tả  ngắn gọn về dự án. Ví dụ: an E-commerce platform, a banking system, or internal tooling.]
+> **Project name:** Multi vendor platform
+> **Description:** a platform for multi vendor
 > **Domain:** [E-commerce / Finance / Healthcare / etc.]
 
 ---

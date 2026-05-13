@@ -1,15 +1,60 @@
 ## Generate Test Cases (Design Workflow)
 
-> **Scope:** This workflow produces ONLY the test case `.md` file(s). It is fully independent from the `.xlsx` artifact — no script invocation, no xlsx step. Conversion to `.xlsx` and chat-side reporting are orchestrated by `SKILL.md` → "Skill Execution Steps" (Steps B and C). Do NOT write a separate summary file in this workflow.
+> **Scope:** This workflow produces ONLY the test case `.md` file(s). It is fully independent from the `.xlsx` artifact — no script invocation, no xlsx step. Conversion to `.xlsx` (Phase 3) and chat-side reporting (Step C) are orchestrated by `SKILL.md`. Do NOT write a separate summary file in this workflow.
+>
+> **Phase mapping (per `SKILL.md` → "Phase Map"):**
+> - **Phase 1 — Analysis & Design Brief** = Step 1 below.
+> - **Phase 2 — TC Drafting & MD Write** = Steps 2 + 3 + 4 below.
+> - Phase 3 (MD → XLSX) is handled by `convert-md-to-xlsx.md`, not this file.
+>
+> **Checkpoint references:** all phase-boundary write/update steps follow `SKILL.md` → "Checkpoint & Resume Protocol" §5. Do NOT duplicate those rules here.
+
+---
+
+## Phase 1 — Analysis & Design Brief
+
+### Status update — Start of Phase 1
+
+Per `SKILL.md` → "Checkpoint & Resume Protocol" §2 (write-before-work rule):
+
+1. **agent-work-log**: update current row Status → `Running (Phase 1)`. Append input file names (excluding `process-logging/`).
+2. **qc-dashboard.md**: update the UC's `TC design stt` cell → `Running — Phân tích & Lập đề cương thiết kế` (use the input UC's language — Vietnamese here; English equivalent: `Running — Analysis & Design Brief`). Skip if column missing (graceful degradation). If the UC has no row yet in the dashboard → invoke `qc-dashboard-sync` BEFORE updating.
 
 ### Step 1: Input Analysis (MANDATORY)
 
 - Identify the highest version of all the input files (UC Readiness Report, Scenarios). Always select the highest version number available.
 - Read the provided documents and comprehend the use case in preparation for test case design.
+- Detect the output language from the source input language (Vietnamese UC → Vietnamese TCs; otherwise English) and record it as a working note.
+
+### Checkpoint write — End of Phase 1
+
+Per `SKILL.md` → "Checkpoint & Resume Protocol" §5:
+
+1. **Write checkpoint file** `.claude/skills/qc-func-tc-design/process-logging/<UC-ID>/01_analysis.md` containing:
+   - UC summary (1–2 sentences) + source input filename + version.
+   - **AC list** extracted from the audited UC (just the AC IDs + one-line summary each).
+   - **UI inventory snapshot**: condensed list of screens / sections / atomic UI elements identified, grouped by screen — this is the planning skeleton for the 6-phase drafting in Phase 2.
+   - **Planned TC scope**: how many screens × ~estimated TCs per screen (GUI + FUNC rough split).
+   - **Detected output language** (VI / EN).
+   - Working notes: version of source files read, target md path (resolved from `func-test-cases-draft` in path-registry).
+2. **Update `progress.md`** → `last_phase_done: 1`, `next_phase: 2`, `updated_at: <now>`.
+3. **agent-work-log**: update row Status → `Phase 1 done`.
+4. **qc-dashboard.md**: update the UC's `TC design stt` cell → `Phân tích & Lập đề cương thiết kế done` (skip if column missing).
+
+---
+
+## Phase 2 — TC Drafting & MD Write
+
+### Status update — Start of Phase 2
+
+1. **agent-work-log**: update current row Status → `Running (Phase 2)`.
+2. **qc-dashboard.md**: update the UC's `TC design stt` cell → `Running — Soạn TC & ghi MD` (VI) / `Running — TC Drafting & MD Write` (EN). Skip if column missing.
 
 ### Step 2: Detailed Drafting (MANDATORY)
 
 Apply the following 6 distinct phases to design test cases. The result of this step is the test case content that will be written to the `.md` in Step 4.
+
+> **Note:** The 6 phases below are *content categories* (systematic coverage buckets), NOT separate checkpoint boundaries. They all contribute to the same in-memory TC list that gets persisted at the end of Phase 2 via the `.md` write.
 
 #### Phase 1: Screen Initialization (Static States)
 
@@ -102,3 +147,18 @@ Write the designed test cases into `.md` file(s) at the path defined in `path-re
 After the prelude, write all screen / GUI / FUNC sections with their test case tables, following the layout and sorting rules in `qc-func-tc-design/rules/testcase-instruction-rules.md`.
 
 **Do NOT write a separate summary file.** The md (with its prelude) is the only design artifact this workflow produces. Anything noteworthy beyond the prelude (e.g., out-of-scope items, requirement gaps observed during drafting) will be reported on chat by the orchestrator (`SKILL.md` → Step C).
+
+### Checkpoint write — End of Phase 2
+
+Per `SKILL.md` → "Checkpoint & Resume Protocol" §5:
+
+1. **The deliverable `.md` (written in Step 4 above) IS the Phase 2 checkpoint.** Do NOT write a separate file in `process-logging/`.
+2. **Update `progress.md`** → `last_phase_done: 2`, `next_phase: 3`, `updated_at: <now>`.
+3. **agent-work-log**: update row Status → `Phase 2 done`. Append the `.md` path(s) to the Output column (excluding `process-logging/`).
+4. **qc-dashboard.md**: update the UC's `TC design stt` cell → `Soạn TC & ghi MD done` (VI) / `TC Drafting & MD Write done` (EN). Skip if column missing.
+
+---
+
+## Hand-off to Phase 3
+
+Next file: `workflows/convert-md-to-xlsx.md`. The orchestrator (`SKILL.md` → Step B) auto-triggers it after Phase 2 finishes successfully.

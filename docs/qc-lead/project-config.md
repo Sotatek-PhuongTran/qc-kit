@@ -1,9 +1,9 @@
 # Project Configuration
 
-> **Project:** Multi vendor platform
+> **Project:** test cho MBFS mobile
 > **Created:** 2026-05-10
 > **Author:** QC Lead
-> **Version:** v1
+> **Version:** v2
 
 Tệp này đóng vai trò là biểu mẫu cấu hình cho dự án thực tế sử dụng Framework JOYs. Hãy điền các thông tin chi tiết dưới đây để các BA, QA và các AI Agent hiểu được bối cảnh, các liên kết và môi trường của dự án đang được kiểm thử.
 
@@ -11,9 +11,9 @@ Tệp này đóng vai trò là biểu mẫu cấu hình cho dự án thực tế
 
 ## 1. Project Overview
 
-> **Project name:** [Cung cấp tên dự án]
-> **Description:** [Cung cấp mô tả ngắn về dự án]
-> **Domain:** [E-commerce / Finance / Healthcare / etc.]
+> **Project name:** test cho MBFS mobile
+> **Description:** test cho MBFS mobile
+> **Domain:** mobile app
 
 ---
 

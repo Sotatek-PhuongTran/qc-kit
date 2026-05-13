@@ -21,7 +21,7 @@ Read the `path-registry.md` file to find below files if the path is not already 
 - Existing `project-config` (cross-reference for §1, §4, §8)
 - Site abbreviation mapping (auto-managed): `.claude/skills/qc-context-master/state/site-abbreviations.md`
 - Template `templates/project-context-template.md`
-- Template `templates/qc-dashboard-template.md`
+- Template `.claude/skills/qc-dashboard-sync/templates/qc-dashboard-template.md` (owned by `qc-dashboard-sync`; read here only for handoff-schema reference)
 
 ## Outputs
 Read the `path-registry.md` file to find below files if the path is not already mentioned:
@@ -69,7 +69,7 @@ Update worklog Status → `Running (Phase 1)`.
 
 3. Read templates:
    - `.claude/skills/qc-context-master/templates/project-context-template.md`
-   - `.claude/skills/qc-context-master/templates/qc-dashboard-template.md`
+   - `.claude/skills/qc-dashboard-sync/templates/qc-dashboard-template.md` (owned by `qc-dashboard-sync`)
 
 Update worklog Status → `Phase 1 done`. (No checkpoint file — Phase 1 is cheap to re-run.)
 

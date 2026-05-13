@@ -1,16 +1,18 @@
-# Phase 5 — Site Mapping + Feature List Sync
+# Phase 5 — Site Mapping + Feature List Handoff
 
 > **Invoked by:** `SKILL.md` after Phase 4 (Carry-over) completes.
 >
 > **Prerequisites loaded into memory:** `04_carryover.md` (snapshot of §10 Open Questions), resolved path-registry logical names, templates.
 >
-> **Deliverable (user-visible):** `qc-dashboard.md` written/updated at the path resolved via `path-registry` → `qc-dashboard`.
+> **Deliverables:**
+> - Handoff file at `.claude/skills/qc-dashboard-sync/inbox/feature-list-handoff.md` (consumed by `qc-dashboard-sync`).
+> - `qc-dashboard.md` updated via auto-trigger of `qc-dashboard-sync` (NOT written by this workflow directly).
 >
 > **Checkpoint produced:** `process-logging/05_deltas.md` + `progress.md` updated.
 >
 > **Worklog Status transitions:** `Running (Phase 5)` → `Phase 5 done`.
 >
-> **Owns columns 1–5 of dashboard** (`Site`, `<ID label>`, `Module`, `Feature/Use case name`, `In scope?`). MUST NOT touch columns 6–10 (status columns owned by `qc-dashboard-sync`).
+> **Ownership note:** As of the 2026-05-13 refactor, `qc-context-master` no longer writes the dashboard directly. It produces a feature list and hands off to `qc-dashboard-sync`, which is the sole owner of `qc-dashboard.md`.
 
 ---
 
@@ -38,91 +40,86 @@ Scan WBS / Product Brief / Architecture Diagram for site/portal mentions (User, 
 - New site, name ≤ 4 chars → use as-is, append to mapping.
 - New site, name > 4 chars → ask user: `"Site '<full name>' viết tắt thành gì? (gợi ý: <first 4 chars>)"`. Append answer to mapping.
 
-Site values from this mapping populate column 1 of the dashboard.
+Site values from this mapping populate column 1 (Site) of the dashboard via handoff.
 
-## Step 3 — Sync dashboard (`qc-dashboard.md`)
+## Step 3 — Extract feature/UC candidates from common files
 
-Schema — exactly 10 columns; this skill OWNS the first 5 columns and MUST NOT touch the last 5:
+Extract candidates from WBS / Product Brief / SRS / business-rules. Each candidate is a tuple `(Site, ID, Module, Feature/Use case name, In scope?)`.
 
-| # | Column                     | Owner               |
-|---|----------------------------|---------------------|
-| 1 | `Site`                     | qc-context-master   |
-| 2 | `<ID label>`               | qc-context-master   |
-| 3 | `Module`                   | qc-context-master   |
-| 4 | `Feature/Use case name`    | qc-context-master   |
-| 5 | `In scope?`                | qc-context-master   |
-| 6 | `Specs stt`                | qc-dashboard-sync   |
-| 7 | `WF stt`                   | qc-dashboard-sync   |
-| 8 | `Test scenario stt`        | qc-dashboard-sync   |
-| 9 | `Test cases stt`           | qc-dashboard-sync   |
-| 10| `Execute stt`              | — (pending)         |
+- `ID` is taken from the common file's own identifier (UC ID / Feature ID / Story ID — whatever the project uses).
+- If a candidate has no explicit ID in source materials, generate one following the detected convention and bump the counter.
+- `In scope?` defaults to `Yes` for fresh candidates. If a previous run flagged this ID as `No` / `Removed` and the candidate is still present in the WBS → set to `Yes` (re-add).
 
-### 3.A — First-time creation (dashboard does not exist)
+Result: `candidates = List<{ Site, ID, Module, Name, InScope }>`.
 
-1. Resolve `qc-dashboard` path from path-registry.
-2. Detect ID convention from common files: scan for the dominant pattern (`UC-[A-Z]+-\d+`, `F-\d+`, `FEAT-\d+`, ...). If found, ask user to confirm:
-   > "Phát hiện dự án dùng định danh dạng `<example>`. Tên cột định danh trong dashboard nên là gì? (gợi ý: `Use Case ID`, `Feature ID`, `Story ID`)"
+## Step 4 — Compute deltas vs current dashboard
 
-   If no pattern found, ask both ID format AND column label.
-3. Read template `templates/qc-dashboard-template.md`. Replace placeholder `{{ID_LABEL}}` (appears twice — header row + notes section) with the chosen label.
-4. Write the populated template to the resolved `qc-dashboard` path. Body table is empty at this point (just header + separator row).
-5. Proceed to Step 3.C with an empty existing-row set.
+1. Read current `qc-dashboard.md` if it exists. Build `existingIndex = Map<ID → row>`.
+2. For each candidate:
+   - ID ∈ existingIndex AND `existingIndex[ID].InScope = Removed` → mark as **re-add** (Status will be `Need confirm` when `qc-dashboard-sync` writes).
+   - ID ∈ existingIndex AND `In scope? ≠ Removed` → no change; will skip handoff for this ID (manual edits to Module / Name / Site are preserved by the sync skill).
+   - ID ∉ existingIndex → **new add**.
+3. For each existing row whose ID is NOT in `candidates`:
+   - `In scope? = Yes` → record as **soft-delete candidate** (the sync skill will not auto-Remove; it relies on disk-state). However, write a delta-report line so the user sees that WBS no longer mentions the ID.
 
-### 3.B — Update run (dashboard exists)
+> This workflow only **computes** the deltas — it does NOT modify the dashboard.
 
-1. Read `qc-dashboard`. Parse the markdown table:
-   - Header row → identify `<ID label>` from column 2.
-   - Data rows → build `existingIndex = { ID → { row index, Site, Module, Name, In scope? } }`.
-   - Capture the notes/ghi-chú block below the table verbatim for later re-render.
-2. Validate column count = 10. If schema mismatch (count differs, or header column 2 label changed unexpectedly), STOP and ask user.
+## Step 5 — Write the handoff file
 
-### 3.C — Compute deltas
+Create or overwrite `.claude/skills/qc-dashboard-sync/inbox/feature-list-handoff.md`:
 
-Extract candidates from common files: each is `(Site, ID, Module, Feature/Use case name)`. ID is taken from the common file's own identifier (UC ID / Feature ID — whatever the project uses). If a candidate has no explicit ID in source materials, generate one following the detected convention and bump the counter.
+```markdown
+---
+source_skill: qc-context-master
+run_id: <this run's run_id>
+generated_at: <ISO-8601 datetime>
+---
 
-For each candidate:
-- `ID` exists in `existingIndex`:
-  - If `In scope?` = `Removed` → set to `Yes`, record a re-add note.
-  - Else → SKIP (preserve manual edits to Module / Name / Site).
-- `ID` is new → append new row: `| <Site> | <ID> | <Module> | <Feature/Use case name> | Yes | | | | | |` (status columns deliberately blank).
+# Feature/UC list handoff
 
-For each `existingIndex` row whose ID is NOT in current candidates:
-- If `In scope?` = `Yes` → set to `Removed`. Record for delta report.
-- Else (`No` or `Removed` already) → leave unchanged.
-
-> The skill NEVER deletes rows. NEVER writes to columns 6–10. Manual edits to columns 1, 3, 4 on existing rows are preserved.
-
-### 3.D — Re-render dashboard
-
-Compose the full markdown file:
-- Frontmatter / introductory note block from template (or preserved from existing file).
-- Header row with `<ID label>` preserved.
-- Separator row.
-- Data rows in this order: existing rows (in their original order) → new rows (sorted by Site alphabetical, then by ID).
-- Notes/ghi-chú block (preserved verbatim).
-
-Write back to `qc-dashboard` path. This is a full overwrite of the markdown file, but content is preserved row-by-row.
-
-### 3.E — Report deltas to user
-
-If any soft-delete or re-add happened, output a short block:
-```
-**Dashboard sync:**
-- Mới thêm: <N> features (<list IDs>)
-- Soft-deleted (In scope? → Removed): <N> features (<list IDs>) — vui lòng kiểm tra xem đây là remove cố ý hay chỉ tạm vắng khỏi WBS.
-- Re-added (In scope? → Yes): <N> features (<list IDs>)
+| ID | Site | Module | Feature/Use case name | In scope? |
+|---|---|---|---|---|
+| <ID> | <Site> | <Module> | <name> | Yes |
+| ... | ... | ... | ... | ... |
 ```
 
-If none of the above happened, no output for this sub-step.
+Include only:
+- New adds (rows not in existingIndex).
+- Re-adds (rows previously `Removed`).
 
-## Step 4 — Checkpoint write
+Do NOT include unchanged existing rows — the sync skill preserves them.
+
+## Step 6 — Invoke `qc-dashboard-sync`
+
+Invoke the `qc-dashboard-sync` skill via the Skill tool. The sync skill will:
+1. Read the handoff file.
+2. Merge it with disk-state observations.
+3. Write `qc-dashboard.md`.
+4. Delete the handoff file.
+
+Wait for completion. Capture any user-confirmation outputs from the sync skill for the delta report.
+
+## Step 7 — Report deltas to user
+
+After the sync skill returns, output a short block summarizing what changed (this skill's perspective on candidate-level changes; the sync skill already reported its own perspective on disk-state changes):
+
+```
+**Feature list handoff (from `qc-context-master`):**
+- Mới thêm vào WBS: <N> features (<list IDs>)
+- Re-add (Removed → Need confirm): <N> features (<list IDs>)
+- Không còn trong WBS (cần user kiểm tra): <N> features (<list IDs>) — `qc-dashboard-sync` không tự xóa; nếu folder cũng đã bị xóa thì sync skill sẽ đề nghị `In scope? = Removed`.
+```
+
+If none of the above happened, skip this output.
+
+## Step 8 — Checkpoint write
 
 Per `checkpoint-protocol.md` §4:
 
-1. Write `process-logging/05_deltas.md` capturing the deltas block from Step 3.E plus the detected `<ID label>` and current site abbreviations.
+1. Write `process-logging/05_deltas.md` capturing the deltas block from Step 7 plus the detected `<ID label>` and current site abbreviations.
 2. Update `process-logging/progress.md` → `last_phase_done: 5`, `next_phase: 6.1`.
-3. Update agent-work-log row: `Status = Phase 5 done`. Append `qc-dashboard.md` to Output column if not already present.
+3. Update agent-work-log row: `Status = Phase 5 done`. Add `.claude/skills/qc-dashboard-sync/inbox/feature-list-handoff.md` (transient) to Input. Add `qc-dashboard.md` to Output (indirectly written via `qc-dashboard-sync`).
 
-## Step 5 — Hand back to SKILL.md
+## Step 9 — Hand back to SKILL.md
 
 Return control. The next dispatch is `phase-6-extract-interview.md`.

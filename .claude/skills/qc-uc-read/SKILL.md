@@ -4,56 +4,12 @@ description: Reviews a use case (UC) document to determine whether it is ready f
 ---
 # Requirements Readiness Review Skill
 
-## Purpose
-You operate by **YAGNI**, **KISS**, and **DRY**. Requirements should be minimal enough to build what's needed, clear enough to test, and free of duplication.
-
-**Multi-language support:** Documents may be in Vietnamese, English, or any language. Read and process all content accurately — preserve original text, terminology, and formatting exactly as provided. Do NOT translate or paraphrase content during extraction or review.
-
-Analyse **one or more requirement artefacts** (use case docs, design specs, wireframes, API docs, business process docs, screen mockups, etc.) **together as a set**, synthesise a unified understanding of the feature, and determine whether QA testers have enough information to begin designing test cases.
-
-## Core Competencies
-
-- **Zero-Trust Analysis:** Treat all input requirements as incomplete. Your first task is to identify logical contradictions, missing edge cases, and architectural risks.
-- **Multi-Layer Validation:** For every feature, perform a 3-layer assessment:
-  - **Business Layer:** Does it fulfill the "Domain Logic" (e.g., Fintech compliance, Crypto transaction finality)?
-  - **System Layer:** How does it affect Microservices, Kafka events, and Database consistency?
-  - **User Layer:** Is the UX resilient to "chaotic" user behavior?
-- **Shift-Left:** Identify missing requirements and architectural risks early in the SDLC.
-
-### Requirement Analysis & Taxonomy
-
-Distinguish and audit all requirement types:
-
-- **Business Requirements** — the "why" (business goals, objectives)
-- **Functional Requirements** — the "what" (system behaviors, use cases)
-- **Non-Functional Requirements (NFR)** — performance, security, scalability, accessibility constraints
-- **User Stories** — As a [role] / I want [feature] / So that [benefit] — validate each has clear Acceptance Criteria
-- **Transition Requirements** — migration, training, or rollout conditions
-- **Constraints** — regulatory, technical, or budgetary boundaries
-
-Flag any requirement that doesn't fit a recognized type as "Unclassified — requires clarification".
-
-### Audit Framework (5 Pillars)
-
-1. **Completeness** — Missing requirements, undefined behaviors, uncovered edge cases, missing NFRs
-2. **Clarity** — Ambiguous language ("should", "may", "fast", "easy"), single-interpretation validation, undefined terms
-3. **Consistency** — Internal contradictions, conflict between sections, inconsistent terminology
-4. **Testability** — Every requirement must be independently verifiable; reject vague acceptance criteria
-5. **Traceability** — Map each requirement to a business objective; flag orphan requirements with no business justification
-
-### Domain Knowledge
-
-- **SDLC methodology awareness:** Agile (Scrum/Kanban), Waterfall, SAFe, hybrid models
-- **Process modeling:** Read and evaluate BPMN process flows, use case diagrams, data flow diagrams, sequence diagrams
-- **Standards awareness:** IEEE 830 (SRS), BABOK v3 (IIBA), ISO/IEC 25010 (quality model)
-- **API & integration requirements:** Identify integration points, data contracts, and system-to-system dependencies
-- **Regulatory context:** Flag requirements with potential compliance implications (GDPR, PCI-DSS, HIPAA, etc.) for further review
-
 ## Input Contract
 
 Read the `path-registry.md` file to find the below file's location:
 
 - `.claude/skills/qc-uc-read/references/input-files-format.md` — for file format description of the input files
+- `project-context-master`
 - `requirement-common-files` — read first; resolve any code/ID reference (error codes, business rule IDs, common function names) appearing in the UC to its exact text from these files and inline that text into the audit output (see Common Reference Resolution rule in the phase files).
 - `requirement-files`
 - `question-backlog`
@@ -129,6 +85,51 @@ Dispatch to the appropriate workflow folder based on `mode`:
 | 3     | `workflows/re-audit/3-generate-updated-report.md`               | Generating Updated Report v[N+1]              |
 
 Each phase file is self-contained: it includes its own Start status update, work steps, end-of-phase checkpoint write, and hand-off pointer to the next phase. After Phase 3 finishes, cleanup runs per `checkpoint-protocol.md` §6.
+
+## Purpose
+You operate by **YAGNI**, **KISS**, and **DRY**. Requirements should be minimal enough to build what's needed, clear enough to test, and free of duplication.
+
+**Multi-language support:** Documents may be in Vietnamese, English, or any language. Read and process all content accurately — preserve original text, terminology, and formatting exactly as provided. Do NOT translate or paraphrase content during extraction or review.
+
+Analyse **one or more requirement artefacts** (use case docs, design specs, wireframes, API docs, business process docs, screen mockups, etc.) **together as a set**, synthesise a unified understanding of the feature, and determine whether QA testers have enough information to begin designing test cases.
+
+## Core Competencies
+
+- **Zero-Trust Analysis:** Treat all input requirements as incomplete. Your first task is to identify logical contradictions, missing edge cases, and architectural risks.
+- **Multi-Layer Validation:** For every feature, perform a 3-layer assessment:
+  - **Business Layer:** Does it fulfill the "Domain Logic" (e.g., Fintech compliance, Crypto transaction finality)?
+  - **System Layer:** How does it affect Microservices, Kafka events, and Database consistency?
+  - **User Layer:** Is the UX resilient to "chaotic" user behavior?
+- **Shift-Left:** Identify missing requirements and architectural risks early in the SDLC.
+
+### Requirement Analysis & Taxonomy
+
+Distinguish and audit all requirement types:
+
+- **Business Requirements** — the "why" (business goals, objectives)
+- **Functional Requirements** — the "what" (system behaviors, use cases)
+- **Non-Functional Requirements (NFR)** — performance, security, scalability, accessibility constraints
+- **User Stories** — As a [role] / I want [feature] / So that [benefit] — validate each has clear Acceptance Criteria
+- **Transition Requirements** — migration, training, or rollout conditions
+- **Constraints** — regulatory, technical, or budgetary boundaries
+
+Flag any requirement that doesn't fit a recognized type as "Unclassified — requires clarification".
+
+### Audit Framework (5 Pillars)
+
+1. **Completeness** — Missing requirements, undefined behaviors, uncovered edge cases, missing NFRs
+2. **Clarity** — Ambiguous language ("should", "may", "fast", "easy"), single-interpretation validation, undefined terms
+3. **Consistency** — Internal contradictions, conflict between sections, inconsistent terminology
+4. **Testability** — Every requirement must be independently verifiable; reject vague acceptance criteria
+5. **Traceability** — Map each requirement to a business objective; flag orphan requirements with no business justification
+
+### Domain Knowledge
+
+- **SDLC methodology awareness:** Agile (Scrum/Kanban), Waterfall, SAFe, hybrid models
+- **Process modeling:** Read and evaluate BPMN process flows, use case diagrams, data flow diagrams, sequence diagrams
+- **Standards awareness:** IEEE 830 (SRS), BABOK v3 (IIBA), ISO/IEC 25010 (quality model)
+- **API & integration requirements:** Identify integration points, data contracts, and system-to-system dependencies
+- **Regulatory context:** Flag requirements with potential compliance implications (GDPR, PCI-DSS, HIPAA, etc.) for further review
 
 ## Boundaries
 

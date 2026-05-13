@@ -1,17 +1,12 @@
 {
   "permissions": {
     "allow": [
-      "Bash(git mv *)",
-      "Edit(/.claude/skills/qc-func-tc-design/**)",
-      "Edit(/.claude/skills/qc-context-master/**)",
-      "PowerShell($claude = Get-Item \"c:\\\\Users\\\\Admin\\\\Desktop\\\\qc-kit\\\\.claude\"; $agent = Get-Item \"c:\\\\Users\\\\Admin\\\\Desktop\\\\qc-kit\\\\.agent\"; \"$\\($claude.LinkType\\) $\\($claude.Target\\)\"; \"$\\($agent.LinkType\\) $\\($agent.Target\\)\")",
-      "Edit(/.claude/skills/qc-uc-read/**)",
-      "Bash(rm .claude/skills/qc-uc-read/workflows/first-audit-workflow.md .claude/skills/qc-uc-read/workflows/re-audit-workflow.md)",
-      "Bash(rm .agent/skills/qc-uc-read/workflows/first-audit-workflow.md .agent/skills/qc-uc-read/workflows/re-audit-workflow.md)",
-      "Bash(xargs wc *)"
+      "Edit(/.claude/skills/qc-uc-read/**)"
     ],
     "additionalDirectories": [
-      "c:\\Users\\Admin\\Desktop\\qc-kit\\docs\\qc-lead"
+      "c:\\Users\\Admin\\Desktop\\qc-kit\\.claude\\skills\\qc-uc-read\\process-logging\\UC1",
+      "c:\\Users\\Admin\\Desktop\\qc-kit\\.claude\\skills\\qc-uc-read\\process-logging",
+      "c:\\Users\\Admin\\Desktop\\qc-kit\\.claude\\skills\\qc-uc-read\\process-logging\\UC45-51"
     ]
   }
 }

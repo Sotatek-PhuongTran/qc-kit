@@ -1,12 +1,28 @@
 ## Update Test Cases (Design Update Workflow)
 
-> **Scope:** This workflow produces ONLY the updated test case `.md` file. It is fully independent from the `.xlsx` artifact — no script invocation, no xlsx step. Conversion to `.xlsx` and chat-side reporting are orchestrated by `SKILL.md` → "Skill Execution Steps" (Steps B and C). Do NOT write a separate summary file in this workflow.
-
+> **Scope:** This workflow produces ONLY the updated test case `.md` file. It is fully independent from the `.xlsx` artifact — no script invocation, no xlsx step. Conversion to `.xlsx` (Phase 3) and chat-side reporting (Step C) are orchestrated by `SKILL.md`. Do NOT write a separate summary file in this workflow.
+>
 > **Trigger conditions:** This workflow is triggered when EITHER of the following occurs:
 > 1. **Requirement change**: The audited UC Readiness Report has been updated (new version). Test cases need to be aligned with the changed requirements.
 > 2. **User feedback**: The user provides explicit feedback about gaps, errors, or missing coverage in the existing test cases.
+>
+> **Phase mapping (per `SKILL.md` → "Phase Map"):**
+> - **Phase 1 — Analysis & Design Brief** = Steps 1 + 2 below.
+> - **Phase 2 — TC Drafting & MD Write** = Steps 3 + 4 below.
+> - Phase 3 (MD → XLSX) is handled by `convert-md-to-xlsx.md`, not this file.
+>
+> **Checkpoint references:** all phase-boundary write/update steps follow `SKILL.md` → "Checkpoint & Resume Protocol" §5. Do NOT duplicate those rules here.
 
 ---
+
+## Phase 1 — Analysis & Design Brief
+
+### Status update — Start of Phase 1
+
+Per `SKILL.md` → "Checkpoint & Resume Protocol" §2 (write-before-work rule):
+
+1. **agent-work-log**: update current row Status → `Running (Phase 1)`. Append input file names (excluding `process-logging/`).
+2. **qc-dashboard.md**: update the UC's `TC design stt` cell → `Running — Phân tích & Lập đề cương thiết kế` (VI) / `Running — Analysis & Design Brief` (EN). Skip if column missing (graceful degradation). If the UC has no row yet in the dashboard → invoke `qc-dashboard-sync` BEFORE updating.
 
 ### Step 1: Input Analysis (MANDATORY)
 
@@ -97,13 +113,36 @@ Do NOT write this flag into a file — it will be reported on chat.
 
 #### 2C — If Trigger is Type C (Both)
 
-Apply both 2A and 2B analyses sequentially. Consolidate the Impact Table and Feedback Analysis into a unified **Change Analysis Report** held in working memory before proceeding to Step 3.
+Apply both 2A and 2B analyses sequentially. Consolidate the Impact Table and Feedback Analysis into a unified **Change Analysis Report** held in working memory before proceeding to Phase 2.
+
+### Checkpoint write — End of Phase 1
+
+Per `SKILL.md` → "Checkpoint & Resume Protocol" §5:
+
+1. **Write checkpoint file** `.claude/skills/qc-func-tc-design/process-logging/<UC-ID>/01_analysis.md` containing:
+   - Trigger Type (A / B / C).
+   - **Impact Table** (if Type A or C) — full table from Step 2A.
+   - **Feedback Classification** (if Type B or C) — per-feedback rows with Category + Reason + Action.
+   - **Cat 1 Skill Improvement Flags** (if any) — verbatim text to surface in Step C.
+   - **Cat 2 open requirement gaps** (if any) — items waiting on user confirmation / audited-file update.
+   - Previous TC version + path; current `uc-review-report` version used.
+   - Detected output language (VI / EN).
+2. **Update `progress.md`** → `last_phase_done: 1`, `next_phase: 2`, `updated_at: <now>`, `workflow: update-test-cases`.
+3. **agent-work-log**: update row Status → `Phase 1 done`.
+4. **qc-dashboard.md**: update the UC's `TC design stt` cell → `Phân tích & Lập đề cương thiết kế done` (VI) / `Analysis & Design Brief done` (EN). Skip if column missing.
 
 ---
 
+## Phase 2 — TC Drafting & MD Write
+
+### Status update — Start of Phase 2
+
+1. **agent-work-log**: update current row Status → `Running (Phase 2)`.
+2. **qc-dashboard.md**: update the UC's `TC design stt` cell → `Running — Soạn TC & ghi MD` (VI) / `Running — TC Drafting & MD Write` (EN). Skip if column missing.
+
 ### Step 3: Redesign Affected Test Cases (MANDATORY)
 
-Using the same 6-phase design logic as `generate-test-cases.md`, apply it **only to the impacted scope** identified in Step 2:
+Using the same 6-phase design logic as `generate-test-cases.md`, apply it **only to the impacted scope** identified in Phase 1:
 
 - **New TCs**: Design from scratch using the 6-phase logic for the new or changed ACs.
 - **Updated TCs**: Rewrite only the affected fields (Steps, Expected Result, Pre-conditions) — keep the TC ID unchanged. Add a note: `[Updated vN — Reason: AC-XX modified]`.
@@ -172,3 +211,18 @@ The md must contain ALL test cases — unchanged, updated, and newly added — i
 - Encoding (Rules 0a–0d): UTF-8 md, preserve dấu, no `unicodedata.normalize` / `unidecode` / Latin-1.
 
 **Do NOT write a separate summary file.** The md (with its prelude) is the only design artifact this workflow produces. Detailed change tables (deleted / updated / new TCs), Cat 1 skill improvement flags, Cat 2 open requirement gaps, and out-of-scope items will be reported on chat by the orchestrator (`SKILL.md` → Step C).
+
+### Checkpoint write — End of Phase 2
+
+Per `SKILL.md` → "Checkpoint & Resume Protocol" §5:
+
+1. **The deliverable updated `.md` (written in Step 4 above) IS the Phase 2 checkpoint.** Do NOT write a separate file in `process-logging/`.
+2. **Update `progress.md`** → `last_phase_done: 2`, `next_phase: 3`, `updated_at: <now>`.
+3. **agent-work-log**: update row Status → `Phase 2 done`. Append the `.md` path(s) to the Output column (excluding `process-logging/`).
+4. **qc-dashboard.md**: update the UC's `TC design stt` cell → `Soạn TC & ghi MD done` (VI) / `TC Drafting & MD Write done` (EN). Skip if column missing.
+
+---
+
+## Hand-off to Phase 3
+
+Next file: `workflows/convert-md-to-xlsx.md`. The orchestrator (`SKILL.md` → Step B) auto-triggers it after Phase 2 finishes successfully.

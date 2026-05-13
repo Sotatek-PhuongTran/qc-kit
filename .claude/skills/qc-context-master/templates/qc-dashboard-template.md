@@ -5,12 +5,13 @@
 > **Ownership:**
 > - `qc-context-master` quản lý cột: `Site`, `{{ID_LABEL}}`, `Module`, `Feature/Use case name`, `In scope?`
 > - `qc-dashboard-sync` quản lý cột: `Specs stt`, `WF stt`, `Test scenario stt`, `Test cases stt`
+> - `qc-uc-read` quản lý cột: `Review stt`
 > - Cột `Execute stt` hiện đang pending (chưa có skill quản lý — để trống).
 >
 > **DO NOT delete rows.** Feature/UC bị remove khỏi WBS sẽ được đánh `In scope? = Removed` (soft-delete).
 
-| Site | {{ID_LABEL}} | Module | Feature/Use case name | In scope? | Specs stt | WF stt | Test scenario stt | Test cases stt | Execute stt |
-| :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- |
+| Site | {{ID_LABEL}} | Module | Feature/Use case name | In scope? | Specs stt | WF stt | Review stt | Test scenario stt | Test cases stt | Execute stt |
+| :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- |
 
 ---
 
@@ -23,6 +24,11 @@
 - **In scope?:** `Yes` (đang trong scope) / `No` (out of scope hiện tại) / `Removed` (đã từng có nhưng bị remove khỏi WBS — soft-delete).
 - **Specs stt:** `Missing` / `V<N> existed` (N = phiên bản cao nhất tìm thấy trong folder spec).
 - **WF stt:** `Missing` / `V<N> existed` (dựa trên file wireframe/UI trong folder spec).
+- **Review stt:** Trạng thái review của UC do `qc-uc-read` quản lý. Giá trị:
+  - *(trống)* — chưa từng chạy `qc-uc-read`.
+  - `Running — <phase friendly name>` — đang chạy phase đó.
+  - `<phase friendly name> done` — vừa hoàn thành phase, chưa sang phase tiếp.
+  - `<Verdict> v<N> (Score X/100)` — đã review xong (ví dụ: `Conditionally Ready v2 (Score 73.1/100)`, `Ready v1 (Score 92/100)`, `Not Ready v1 (Score 45/100)`).
 - **Test scenario stt:** `Missing` / `V<N> existed`.
 - **Test cases stt:**
   - `Missing` — chưa có draft.md cũng chưa có .xlsx.

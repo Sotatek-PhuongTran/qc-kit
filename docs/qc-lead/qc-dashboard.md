@@ -20,7 +20,7 @@
 | Mobile | UC42-44 | Quản lý hồ sơ & Dịch vụ | Quản lý đặt lịch nộp hồ sơ | Yes | Specs: V1<br>WF: V1<br>Audited: Missing<br>Scenario: V2<br>TC md: V1<br>TC xlsx: V1 |  |  |  |  |
 | Mobile | UC45-51 | Quản lý hồ sơ & Dịch vụ | Quản lý hồ sơ | Yes | Specs: V1<br>WF: V1<br>Audited: Missing<br>Scenario: Missing<br>TC md: Missing<br>TC xlsx: Missing | Conditionally Ready v1 (Score 70.8/100) |  |  |  |
 | Mobile | UC52 | Quản lý hồ sơ & Dịch vụ | Kho tài liệu cá nhân | Yes | Specs: V1<br>WF: V1<br>Audited: Missing<br>Scenario: Missing<br>TC md: Missing<br>TC xlsx: Missing |  |  |  |  |
-| Mobile | UC53_63-65 | Quản lý hồ sơ & Dịch vụ | Phản ánh kiến nghị (UC53, UC63-65) | Yes | Specs: V1<br>WF: V1<br>Audited: Missing<br>Scenario: Missing<br>TC md: V1<br>TC xlsx: V1 |  |  | Running — Soạn TC & ghi MD |  |
+| Mobile | UC53_63-65 | Quản lý hồ sơ & Dịch vụ | Phản ánh kiến nghị (UC53, UC63-65) | Yes | Specs: V1<br>WF: V1<br>Audited: Missing<br>Scenario: Missing<br>TC md: V1<br>TC xlsx: V1 |  |  | v1 generated |  |
 | Mobile | UC54 | Quản lý hồ sơ & Dịch vụ | Báo cáo đã nộp | Yes | Specs: V1<br>WF: V1<br>Audited: Missing<br>Scenario: V2<br>TC md: V1<br>TC xlsx: V1 |  |  |  |  |
 | Mobile | UC55 | Tin tức, Thông tin & Hỗ trợ | Tin tức / Chuyên trang đầu tư theo khu vực (UC55) | Yes | Specs: V4<br>WF: V1<br>Audited: Missing<br>Scenario: V4<br>TC md: V4<br>TC xlsx: V4 |  |  |  |  |
 | Mobile | UC56-57_66_68 | Tin tức, Thông tin & Hỗ trợ | Tin tức (UC56-57, UC66, UC68) | Yes | Specs: V1<br>WF: V1<br>Audited: Missing<br>Scenario: V1<br>TC md: V2<br>TC xlsx: V1 |  |  |  |  |

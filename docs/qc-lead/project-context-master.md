@@ -8,6 +8,15 @@
 - Release Version: v1 (theo `UC_LIST_Mobile.md`)
 - Project type: New build
 - Domain: Mobile app — Đầu tư công / Xúc tiến đầu tư / Dịch vụ công
+- Product Platform Type: `mobile-native` _(theo §5 System Overview: ứng dụng native mobile iOS + Android, FCM/APNs, VNeID deep-link. Field này điều khiển rubric thiết kế test case — agent sẽ load `references/design-technical/design-technical-mobile-native.md`. Nếu sản phẩm có nhiều platform, liệt kê tất cả ngăn cách bằng dấu phẩy.)_
+
+  | Value            | Khi nào dùng                                                                                                                       |
+  |------------------|------------------------------------------------------------------------------------------------------------------------------------|
+  | `web-responsive` | Web app có responsive layout (cover desktop + tablet + mobile viewport từ cùng một codebase).                                      |
+  | `web-static`     | Web app KHÔNG responsive — desktop-first (back-office, admin panel, ERP).                                                          |
+  | `mobile-native`  | Native mobile app (Swift / Kotlin / React Native / Flutter / Xamarin), phân phối qua App Store / Play Store / enterprise.          |
+  | `mobile-hybrid`  | Mobile app dạng WebView wrapper trên native shell (Cordova / Capacitor / Ionic / wrapped PWA).                                      |
+  | `desktop-native` | Desktop app cài trên Windows / macOS / Linux (Electron / .NET / WPF / WinUI / Qt / native Cocoa).                                   |
 
 ## 2. Business Goal
 

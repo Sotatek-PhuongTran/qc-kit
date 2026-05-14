@@ -1,0 +1,3 @@
+# .agent is a junction to .claude — kept on disk for tools that look up that name,
+# but should NOT be tracked separately. Source of truth is .claude/.
+.agent/

@@ -13,7 +13,7 @@
 Per `workflows/checkpoint-protocol.md` §2:
 
 1. **agent-work-log**: update current row Status → `Running (Phase 2)`.
-2. **qc-dashboard.md**: update the UC's `Review stt` cell → `Running — Recalculating Score & Updating Backlog` (skip if column missing).
+2. **qc-dashboard.md**: update the UC's `UC review stt` cell → `Running — Recalculating Score & Updating Backlog` (skip if column missing).
 
 If this run is a **resume from a prior checkpoint** (entered directly at Phase 2): first load `01_applied-answers.md` and the previous `uc-review-report v[N].md` per `checkpoint-protocol.md` §4 Resume load table.
 
@@ -25,6 +25,7 @@ Apply `.claude/skills/qc-uc-read/references/scoring-rubric.md` to the updated sy
 
 - Re-score each of the 10 knowledge areas based on the newly introduced information (BA answers + image re-scan).
 - Apply auto-cap rules for UI Inventory (#5) and Object Attributes (#6).
+- **Apply Platform-Aware Gap Detection** (per rubric § "Platform-Aware Gap Detection") — re-read `project-context-master.md` §1 → "Product Platform Type" and re-check whether BA answers have closed any prior platform-specific gaps in KA #6 / #7 / #8 / #10. Some BA answers may have surfaced NEW platform gaps too (e.g., the BA confirmed a permission flow but the resulting flow now reveals a missing offline behavior). Mark any remaining/new platform-specific gap inline in the KA's evidence with the prefix `Platform-specific gap (<variant>):` so Phase 3 lifts it into the **Unified Gap & Question Report** table.
 - Apply normalization: `Final Score = round((Raw Score / 130) × 100, 1)`.
 - Apply auto-fail rule: if any Critical KA = 0 → verdict = NOT READY.
 - Determine new verdict: READY (≥90) / CONDITIONALLY READY (70–89) / NOT READY (<70).
@@ -86,7 +87,7 @@ Per `workflows/checkpoint-protocol.md` §5:
    - List of new question IDs created via `qc-qna` (from Step 5)
 2. **Update `progress.md`** → `last_phase_done: 2`, `next_phase: 3`, `updated_at: <now>`.
 3. **agent-work-log**: update row Status → `Phase 2 done`. Add `question-backlog` to the `Output` column (since it was modified).
-4. **qc-dashboard.md**: update the UC's `Review stt` cell → `Recalculating Score & Updating Backlog done` (skip if column missing).
+4. **qc-dashboard.md**: update the UC's `UC review stt` cell → `Recalculating Score & Updating Backlog done` (skip if column missing).
 
 ---
 

@@ -1,8 +1,6 @@
----
-trigger: always_on
----
+# Global Rules
 
-##Common
+## Common
 - SKIP all other knowledge, histories that not stored in this project.
 - If there is any ambiguity in the user's prompt, DO NOT attempt to guess; HAVE TO ask the user for clarification to obtain complete information.
 
@@ -28,16 +26,25 @@ trigger: always_on
 - NEVER fabricate data, make up statistics, or assume requirements that are not documented.
 - When uncertain, MUST explicitly state the uncertainty and ask the user for clarification.
 
-## Agent Boundaries
+## Think Before Coding
+Don't assume. Don't hide confusion. Surface tradeoffs.
 
-- Agent MUST focus **strictly** on its own responsibilities.
-- Agent must NEVER perform tasks assigned to another agent's role.
+Before implementing:
 
-## Error Handling
+State your assumptions explicitly. If uncertain, ask.
+If multiple interpretations exist, present them - don't pick silently.
+If a simpler approach exists, say so. Push back when warranted.
+If something is unclear, stop. Name what's confusing. Ask.
 
-- If an agent encounters an error or ambiguity, it MUST stop and report to the user.
-- Do not make assumptions to "fill gaps" in requirements or documents.
-- The Agent MUST log all issues, conflicts, or missing information in the output report.
+## Simplicity First
+Minimum code that solves the problem. Nothing speculative.
+
+No features beyond what was asked.
+No abstractions for single-use code.
+No "flexibility" or "configurability" that wasn't requested.
+No error handling for impossible scenarios.
+If you write 200 lines and it could be 50, rewrite it.
+Ask yourself: "Would a senior engineer say this is overcomplicated?" If yes, simplify.
 
 ## Security & Privacy
 - Data Security: NEVER share sensitive data (PII, passwords, proprietary code) with public models.

@@ -93,3 +93,21 @@ If a referenced artefact (wireframe, API spec, supporting doc) is **unavailable 
 | API error codes not listed                   | Can't verify API error handling               |
 | Design shows fields not in requirements      | Ambiguous scope and validation rules          |
 | Flows reference other features without links | Can't trace test dependencies                 |
+
+## Platform-Aware Gap Detection
+
+Before scoring, read `project-context-master.md` §1 → "Product Platform Type". The platform variant(s) declared there sharpen what counts as ⚠️ Partial / ❌ Missing inside the existing Knowledge Areas — they do NOT add a new KA, do NOT change the 130-pt total, and do NOT change the normalization formula. They only refine the auditor's eye.
+
+When auditing **KA #6 Object Attributes**, **KA #7 Functional Logic**, **KA #8 Functional Integration**, and **KA #10 NFR**, apply this expectation table:
+
+| Platform variant | UC SHOULD address (else flag the relevant KA's row as Partial/Missing with evidence note "Platform-specific gap: <topic>") |
+|---|---|
+| `web-responsive` | Browser compatibility matrix; behavior at each declared breakpoint (desktop / tablet / mobile viewport); responsive reflow + mobile-viewport tap targets; URL deep-link / back-forward / refresh state preservation. |
+| `web-static` | Min screen resolution + browser matrix; keyboard shortcuts (if back-office); print view (if reports); bulk operations + grid pagination/sorting/filter rules. |
+| `mobile-native` | App lifecycle (background → foreground; killed → relaunch; form-draft persistence); OS permissions used (Location/Camera/Notifications/Photo/Biometric) + rationale text + deny-recovery flow; hardware back button (Android) / swipe-back-edge (iOS); push notification + deep-link target (cold/warm/killed); offline behavior + cache invalidation; biometric auth + fallback; safe-area insets; accessibility (VoiceOver/TalkBack labels, Dynamic Type). |
+| `mobile-hybrid` | All `mobile-native` items above PLUS: WebView ↔ native bridge methods used; WebView lifecycle vs native shell; cookie / token sync between WebView and native HTTP; in-app browser fallback for external URLs. |
+| `desktop-native` | Window management (resize / min size / multi-monitor / DPI scaling); OS file dialogs (open/save with extension filter, drag-and-drop from OS); keyboard shortcuts per OS conventions; system tray + OS notifications; auto-update flow; installer/uninstaller behavior; concurrent edit (multi-window or multi-instance) policy. |
+
+If multiple variants apply (multi-platform project), apply the union of expectations for the variants relevant to the screen the UC describes. If a UC explicitly states "this screen is X-platform-only" then apply only that variant's expectations.
+
+> **Surfacing rule:** Platform-specific gaps appear inline in the affected KA's evidence column (not as a separate KA section), with the prefix `Platform-specific gap (<variant>):` so they are easy to spot. Phase 3 MUST lift each marked gap into a row of the **Unified Gap & Question Report** table (the canonical Q-table appended to the audit's Audit Summary section, with Q-IDs Q1, Q2, …). The `qc-qna` auto-trigger after `qc-uc-read` reads from THAT table — NOT from template §10.1 (which is the BA's UC-local Open Questions section, a different artefact). No change to `qc-qna` is required.

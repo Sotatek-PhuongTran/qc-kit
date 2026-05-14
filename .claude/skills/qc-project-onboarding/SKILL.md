@@ -189,7 +189,7 @@ Output exactly:
    - `path-registry.md`: đã update: <list logical-names> | giữ nguyên: <list>
 
    ⚠️ Tôi CHƯA thể tự động gọi `qc-context-master` vì:
-   <reason — e.g., "qc-lead-common-files chưa cấu hình", "folder <path> chưa tồn tại", "folder rỗng">
+   <reason — e.g., "High-level-files chưa cấu hình", "folder <path> chưa tồn tại", "folder rỗng">
 
    📋 **Bước tiếp theo:** chuẩn bị các tài liệu sau (WBS, Product Brief, System Architecture Diagram, Tech Stack, ...) tại `<resolved path>`, sau đó gọi `/qc-context-master` để hoàn tất tổng hợp tri thức dự án.
    ```

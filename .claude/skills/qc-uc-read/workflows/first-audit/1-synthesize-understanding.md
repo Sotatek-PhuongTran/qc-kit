@@ -13,7 +13,7 @@
 Per `workflows/checkpoint-protocol.md` §2 (write-before-work rule):
 
 1. **agent-work-log**: update current row Status → `Running (Phase 1)`. Append input file names (excluding `process-logging/`).
-2. **qc-dashboard.md**: update the UC's `Review stt` cell → `Running — Synthesizing Requirement Understanding` (use the input UC's language — see protocol §3 phase friendly names table). Skip if column missing (graceful degradation).
+2. **qc-dashboard.md**: update the UC's `UC review stt` cell → `Running — Synthesizing Requirement Understanding` (use the input UC's language — see protocol §3 phase friendly names table). Skip if column missing (graceful degradation).
 
 ---
 
@@ -88,7 +88,7 @@ Determine the state and response of each UI object based on specific system cond
 **1-to-1 mapping rule (MANDATORY):** Section 5 MUST contain **at least one row for every row in Section 4**. The set of "Object / Component" names in Section 5 must equal or be a superset of the names in Section 4. If a UI element has no special behavior, still list it with `System States = "Enabled (no special behavior)"` and `Behavior = "N/A"` — do NOT omit it. Never group multiple Section-4 components into a single Section-5 row (e.g., do NOT write "SĐT, Email" as one row — split into two).
 
 - **System States:** Define the default state of the object (Enabled, Disabled, Hidden, Read-only) based on variables such as: account privileges (Permissions), input data conditions, or the current data state of the system.
-- **Interaction Matrix:** Specify the possible interaction actions (Click, Hover, Drag & Drop) and the corresponding system responses for each object.
+- **Interaction Matrix:** Specify the possible interaction actions and the corresponding system responses for each object. Use platform-appropriate vocabulary based on `project-context-master.md` §1 Product Platform Type — web/desktop: Click, Hover, Drag & Drop, Right-click, keyboard shortcuts; mobile native: Tap, Long-press, Swipe, Pull-to-refresh, Pinch-zoom, Hardware back (Android), Swipe-back-edge (iOS).
 - **Object Behavior:** Define how the object reacts when there is a data change or a state change in related objects.
 
 ### 3. Functional Logic & Workflow Decomposition
@@ -144,7 +144,7 @@ Per `workflows/checkpoint-protocol.md` §5:
    - Working notes: detected input language, UC-ID, version of source files read, list of blocked artefacts (if any)
 2. **Update `progress.md`** → `last_phase_done: 1`, `next_phase: 2`, `updated_at: <now>`.
 3. **agent-work-log**: update row Status → `Phase 1 done`.
-4. **qc-dashboard.md**: update the UC's `Review stt` cell → `Synthesizing Requirement Understanding done` (skip if column missing).
+4. **qc-dashboard.md**: update the UC's `UC review stt` cell → `Synthesizing Requirement Understanding done` (skip if column missing).
 
 ---
 

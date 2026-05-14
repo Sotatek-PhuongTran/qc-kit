@@ -13,7 +13,7 @@
 Per `workflows/checkpoint-protocol.md` §2:
 
 1. **agent-work-log**: update current row Status → `Running (Phase 3)`.
-2. **qc-dashboard.md**: update the UC's `Review stt` cell → `Running — Generating Review Report` (skip if column missing).
+2. **qc-dashboard.md**: update the UC's `UC review stt` cell → `Running — Generating Review Report` (skip if column missing).
 
 If this run is a **resume from Phase 3**: first load `01_synthesis.md` and `02_scoring.md` into memory per `checkpoint-protocol.md` §4 Resume load table.
 
@@ -77,6 +77,8 @@ Use the same Max Pts as in `references/scoring-rubric.md` (totals 130 → normal
 
 Synthesize all gaps, missing info, warnings, conflicts, and open questions from all analyzed sections into a single comprehensive table for the BA to review. Ensure there is no duplicated content.
 
+**Mandatory inclusion — Platform-specific gaps:** Scan the Phase 2 KA evidence for any entries prefixed with `Platform-specific gap (<variant>):` (added per rubric § "Platform-Aware Gap Detection"). Each such marked gap MUST appear as its own row in this table, with `Ref` citing the KA + the source section, `Question` stating what platform-specific behavior the BA needs to clarify, and `Why It Matters` explaining the impact on test design for that platform variant. This is what makes the gap visible to `qc-qna` for auto-transfer to the question-backlog.
+
 | ID            | Priority                  | Ref                                       | Question                          | Why It Matters                          | Status |
 | ------------- | ------------------------- | ----------------------------------------- | --------------------------------- | --------------------------------------- | ------ |
 | *(e.g., Q1)*  | *(High / Medium / Low)*   | *(Exact excerpt from requirement. Skip if Missing)* | *(Main content to clarify or fix)* | *(Why this is an issue, impact on testability)* | *(Open)* |
@@ -134,12 +136,25 @@ Write the completed report to the resolved path.
 
 ---
 
+## Step 4: Transfer Open Questions to Question Backlog (auto-trigger `qc-qna`)
+
+After the `uc-review-report v[N].md` is written successfully, **invoke the `qc-qna` skill via the Skill tool** to transfer all `Open` rows from the report's `### 📋 Unified Gap & Question Report` table into the project's `question-backlog` file (so the BA can answer them).
+
+- Pass the just-written report path + `<UC-ID>` as input context.
+- Wait for `qc-qna` to return. Capture its summary (new question IDs created, file path of the backlog).
+- If `qc-qna` reports no Open questions to transfer, skip silently.
+- If `qc-qna` fails, do NOT block this skill — surface a warning in chat (`⚠️ qc-qna failed: <reason> — please run /qc-qna manually for <UC-ID>`) and continue to Final Status Update.
+
+This auto-trigger is the documented kit flow: first-audit always produces fresh Open questions; sending them directly to the BA's backlog removes a manual step.
+
+---
+
 ## Final Status Update & Cleanup
 
 Per `workflows/checkpoint-protocol.md` §5 and §6:
 
-1. **agent-work-log**: update row Status → `Done`. Set `Duration` = now − started_at, rounded to 1 decimal. Add the output file name to `Output` column.
-2. **qc-dashboard.md**: update the UC's `Review stt` cell → `<Verdict> v[N] (Score <X>/100)` (e.g., `Conditionally Ready v1 (Score 73.1/100)`). Skip if column missing.
+1. **agent-work-log**: update row Status → `Done`. Set `Duration` = now − started_at, rounded to 1 decimal. Add the output file name to `Output` column. If `qc-qna` wrote to `question-backlog`, also add `question-backlog` to `Output`.
+2. **qc-dashboard.md**: update the UC's `UC review stt` cell → `<Verdict> v[N] (Score <X>/100)` (e.g., `Conditionally Ready v1 (Score 73.1/100)`). Skip if column missing.
 3. **Cleanup**: delete the entire `.claude/skills/qc-uc-read/process-logging/<UC-ID>/` folder. Cleanup only happens on successful completion.
 
 ---

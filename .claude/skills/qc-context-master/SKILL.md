@@ -25,8 +25,9 @@ Read the `path-registry.md` file to find below files if the path is not already 
 
 ## Outputs
 Read the `path-registry.md` file to find below files if the path is not already mentioned:
-- `project-context-master`
-- `qc-dashboard` — markdown table. This skill writes ONLY columns: `Site`, `<ID label>`, `Module`, `Feature/Use case name`, `In scope?`. Status columns (Specs/WF/Test scenario/Test cases/Execute) are owned by `qc-dashboard-sync` and MUST be left untouched.
+- `project-context-master` — written directly by this skill.
+- `qc-dashboard` — **NOT written directly.** This skill computes the feature/UC list and hands it off to `qc-dashboard-sync` via `.claude/skills/qc-dashboard-sync/inbox/feature-list-handoff.md`. `qc-dashboard-sync` is the sole owner of `qc-dashboard.md` and is responsible for creating/updating it (including columns `Site`, `<ID label>`, `Module`, `Feature/Use case name`, `In scope?`, `Files stt`). Process-state columns (`UC review stt`, `Scenario design stt`, `TC design stt`, `Execute stt`) are owned by their respective skills and MUST NOT be touched here.
+- `.claude/skills/qc-dashboard-sync/inbox/feature-list-handoff.md` — handoff file (transient; consumed and deleted by `qc-dashboard-sync`).
 - `.claude/skills/qc-context-master/state/site-abbreviations.md` — append-only mapping table.
 - `agent-work-log` — append a new row at skill start, update in-place as phases progress (per `workflows/checkpoint-protocol.md` §2).
 

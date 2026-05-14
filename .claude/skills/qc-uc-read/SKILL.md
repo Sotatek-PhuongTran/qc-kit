@@ -29,7 +29,7 @@ This skill writes **per-phase checkpoint files** to `.claude/skills/qc-uc-read/p
 
 - `process-logging/<UC-ID>/` directory layout and `progress.md` format
 - `agent-work-log` update protocol (write-before-work rule)
-- `qc-dashboard.md` `Review stt` column update protocol (with graceful degradation if column missing)
+- `qc-dashboard.md` `UC review stt` column update protocol (with graceful degradation if column missing)
 - Resume detection at Phase 0
 - Cleanup at the end of Phase 3
 

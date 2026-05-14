@@ -13,7 +13,7 @@
 Per `workflows/checkpoint-protocol.md` §2:
 
 1. **agent-work-log**: update current row Status → `Running (Phase 3)`.
-2. **qc-dashboard.md**: update the UC's `Review stt` cell → `Running — Generating Updated Report v[N+1]` (skip if column missing).
+2. **qc-dashboard.md**: update the UC's `UC review stt` cell → `Running — Generating Updated Report v[N+1]` (skip if column missing).
 
 If this run is a **resume from Phase 3**: first load `01_applied-answers.md`, `02_recalculated.md`, and the previous `uc-review-report v[N].md` per `checkpoint-protocol.md` §4 Resume load table.
 
@@ -45,6 +45,7 @@ Reflect the resolved and new questions in the **Unified Gap & Question Report** 
 - Move resolved questions to `Resolved` status with a brief note of what answer resolved them.
 - Add new questions (from Phase 2 Step 5) with status `Open`.
 - Preserve question IDs across versions (Q1, Q2, …). New questions continue from `max(ID) + 1` of the previous version.
+- **Platform-specific gaps (mandatory inclusion):** Scan the Phase 2 KA evidence for any entries prefixed with `Platform-specific gap (<variant>):` (added per rubric § "Platform-Aware Gap Detection"). Each remaining gap MUST appear as a row here with `Open` status; previously-flagged platform gaps that are now resolved by BA answers MUST be moved to `Resolved` with the answer source noted. This keeps `qc-qna` in sync.
 
 Table schema (same as first-audit Phase 3):
 
@@ -99,7 +100,7 @@ Write the combined updated content to the resolved path.
 Per `workflows/checkpoint-protocol.md` §5 and §6:
 
 1. **agent-work-log**: update row Status → `Done`. Set `Duration` = now − started_at, rounded to 1 decimal. Add the output file name (`v[N+1]`) to `Output` column.
-2. **qc-dashboard.md**: update the UC's `Review stt` cell → `<Verdict> v[N+1] (Score <X>/100)` (e.g., `Ready v2 (Score 92.3/100)`, `Conditionally Ready v3 (Score 78.5/100)`). Skip if column missing.
+2. **qc-dashboard.md**: update the UC's `UC review stt` cell → `<Verdict> v[N+1] (Score <X>/100)` (e.g., `Ready v2 (Score 92.3/100)`, `Conditionally Ready v3 (Score 78.5/100)`). Skip if column missing.
 3. **Cleanup**: delete the entire `.claude/skills/qc-uc-read/process-logging/<UC-ID>/` folder. Cleanup only happens on successful completion.
 
 ---

@@ -8,10 +8,12 @@ description: Designs test cases from a finalized, reviewed UC requirement docume
 You are an outstanding Senior Tester who is a strategic architect of quality. You are not a 'bug hunter'; you are a Strategic Architect of Quality.
 Read the latest version of the UC Readiness Report and Test Scenarios (if available), To systematically design test cases for any given feature by breaking down the requirements into 6 distinct phases, ensuring total coverage of both UI states and functional logic.
 
-This skill covers the following test types for **web applications**:
+This skill covers the following test types:
 - Functional Testing
 - UI Testing
 - Functional/End-to-End (E2E) Testing
+
+The per-platform technical drafting rubric (the 6-phase coverage buckets — what to test on a screen) is **loaded dynamically** from `references/design-technical/design-technical-<variant>.md` based on `project-context-master.md` §1 → **Product Platform Type**. Supported variants: `web-responsive`, `web-static`, `mobile-native`, `mobile-hybrid`, `desktop-native`. If a project declares multiple variants, the skill drafts a SEPARATE test-case `.md` per variant.
 
 ## Workflows
 
@@ -26,11 +28,11 @@ When the user invokes this skill, parse the workflow from the user invocation. I
 
 The skill runs in exactly **3 phases**, no matter which design workflow is selected. The phase boundaries are the same; the work inside Phase 1 and Phase 2 differs slightly between generate and update.
 
-| Phase | Friendly name (EN)                   | Friendly name (VI)                          | What runs                                                                                                          | Checkpoint file                                  |
+| Phase | Friendly name (EN)                   | Friendly name (VI)                          | What runs                                                                                                          | Checkpoint files                                  |
 |-------|--------------------------------------|---------------------------------------------|--------------------------------------------------------------------------------------------------------------------|--------------------------------------------------|
-| 1     | Analysis & Design Brief              | Phân tích & Lập đề cương thiết kế           | **generate**: `generate-test-cases.md` Step 1 (Input Analysis). **update**: `update-test-cases.md` Steps 1 + 2 (Load + Determine Trigger + Change Impact Analysis). | `01_analysis.md` (see content schema in §3 below) |
-| 2     | TC Drafting & MD Write               | Soạn TC & ghi MD                             | **generate**: `generate-test-cases.md` Steps 2 + 3 + 4 (6-phase drafting + RTM + write `.md`). **update**: `update-test-cases.md` Steps 3 + 4 (Redesign Affected + write updated `.md`). | The deliverable `.md` itself — no separate file. |
-| 3     | MD → XLSX Conversion                 | Chuyển MD sang XLSX                          | Entire `convert-md-to-xlsx.md` (Locate → Verify → Run → Self-verify).                                              | The deliverable `.xlsx` itself — no separate file. |
+| 1     | Analysis & Design Brief              | Phân tích & Lập đề cương thiết kế           | **generate**: `generate-test-cases.md` Step 1 (Input Analysis). **update**: `update-test-cases.md` Steps 1 + 2 (Load + Determine Trigger + Change Impact Analysis). | `01_analysis.md` (content schema described inline in each workflow's End-of-Phase-1 step; file layout summary in §1 below). |
+| 2     | TC Drafting & MD Write               | Soạn TC & ghi MD                             | **generate**: `generate-test-cases.md` Steps 2 + 3 + 3.5 + 4 (6-phase drafting + RTM + persist scratch + write deliverable `.md`). **update**: `update-test-cases.md` Steps 3 + 3.5 + 4 (Redesign Affected + persist scratch + write updated `.md`). | Per platform variant: `02_designed_tcs_<variant>.md` (scratch, source of truth) + the deliverable `.md` file(s) at output path. Plus a `## Phase 2 Summary` block appended to `progress.md` at end of Phase 2. |
+| 3     | MD → XLSX Conversion                 | Chuyển MD sang XLSX                          | Entire `convert-md-to-xlsx.md` (Step 0 Verification Gate per variant → Locate → Verify → Run → Self-verify per variant).                                              | Per platform variant: the deliverable `.xlsx`. No separate `process-logging/` file. |
 
 After Phase 3 finishes successfully → run **chat-side reporting** (no file). Then cleanup `process-logging/<UC-ID>/`.
 
@@ -45,15 +47,16 @@ Once the design workflow is determined, execute the skill in the following order
 3. **Resume detection** (per Checkpoint & Resume Protocol §4): check `.claude/skills/qc-func-tc-design/process-logging/<UC-ID>/progress.md`. If found, prompt **Continue from Phase N** vs **Restart** and branch accordingly.
 4. **Generate `run_id`** (read `agent-work-log` for max ID, increment).
 5. **Append** a new row to `agent-work-log` with `Status = Running (Phase 1)`, Input/Output empty, started_at recorded.
+6. **Initialize `progress.md`** (fresh run only — skip if resuming): create `.claude/skills/qc-func-tc-design/process-logging/<UC-ID>/progress.md` with `last_phase_done: ` (empty), `next_phase: 1`, plus run_id / uc_id / workflow / started_at / updated_at. This is the FIRST file written for the run; the folder is created lazily here.
 
 ### Step B — Run Phases 1 → 2 → 3
 
 Dispatch into the design workflow file (load it end-to-end once, but observe the phase boundaries it declares):
 
-- If `generate-test-cases`: load `workflows/generate-test-cases.md`. It runs Phase 1 (Step 1 only) → checkpoint; then Phase 2 (Steps 2 + 3 + 4) → checkpoint.
-- If `update-test-cases`: load `workflows/update-test-cases.md`. It runs Phase 1 (Steps 1 + 2) → checkpoint; then Phase 2 (Steps 3 + 4) → checkpoint.
+- If `generate-test-cases`: load `workflows/generate-test-cases.md`. It runs Phase 1 (Step 1 only) → checkpoint; then Phase 2 (Steps 2 + 3 + 3.5 + 4) → checkpoint. Step 3.5 persists the designed TCs to scratch BEFORE the deliverable md write — this is what enables Phase 3 auto-recovery.
+- If `update-test-cases`: load `workflows/update-test-cases.md`. It runs Phase 1 (Steps 1 + 2) → checkpoint; then Phase 2 (Steps 3 + 3.5 + 4) → checkpoint.
 
-After Phase 2 finishes (md is on disk), AUTOMATICALLY load `workflows/convert-md-to-xlsx.md` and execute Phase 3 end-to-end (Locate → Verify → Run → Self-verify). This auto-trigger is non-optional — the `.xlsx` is a required deliverable. If Phase 3 fails (script error, mojibake, missing prerequisites), STOP and report the error on chat. Do NOT silently rewrite the md, skip the xlsx, or run cleanup.
+After Phase 2 finishes (scratch + final md + `## Phase 2 Summary` are on disk), AUTOMATICALLY load `workflows/convert-md-to-xlsx.md` and execute Phase 3 end-to-end. Phase 3 starts with **Step 0 Verification Gate** (compare final md against the Phase 2 Summary; auto-recover from scratch if mismatch), then proceeds Locate → Verify → Run → Self-verify per variant. For multi-variant projects, Phase 3 loops Step 0 + Step 1–4 once per variant. This auto-trigger is non-optional — the `.xlsx` is a required deliverable per variant. If Phase 3 fails irrecoverably (script error, mojibake, scratch missing, etc.), STOP and report the error on chat. Do NOT silently rewrite the md, skip the xlsx, or run cleanup.
 
 ### Step C — Chat-side Reporting (no summary file)
 
@@ -90,14 +93,17 @@ All checkpoint files live in `.claude/skills/qc-func-tc-design/process-logging/<
 
 | File                  | Owner phase           | Content                                                                                       |
 | --------------------- | --------------------- | --------------------------------------------------------------------------------------------- |
-| `progress.md`         | All phases            | State machine — current run metadata + last completed phase                                   |
-| `01_analysis.md`      | Phase 1               | **generate**: Design brief (UC summary, AC list, UI inventory, planned TC scope, detected output language). **update**: Trigger type + Impact Table (Type A) and/or Feedback Classification (Type B) + Cat 1 Skill Improvement Flags + Cat 2 open requirement gaps. |
+| `progress.md`         | All phases            | State machine — current run metadata + `last_phase_done` + a `## Phase 2 Summary` block appended at end of Phase 2 (contains one `### Variant: <name>` sub-block per platform variant in scope; see `progress.md` format below). Phase 3 reads this block to drive its per-variant verification loop. |
+| `01_analysis.md`      | Phase 1               | **generate**: Design brief (UC summary, AC list, UI inventory, planned TC scope, detected output language, resolved platform variant list). **update**: Trigger type + Impact Table (Type A) and/or Feedback Classification (Type B) + Cat 1 Skill Improvement Flags + Cat 2 open requirement gaps + the variant being updated. |
+| `02_designed_tcs_<variant>.md` | Phase 2      | **Source of truth for the designed test cases — ONE file per platform variant.** Atomic snapshot of the FULL TC list + RTM for that variant, written by Phase 2 Step 3.5 BEFORE the variant's deliverable `.md` is written. Phase 3 Step 0 reads this when auto-recovering a partial / mismatched final md (overwrites the same-version final md from the scratch). Same content format as the final deliverable md (prelude + screen/section headers + TC tables). For single-variant projects: exactly one file with the project's only variant in its name. For multi-variant generate runs: one file per variant. For update runs (always single-variant per run): exactly one file matching the variant being updated. |
 
-Phases 2 and 3 produce the **real deliverables** (`.md`, `.xlsx`) to the output folder — those ARE the final checkpoints. No separate `02_*.md` / `03_*.md` files needed.
+Phase 3 produces the **real deliverable** (`.xlsx`) to the output folder — that IS the final checkpoint for Phase 3. No separate `03_*.md` file needed.
 
 #### `progress.md` format
 
 Single source of truth for resume. Overwrite on every checkpoint write.
+
+**Semantic of `last_phase_done`:** This field tracks **completed-and-verified** phases. It is written **at the moment of TRANSITION to the next phase**, NOT at the end of the current phase. This guarantees that whenever resume reads `last_phase_done = N`, the work of Phase N has been confirmed safe (deliverable exists AND any gating check has passed). If interrupt happens at any point inside Phase N before transition to Phase N+1, the field stays at N-1 and resume will safely re-enter Phase N (re-using persisted scratch artifacts where possible — see §4 Resume load table).
 
 ```markdown
 # qc-func-tc-design progress — <UC-ID>
@@ -106,13 +112,49 @@ Single source of truth for resume. Overwrite on every checkpoint write.
 - uc_id: UC-XXX
 - workflow: <generate-test-cases | update-test-cases>
 - started_at: <ISO-8601 datetime>
-- last_phase_done: <phase-number>   # 0, 1, 2, 3
-- next_phase: <phase-number>
+- last_phase_done: <empty | 1 | 2 | 3>   # set at transition to next phase
+- next_phase: <1 | 2 | 3 | ->
 - updated_at: <ISO-8601 datetime>
 
 ## Notes
-<any per-run scratch data — e.g. detected output language, version of input read, target md path, ...>
+<any per-run scratch data — e.g. detected output language, version of input read, ...>
+
+## Phase 2 Summary
+<!-- Written at end of Phase 2, AFTER all variant scratches + all variant final md files are written. Phase 3 reads this block to drive its per-variant verification loop. Contains ONE `### Variant: <name>` sub-block per platform variant in scope (single-variant projects have exactly one such sub-block). -->
+
+**Variants in scope:** <comma-separated list of variant names, e.g., web-responsive, mobile-native>
+
+### Variant: <variant-name>
+
+**Platform variant:** <variant-name>
+**Total test cases designed:** <N>
+**GUI total:** <a>
+**FUNC total:** <b>
+**Output language:** <VI | EN>
+**Scratch:** <absolute path>/process-logging/<UC-ID>/02_designed_tcs_<variant-name>.md
+**Final MD file(s):** <absolute paths resolved from path-registry — one bullet per file (single-file or multi-part)>
+- <absolute path to part1>
+- <absolute path to part2 if multi-part>
+
+| Screen | Total | GUI | FUNC |
+|---|---|---|---|
+| I. <screen name> | <n1> | <a1> | <b1> |
+| II. <screen name> | <n2> | <a2> | <b2> |
+| ... | ... | ... | ... |
+
+<!-- For update-test-cases workflow only, append this line below the table (the new file is v[N+1]; v[N] is the previous version): -->
+**Delta vs v[N]:** +<A> new, ~<U> updated, -<D> deleted
+
+### Variant: <next-variant-name>
+<!-- same shape as above; one block per variant -->
+...
 ```
+
+**Notes on the schema:**
+- `Total test cases designed`, `GUI total`, `FUNC total` are explicit, separately-parseable fields on their own lines (Phase 3 Step 0 parses each as a discrete integer).
+- All file paths in `Scratch` and `Final MD file(s)` are **absolute paths** (resolved from `path-registry.md` at write time). Phase 3 reads these paths verbatim — no relative-path resolution needed.
+- The `Delta vs v[N]` line uses ASCII "Delta", NOT the Greek glyph `Δ`. The version reference is `v[N]` (the previous version), because the new file is `v[N+1]`. The same convention is used in the md prelude of `update-test-cases.md`.
+- For `update-test-cases` runs, `Variants in scope` always contains exactly ONE variant — the variant being updated — and there is exactly one `### Variant:` sub-block.
 
 ### 2. agent-work-log update protocol
 
@@ -140,9 +182,19 @@ User-visible deliverables that DO go into Output: `func-test-cases-draft` `.md` 
 
 Update `agent-work-log` Status **before** starting a phase, not after. If interruption happens mid-phase, the worklog already reflects the last "in progress" state, and the resume logic can recognize it.
 
+#### Ordering at a phase transition
+
+When Phase N+1 starts (a transition write — see §5.1), execute the writes in this exact order so that the durable resume state advances atomically before any user-visible status changes:
+
+1. **`progress.md`** — `last_phase_done: N`, `next_phase: N+1`, `updated_at: <now>`. (For Phase 3 entry, this happens INSIDE `convert-md-to-xlsx.md` Step 0 AFTER the verification gate passes.)
+2. **`agent-work-log`** — Status → `Running (Phase N+1)`, append any new Input files.
+3. **`qc-dashboard.md`** — `TC design stt` cell → `Running — <Phase N+1 friendly name>`.
+
+The same ordering applies at end-of-phase (§5.2), but `progress.md` only receives the artifact-related writes (e.g., `## Phase 2 Summary`); `last_phase_done` is NOT touched there.
+
 ### 3. qc-dashboard update protocol
 
-`qc-func-tc-design` owns ONE column in `qc-dashboard.md`: **`TC design stt`** (TC design status, column 11). The UC's row is identified by matching the `<ID label>` column (column 2) against the UC-ID being designed.
+`qc-func-tc-design` owns ONE column in `qc-dashboard.md`: **`TC design stt`** (TC design status, column 9). The UC's row is identified by matching the `<ID label>` column (column 2) against the UC-ID being designed.
 
 > **Graceful degradation:** If the `TC design stt` column does NOT exist in the current `qc-dashboard.md`, skip dashboard update (worklog update still happens). Log a one-line warning in the agent's user-facing output: *"Cột `TC design stt` chưa tồn tại trong qc-dashboard.md — bỏ qua update dashboard. Thêm cột này để bật tracking."*
 >
@@ -204,19 +256,44 @@ When resuming, load these files INTO MEMORY before executing the next phase:
 
 | Resuming at Phase | Files to load                                                                                                          |
 | ----------------- | ---------------------------------------------------------------------------------------------------------------------- |
-| 2                 | `process-logging/<UC-ID>/01_analysis.md` + all input files (UC review report, scenarios, common files) re-resolved from path-registry. |
-| 3                 | The `func-test-cases-draft` `.md` produced by Phase 2 (latest version in the output folder). Optionally `01_analysis.md` for context. |
+| 1                 | All input files (UC review report, scenarios, common files) re-resolved from path-registry. No scratch / checkpoint files exist yet for Phase 1, so resume = fresh Phase 1 run. |
+| 2                 | `process-logging/<UC-ID>/01_analysis.md` (must exist, fails skill if not — see §7) + all input files re-resolved from path-registry. **For each platform variant declared in `01_analysis.md`, probe for `02_designed_tcs_<variant>.md` scratch.** If scratch for a variant is present, the drafting work for that variant is already done; resume that variant directly at Step 4 (read scratch → write that variant's final md). Variants whose scratch is missing get fresh Phase 2 drafting (Steps 2 → 3 → 3.5). After all variants are persisted to disk, write the `## Phase 2 Summary` block. |
+| 3                 | For EACH variant listed in the `## Phase 2 Summary` block: that variant's final `.md` file(s) at the path(s) recorded in the summary + that variant's `02_designed_tcs_<variant>.md` scratch (required for auto-recovery of that variant). Optionally `01_analysis.md` for context. |
 
 Also re-resolve all `path-registry` logical names — paths may have changed since the last run.
 
 ### 5. Checkpoint write protocol (used by every phase)
 
-After completing a phase, the workflow MUST execute these 4 steps **in order, atomically as possible**:
+The protocol is split into **two boundaries** per phase: start-of-phase (transition) and end-of-phase (deliverable). The split exists so `last_phase_done` only advances when the previous phase has actually produced a usable, verified artifact.
 
-1. **Write the checkpoint file** for this phase (only Phase 1 has a dedicated `01_analysis.md`). For Phase 2 and Phase 3, this step IS the actual deliverable write (`.md` / `.xlsx` → output folder).
-2. **Update `process-logging/<UC-ID>/progress.md`** — set `last_phase_done`, `next_phase`, `updated_at`.
-3. **Update the `agent-work-log` row** — set Status to `Phase <N> done`, append any new Input/Output files (excluding `process-logging/`).
-4. **Update the `qc-dashboard.md` `TC design stt` cell** for this UC — set to `<phase friendly name> done`.
+#### 5.1 — Start of Phase N (transition write)
+
+Run these steps BEFORE doing any work for Phase N. They mark "Phase N-1 is confirmed done; we're now committing to Phase N":
+
+1. **(Phase 3 only) Run the Phase 2 verification gate** — see `convert-md-to-xlsx.md` → Step 0. For EACH platform variant listed in the `## Phase 2 Summary` block, compare that variant's final md (deliverable) against its summary sub-block (counts + per-screen breakdown). If a variant mismatches → auto-recover from `02_designed_tcs_<variant>.md` scratch (overwrite that variant's final md same-version), re-run verification for that variant. If recovery also fails (scratch missing or scratch-derived md still mismatches) → STOP and report. **Do NOT advance `last_phase_done` until ALL variants pass verification.**
+2. **Update `process-logging/<UC-ID>/progress.md`** — set `last_phase_done: <N-1>`, `next_phase: <N>`, `updated_at: <now>`. Preserve the existing `## Phase 2 Summary` block (if any). For start of Phase 1, this is part of Phase 0 init (last_phase_done stays empty, next_phase: 1).
+3. **Update the `agent-work-log` row** — set Status to `Running (Phase <N>)`, append any new Input files (excluding `process-logging/`). For Phase 3, no new Input files are appended (the Phase 2 final md was already recorded in Output at end of Phase 2).
+4. **Update the `qc-dashboard.md` `TC design stt` cell** — set to `Running — <phase N friendly name>`.
+
+Order within the transition: `progress.md` → `agent-work-log` → `qc-dashboard.md` (see §2 "Ordering at a phase transition").
+
+#### 5.2 — End of Phase N (deliverable write)
+
+Run these steps AFTER finishing the actual work of Phase N. They write the artifacts but do NOT touch `last_phase_done` — that happens at the next phase's transition (5.1) so the gate / verification has a chance to fail safely.
+
+1. **Write the artifact(s) for this phase:**
+   - **Phase 1**: `process-logging/<UC-ID>/01_analysis.md` (the design brief / impact table).
+   - **Phase 2 (per platform variant in scope)**:
+     - 1a. `process-logging/<UC-ID>/02_designed_tcs_<variant>.md` — scratch for THAT variant with the FULL designed TC list + RTM (same content format as the final deliverable). Atomic single Write. This is the source of truth for Phase 3 auto-recovery of that variant.
+     - 1b. The deliverable `func-test-cases-draft` `.md` file(s) for THAT variant at the output path. May be single-file or multi-part — each part is its own atomic Write.
+     - Repeat 1a + 1b for every variant.
+   - **Phase 2 (once, AFTER all variants' files in 1a + 1b are on disk)**:
+     - 1c. Append the `## Phase 2 Summary` block to `progress.md` — one `### Variant: <name>` sub-block per variant, plus the top-level `**Variants in scope:**` line. Schema per §1 above. Atomic single Write that preserves all other progress.md fields. (This is NOT a `last_phase_done` advance; that happens later in §5.1 of Phase 3.)
+   - **Phase 3 (per platform variant in scope)**: that variant's deliverable `.xlsx` at the output path (produced by the converter script).
+2. **Update the `agent-work-log` row** — set Status to `Phase <N> done`, append any new Output files (excluding `process-logging/`). For Phase 2 multi-variant, append ALL variants' final md paths. For Phase 3 multi-variant, append ALL variants' xlsx paths.
+3. **Update the `qc-dashboard.md` `TC design stt` cell** — set to `<phase N friendly name> done`.
+
+**Do NOT update `last_phase_done` in §5.2.** It stays at `<N-1>` until the next phase's §5.1 transition advances it to `<N>` — only AFTER any gating check has confirmed Phase N's artifact is valid. For Phase 3 (the last phase), there is no Phase 4 to transition into, so its `last_phase_done: 3` write happens at the end of Phase 3 directly (right after the last variant's `.xlsx` is verified by Step 4 of `convert-md-to-xlsx.md`).
 
 ### 6. Cleanup
 
@@ -231,10 +308,17 @@ Cleanup happens in **Step D** of the orchestration (after Phase 3 SUCCESS AND ch
 | `agent-work-log` row missing for current `run_id`        | Append a new row; do not fail the skill.                                         |
 | Path-registry logical name changed between runs          | Re-resolve from current registry; if path differs, ask user before continuing.   |
 | `TC design stt` column missing in qc-dashboard.md        | Skip dashboard update; warn user once (see §3 Graceful degradation).             |
-| Phase 3 conversion fails (mojibake, script error)        | STOP. Do NOT run cleanup. The Phase 2 `.md` is preserved; the user can re-trigger conversion after fixing the root cause. |
+| Phase 3 Step 3 (converter script) or Step 4 (xlsx self-verification) fails (mojibake, script error, missing prerequisites) for some variant | STOP. Do NOT run cleanup. The Phase 2 scratch + final md for that variant are preserved (and so are any already-produced xlsx for earlier variants). The user can re-trigger conversion after fixing the root cause; resume will re-run Phase 3 Step 0 + Steps 1–4 for all variants (idempotent on the variants that already converted, because Step 0 will simply pass). |
+| Phase 3 Step 0 verification: a variant's final md TC counts ≠ that variant's `### Variant: <name>` sub-block in `## Phase 2 Summary` | **AUTO-RECOVERY (no user prompt):** Check if `process-logging/<UC-ID>/02_designed_tcs_<variant>.md` scratch exists. If yes → overwrite that variant's final md (same version) with content sourced from the scratch, then re-run Step 0 verification for that variant. If verification passes after recovery → proceed; report on chat that auto-recovery was triggered for variant `<name>` + the delta detected. |
+| Phase 3 Step 0 verification: variant's final md mismatched AND `02_designed_tcs_<variant>.md` scratch is missing for that variant | STOP. No source of truth for auto-recovery of this variant. Report on chat that Phase 2 scratch for variant `<name>` never persisted (interrupt happened before Step 3.5 for that variant). User must Restart the skill (deletes `process-logging/<UC-ID>/` and re-designs from Phase 1). |
+| Phase 3 Step 0 verification fails AGAIN after auto-recovery (scratch-sourced md still mismatches summary) for some variant | STOP. Both scratch and summary may be corrupt for this variant. Report on chat with the observed counts (summary vs scratch-sourced md) for the affected variant. User decides next action (manual inspection / Restart). |
+| Phase 3 Step 0: `## Phase 2 Summary` block missing in progress.md, OR `**Variants in scope:**` line missing | Treat Phase 2 as incomplete. For each `02_designed_tcs_<variant>.md` scratch found on disk, derive a per-variant summary from it. Reconstruct `## Phase 2 Summary` from the discovered scratches and write it back to progress.md. Then write each variant's final md from its scratch (overwrite same version). Then run Step 0 verification normally. If NO scratches are present at all → STOP and report (same as full scratch-missing case). |
 
 ## Input Contract
 Read the `path-registry.md` file to find the below file locations:
+
+**Required by BOTH workflows (read first, before any drafting):**
+- `project-context-master` — read §1 "Product Platform Type" to determine which `references/design-technical/design-technical-<variant>.md` rubric(s) to load. If the field is missing or blank, STOP and ask the user to populate it (the field is mandatory because the rubric drives test design coverage).
 
 For **generate-test-cases** workflow:
 - `uc-review-report` - read the latest version

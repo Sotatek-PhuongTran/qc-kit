@@ -3,7 +3,7 @@
 > **Scope:** Shared rules referenced by all `qc-uc-read` workflow phase files. Read this once at skill start.
 >
 > **Purpose:** Make the skill resilient to context-limit / interruption mid-run by:
-> (1) persisting per-phase intermediate output to disk, (2) updating the `agent-work-log` row in-place at every phase boundary, (3) updating the UC's row in `qc-dashboard.md` (Review stt column) at every phase boundary, and (4) detecting prior checkpoints on the next run so the user does not redo finished work.
+> (1) persisting per-phase intermediate output to disk, (2) updating the `agent-work-log` row in-place at every phase boundary, (3) updating the UC's row in `qc-dashboard.md` (UC review stt column) at every phase boundary, and (4) detecting prior checkpoints on the next run so the user does not redo finished work.
 
 ---
 
@@ -74,13 +74,13 @@ Update `agent-work-log` Status **before** starting a phase, not after. If interr
 
 ## 3. qc-dashboard update protocol
 
-`qc-uc-read` owns ONE column in `qc-dashboard.md`: **`Review stt`** (Review status). The UC's row is identified by matching the `<ID_LABEL>` column (column 2) against the UC-ID being audited.
+`qc-uc-read` owns ONE column in `qc-dashboard.md`: **`UC review stt`** (Review status). The UC's row is identified by matching the `<ID_LABEL>` column (column 2) against the UC-ID being audited.
 
-> **Graceful degradation:** If the `Review stt` column does NOT exist in the current `qc-dashboard.md`, skip dashboard update (worklog update still happens). Log a one-line warning in the agent's user-facing output: *"Cột `Review stt` chưa tồn tại trong qc-dashboard.md — bỏ qua update dashboard. Thêm cột này để bật tracking."*
+> **Graceful degradation:** If the `UC review stt` column does NOT exist in the current `qc-dashboard.md`, skip dashboard update (worklog update still happens). Log a one-line warning in the agent's user-facing output: *"Cột `UC review stt` chưa tồn tại trong qc-dashboard.md — bỏ qua update dashboard. Thêm cột này để bật tracking."*
 
 ### Status values
 
-| When                            | Value to write into `Review stt` cell                                                                       |
+| When                            | Value to write into `UC review stt` cell                                                                       |
 | ------------------------------- | ----------------------------------------------------------------------------------------------------------- |
 | Before entering Phase N         | `Running — <phase friendly name>` (e.g., `Running — Synthesizing Requirement Understanding`)               |
 | After Phase N done              | `<phase friendly name> done` (e.g., `Synthesizing Requirement Understanding done`)                          |
@@ -89,7 +89,7 @@ Update `agent-work-log` Status **before** starting a phase, not after. If interr
 
 ### Phase friendly names
 
-Use these names verbatim in both `agent-work-log` (`Status` column) and `qc-dashboard` (`Review stt` column). They are output in the **input UC document's language** (if Vietnamese UC → Vietnamese names; otherwise English).
+Use these names verbatim in both `agent-work-log` (`Status` column) and `qc-dashboard` (`UC review stt` column). They are output in the **input UC document's language** (if Vietnamese UC → Vietnamese names; otherwise English).
 
 | Workflow      | Phase | English name                              | Vietnamese name                                          |
 | ------------- | ----- | ----------------------------------------- | -------------------------------------------------------- |
@@ -154,7 +154,7 @@ After completing a phase, the workflow MUST execute these 4 steps **in order, at
 1. **Write the checkpoint file** for this phase (markdown, full content as defined per phase workflow). For Phase 3, this step is the actual deliverable write (`uc-review-report v[N].md`).
 2. **Update `process-logging/<UC-ID>/progress.md`** — set `last_phase_done`, `next_phase`, `updated_at`.
 3. **Update the `agent-work-log` row** — set Status to `Phase <N> done`, append any new Input/Output files (excluding `process-logging/`).
-4. **Update the `qc-dashboard.md` `Review stt` cell** for this UC — set to `<phase friendly name> done` (or the final verdict if Phase 3).
+4. **Update the `qc-dashboard.md` `UC review stt` cell** for this UC — set to `<phase friendly name> done` (or the final verdict if Phase 3).
 
 ---
 
@@ -163,7 +163,7 @@ After completing a phase, the workflow MUST execute these 4 steps **in order, at
 After the final phase (Phase 3) finishes successfully:
 
 1. Set `agent-work-log` Status → `Done`. Final Duration calculation.
-2. Set `qc-dashboard.md` `Review stt` cell → `<Verdict> v<N> (Score <X>/100)`.
+2. Set `qc-dashboard.md` `UC review stt` cell → `<Verdict> v<N> (Score <X>/100)`.
 3. **Delete the entire `.claude/skills/qc-uc-read/process-logging/<UC-ID>/` folder.** It is scratch — not part of project deliverables.
 
 Cleanup must NOT happen mid-run, even on error. Only on successful Phase 3 completion.
@@ -178,4 +178,4 @@ Cleanup must NOT happen mid-run, even on error. Only on successful Phase 3 compl
 | Checkpoint file referenced by `progress.md` missing      | STOP and ask user; do not silently re-derive.                                    |
 | `agent-work-log` row missing for current `run_id`        | Append a new row; do not fail the skill.                                         |
 | Path-registry logical name changed between runs          | Re-resolve from current registry; if path differs, ask user before continuing.   |
-| `Review stt` column missing in qc-dashboard.md           | Skip dashboard update; warn user once (see §3 Graceful degradation).             |
+| `UC review stt` column missing in qc-dashboard.md           | Skip dashboard update; warn user once (see §3 Graceful degradation).             |

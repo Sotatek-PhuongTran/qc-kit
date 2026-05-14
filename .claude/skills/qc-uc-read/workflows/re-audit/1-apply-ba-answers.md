@@ -13,7 +13,7 @@
 Per `workflows/checkpoint-protocol.md` §2:
 
 1. **agent-work-log**: update current row Status → `Running (Phase 1)`. Append input file names (previous audited file + question-backlog).
-2. **qc-dashboard.md**: update the UC's `Review stt` cell → `Running — Applying BA Answers` (skip if column missing).
+2. **qc-dashboard.md**: update the UC's `UC review stt` cell → `Running — Applying BA Answers` (skip if column missing).
 
 ---
 
@@ -33,6 +33,8 @@ Per `workflows/checkpoint-protocol.md` §2:
    This is so test cases written downstream from the audit file have the exact verbatim message/rule text in `Expected Result` without re-opening the common docs.
 
 3. **Re-scan all design images (mandatory).** Do NOT trust v[N-1]'s Section 4/5 to be complete. Open every design image listed in the input set and re-extract atomic UI elements per the granularity rule (1 component = 1 row, with label/type/required/default/placeholder/enum values). For every element missing from v[N-1]'s Section 4 or 5, add it to v[N+1]. Re-scan covers `*.png`, `*.jpg`, design exports, and screen mockups embedded in `.docx`/`.pdf`.
+
+   When re-extracting Section 5 Object Attributes Interaction Matrix entries, use platform-appropriate vocabulary based on `project-context-master.md` §1 Product Platform Type — same rule as `workflows/first-audit/1-synthesize-understanding.md` Step 2.2 (web/desktop: Click, Hover, Drag & Drop, Right-click, keyboard shortcuts; mobile native: Tap, Long-press, Swipe, Pull-to-refresh, Pinch-zoom, Hardware back, Swipe-back-edge).
 
 4. **Coverage delta check.** For each design image, record `elements_in_image` vs `rows_in_section_4` in working notes:
 
@@ -56,7 +58,7 @@ Per `workflows/checkpoint-protocol.md` §5:
    - Working notes: UC-ID, version of previous audited file read (`v[N]`), version that will be written next (`v[N+1]`)
 2. **Update `progress.md`** → `last_phase_done: 1`, `next_phase: 2`, `updated_at: <now>`.
 3. **agent-work-log**: update row Status → `Phase 1 done`.
-4. **qc-dashboard.md**: update the UC's `Review stt` cell → `Applying BA Answers done` (skip if column missing).
+4. **qc-dashboard.md**: update the UC's `UC review stt` cell → `Applying BA Answers done` (skip if column missing).
 
 ---
 

@@ -11,7 +11,7 @@ Auto-run after the `qc-uc-read` skill has produced the `uc-review-report` file.
 
 - **Element list** — the `UI Objects` section of the relevant `uc-review-report`. Lists every element name the testcases will reference on this page.
 - **URL** — provided by the user at invocation time. One URL per `page-name`.
-- `.claude/config/project-config.md` — test accounts (when URL requires login) + Platform & device coverage (decides whether to inspect web vs native).
+- `project-config` (resolved via `path-registry.md` → `docs/qc-lead/project-config.md`) — test accounts (when URL requires login) + Platform & device coverage (decides whether to inspect web vs native).
 - `.claude/config/folder-structure.md` — output goes under the references folder.
 - `.claude/rules/automation-conventions.md` — locator strategy preference order, stability tier definitions, page catalog rules, MISSING locator handling.
 - `.claude/rules/templates/page-element-catalog.md` — authoritative output shape.

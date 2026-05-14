@@ -1,73 +1,143 @@
 ---
 name: qc-func-scenario-design
-description: Designs test scenarios from a finalized, reviewed UC (Use Case) requirement document. Trigger this skill whenever the user says "design test scenarios", "build test scenarios", or provides a uc-review output and asks to proceed with testing. Also trigger when the user mentions their requirement is ready and they want to move to QA/test design, even if they don't say "test scenario" explicitly.
+description: Designs test scenarios from a finalized, reviewed UC (Use Case) requirement document. Trigger this skill whenever the user says "design test scenarios", "build test scenarios", or provides a uc-review-report output and asks to proceed with testing. Also trigger when the user mentions their requirement is ready and they want to move to QA/test design, even if they don't say "test scenario" explicitly.
 ---
 # Test Scenario Design Skill
 
 ## Purpose
 
-Transform a finalized UC requirement (ideally reviewed and approved by `uc-review`) into ready-to-use QA artifacts: **`test_scenarios.md`** — Test scenarios grouped by UC, covering all test types
+Transform a finalized UC requirement (ideally reviewed and approved by `qc-uc-read`) into ready-to-use **test scenarios** grouped by UC, covering Functional / Integration / UI / End-to-End / Acceptance testing for web applications and APIs.
 
-This skill covers the following test types for **web applications and APIs**:
+Scenarios describe **what** must be verified at a meaningful level of intent (one scenario = one distinct test intent). They are the bridge between an audited requirement and atomic test cases — they are NOT atomic, executable test cases (those belong to `qc-func-tc-design`).
 
-- Functional Testing
-- Integration Testing
-- UI Testing
-- Functional/End-to-End (E2E) Testing
-- Acceptance Testing
+## Trigger Conditions
 
-## Output Files
-Read the `path-registry.md` file to find below files if the path is not already mentioned:
-- `func-test-scenarios`
+- **Manual:** "design test scenarios", "build test scenarios", "thiết kế test scenarios".
+- **Implicit:** the user shares an audited `uc-review-report` and asks to "proceed to testing" / "next step" / "move to QA" without naming the artifact.
 
-## Input
+## Input Contract
 
-Read the `path-registry.md` file to find below files if the path is not already mentioned:
-- `project-context-master`
-- `qc-dashboard`
-- `uc-review-report`
+Resolve via `path-registry.md`:
 
-**Before generating anything**, read all provided documents fully and build a clear understanding of:
+- `project-context-master` — read §1 **Product Platform Type** (informs UI/E2E scenario phrasing — Tap vs Click, Swipe vs Hover, Hardware back vs browser back, etc.).
+- `uc-review-report` — latest version of the audited UC document for `<UC-ID>`.
+- `requirement-common-files` — for verbatim business rules, error codes/messages, and common functions referenced by the UC.
+- `qc-dashboard` — precheck only (auto-trigger `qc-dashboard-sync` if the UC row is missing).
 
-- Cunrent status 
-- All UC IDs and their names (e.g., `UC-001`, `UC_LOGIN`)
-- All functions/features described within each UC
-- The main flow, alternative flows, error flows
-- All business rules and validations
-- Acceptance criteria
-- Actors/roles
-- Pre and postconditions
-- API endpoints and behaviors (if applicable)
-- UI states and field behaviors (if applicable)
+## Output Contract
 
-If the UC ID or function names are not clearly stated in the document, infer them from the
-feature name and note your inference clearly. For example: *"UC ID inferred as UC-001 from
-document title 'User Login Feature'."*
+- **`func-test-scenarios`** (`.md`) — primary deliverable, one file per UC (or per UC group), versioned per `naming-convention.md`:
+  ```
+  [UC-ID]_[feature-name]_scenarios_[YYYYMMDD]_v[N].md
+  ```
+- **`agent-work-log`** — append a run row at skill start, update `Status` / `Input` / `Output` / `Duration` in-place as phases progress. The logical name `agent-work-log` is resolved from `path-registry.md`; the requirement to log every run is documented in `global-rules.md` (Agent Work Log section).
+- **`qc-dashboard.md`** `Scenario design stt` cell (column 8) — owned by this skill. Graceful degradation: if the column does not exist, skip the dashboard update and warn once.
 
-### MANDATORY Test Design Techniques Application
+## Workflow (single file, 3 phases)
 
-**CRITICAL RULE:** To guarantee comprehensive coverage and discover edge cases, you MUST forcefully expand requirements using these specific Test Design Techniques during scenario generation:
+### Phase 0 — Setup
 
-1. **Equivalence Partitioning (EP) Validation:** 
-   - Never bundle valid or invalid inputs into a single scenario if they belong to different partitions.
-   - Example: If allowed formats are `.png`, `.jpg`, and `.svg`, create a scenario checking ALL valid extensions independently, and separate scenarios for specific invalid extensions (`.pdf`, `.txt`).
-   - Split compound rules into discrete positive/negative scenarios.
+1. **Identify `<UC-ID>`** from the user invocation or the audited filename. If unclear, ASK the user — do NOT guess.
+2. **Append `agent-work-log` row:** Status = `Running (Phase 1)`, Input = `<uc-review-report path>`, started_at = now.
+3. **qc-dashboard precheck:** if `<UC-ID>` has no row in `qc-dashboard.md`, invoke `qc-dashboard-sync` via the Skill tool BEFORE proceeding. Wait for it to return.
+4. **Dashboard status:** update `Scenario design stt` cell → `Running — Analysis & Coverage Matrix` (skip if column missing).
 
-2. **Boundary Value Analysis (BVA):**
-   - For ANY field with numerical, length, or sizing limits (e.g., max 255 chars, max 1MB), you MUST forcefully generate scenarios mapping exactly to the Boundary (`Limit`), and immediately outside the Boundary (`Limit + 1 unit`, `Limit - 1 unit`).
-   - Example: For 255 chars limit, test 1 char, 255 chars, and 256 chars. For a 1MB limit, test 1.00MB exactly, and 1.01MB.
+### Phase 1 — Analysis & Coverage Matrix
 
-3. **Decision Tables / Combinatorics:**
-   - Force matrix-based testing for search filters or multi-variable forms.
-   - Example: Create combinations like `Filter A (Valid) + Filter B (Valid)` and `Filter A (Valid) + Filter C (Invalid)`.
-   - Never test just one filter in isolation if multiple filters can logically interact on a List layout.
+Read fully before writing anything.
 
-Failure to apply these techniques limits the scenarios to simple basic flows. Applying these bounds correctly typically scales valid CRUD feature scenarios upwards of 20-50 detailed variants.
+1. Read `project-context-master.md` §1 → Product Platform Type. Load the matching interaction vocabulary (web/desktop: Click/Hover/Right-click; mobile native: Tap/Long-press/Swipe/Pinch/Hardware-back).
+2. Read the highest-version `uc-review-report` for `<UC-ID>`. Build a working understanding of:
+   - All UC IDs in scope and their names
+   - All functions/features within each UC
+   - Main flow, alternative flows, exception/error flows
+   - Business rules and validations (with verbatim wording from common files)
+   - Acceptance criteria (Section 8 of the audited report)
+   - Actors / roles / permissions
+   - Pre/postconditions
+   - API endpoints + UI states (if applicable)
+3. Read `requirement-common-files` only for any error code / business-rule ID / common-function name cited in the UC — to inline the exact message text into scenario descriptions.
+4. **Build a coverage matrix in working memory:** `UC × Test Type × Coverage Area`. Rows = each UC in scope; columns = the 9 coverage areas listed in §"Scenario Coverage Rules". Mark each cell as:
+   - `to-cover` — has enough info, will produce one or more scenarios
+   - `blocked` — the audited report flagged the underlying KA as ⚠️ Missing / ⚡ Partial; surface in §Out-of-Scope Flags, do NOT fabricate
+   - `out-of-scope` — performance / load / security beyond functional auth; surface in §Out-of-Scope Flags
+5. If the audited report's Verdict is `NOT READY`, STOP and ask the user whether to proceed (scenarios from a Not-Ready UC will inherit known gaps). Do NOT silently continue.
+6. **agent-work-log:** update Status → `Phase 1 done`.
+7. **Dashboard status:** `Scenario design stt` cell → `Running — Scenario Drafting` (skip if column missing).
 
-### Test Scenario Template
+> If a UC ID or function name is not explicitly stated in the document, infer from the feature name and note your inference clearly in the output (e.g., *"UC ID inferred as UC-001 from title 'User Login Feature'."*).
+
+### Phase 2 — Scenario Drafting
+
+For every `to-cover` cell in the matrix, draft scenarios using the **Scenario Template** below. Apply the **MANDATORY Test Design Techniques** systematically (see §"MANDATORY Test Design Techniques"). Each scenario MUST:
+
+- Have a unique ID `TS_[UC-ID]_NNN` (zero-padded sequence per UC).
+- Cite a Req-ID (UC ID + section reference — e.g., `UC-001-FR-003`).
+- Map to exactly one Test Type (Functional / Integration / UI / End-to-End / Acceptance).
+- Carry a Test Focus tag (Happy path / Alternative flow / Error/Exception / Boundary / Permission/Role / UI State / API contract).
+- Be **independent in intent** — splitting later into atomic test cases is the next skill's job, but the scenario itself must already represent ONE meaningfully different test intent.
+
+Quality checks before writing the file (§"Quality Checks Before Finalizing"). When done, write the deliverable to the resolved `func-test-scenarios` path with the naming convention above.
+
+### Phase 3 — Finalize
+
+1. **agent-work-log:** Status → `Done`. Duration = now − started_at, rounded to 1 decimal. Output = `<scenarios file path>`.
+2. **Dashboard status:** `Scenario design stt` cell → `v<N> generated` (skip if column missing).
+3. **Chat report** (no separate summary file):
+
+   ```
+   ## ✅ Test Scenario Design Complete
+
+   | Artifact       | File                                  | Count |
+   |----------------|---------------------------------------|-------|
+   | Test Scenarios | <resolved path>                       | X scenarios across Y UCs |
+
+   ### Coverage breakdown by Test Type
+   - Functional: X scenarios
+   - Integration: X scenarios
+   - UI: X scenarios
+   - End-to-End: X scenarios
+   - Acceptance: X scenarios
+
+   ### Notes
+   - Inferred UC IDs / function names: <list or "none">
+   - Blocked coverage cells (need BA): <list or "none">
+   - Out-of-scope items flagged: <list or "none">
+   ```
+
+## Mindset (adapted from `qc-func-tc-design` so both skills share one playbook)
+
+- **Risk-Based:** scenarios for core transactions (login, payment, data submit) get extra coverage (alternative + exception flows). Trivial UI scenarios stay lean.
+- **Shift-Left "What-If" Engine:** for every requirement, ask *"What if user does X / Y / Z?"*. Each meaningful "what-if" becomes its own scenario.
+- **Be Skeptical:** the UC is incomplete by default. If a flow can silently branch (e.g., session expiry mid-action), add an alternative-flow scenario.
+- **Be Domain-Driven:** Fintech/Crypto → emphasize security & transaction accuracy. Cooking/Social → emphasize UX & data sync. Tailor scenario emphasis to the domain declared in `project-context-master.md` §1.
+
+## MANDATORY Test Design Techniques
+
+Same set as `qc-func-tc-design` — applied at the **scenario level** (one technique application typically produces one scenario; the downstream TC-design skill expands that scenario into atomic cases).
+
+1. **Equivalence Partitioning (EP)** — one scenario per valid/invalid partition. Never bundle.
+   - Allowed file types `.png .jpg .svg` → one scenario per valid extension + one per representative invalid extension. Do NOT collapse "all valid extensions" into one scenario.
+
+2. **Boundary Value Analysis (BVA)** — for any numeric/length/size constraint, one scenario each at `Limit`, `Limit − 1`, `Limit + 1`.
+   - 255-char max → scenarios for 1, 255, 256 chars.
+   - 1MB max → scenarios for 1.00MB exactly, 1.01MB.
+
+3. **Decision Table / Combinatorics** — for multi-filter, multi-condition, or multi-variable forms, write matrix scenarios.
+   - `Filter A valid × Filter B valid`, `A valid × B invalid`, `A invalid × B valid`, … Never test a filter in isolation if it logically interacts with another.
+
+4. **State Transition** — for UI/data with explicit states (Draft → Published → Archived), one scenario per valid transition + at least one invalid-transition attempt.
+
+5. **Use Case Testing** — derive Happy / Alternative / Exception flow scenarios directly from the UC's Main / Alt / Exception sections.
+
+6. **Error Guessing** — apply domain experience to add scenarios for defect-prone areas not explicitly listed in the UC (concurrent edit, race condition, network drop mid-submit, double-click on action button, paste with surrounding whitespace, etc.).
+
+> Failure to apply these techniques limits scenarios to basic happy paths. Applying them correctly typically scales a CRUD feature to **20–50 distinct scenarios**.
+
+## Test Scenario Template
 
 ```
-### Scenario ID: TS_[UC ID]_[SequenceNo]
+### Scenario ID: TS_[UC-ID]_[SequenceNo]
 **Scenario Title:** [Short, clear description of what is being tested]
 **UC Reference:** [UC ID and UC Name]
 **Req-ID:** [Requirement ID(s) this scenario traces to — e.g., UC-001-FR-003]
@@ -76,7 +146,7 @@ Failure to apply these techniques limits the scenarios to simple basic flows. Ap
 **Test Focus:** [Happy path | Alternative flow | Error/Exception | Boundary | Permission/Role | UI State | API contract]
 ```
 
-### Scenario Coverage Rules
+## Scenario Coverage Rules
 
 For each UC, generate scenarios that cover **all of the following** that apply:
 
@@ -90,18 +160,18 @@ For each UC, generate scenarios that cover **all of the following** that apply:
 | Role/permission variations       | Actors & User Roles section                         |
 | UI state transitions             | UI/UX Behaviour section (if applicable)             |
 | API contract verification        | API / Integration Behaviour section (if applicable) |
-| Acceptance criteria verification | Acceptance Criteria section                         |
+| Acceptance criteria verification | Acceptance Criteria section (Section 8 of audited)  |
 
-Do not skip any coverage area just because the UC is brief. If a UC only has a main flow and
-two business rules, you still generate scenarios for each. Quality over quantity — each scenario
-should represent a meaningfully different test intent.
+Do not skip a coverage area just because the UC is brief. If a UC only has a main flow and two business rules, still produce scenarios for each. **Quality over quantity** — each scenario must represent a meaningfully different test intent.
 
-### Output File: test_scenarios.md
-
-Structure the file like this:
+## Output File Structure
 
 ```markdown
-# Test Scenarios
+# Test Scenarios — [UC ID] [Feature Name]
+
+> Source: <uc-review-report v[N] path>
+> Generated: <YYYY-MM-DD>
+> Platform: <web-responsive | mobile-native | ...>
 
 ## [UC ID] — [UC Name]
 
@@ -119,74 +189,50 @@ Structure the file like this:
 ---
 
 ## [Next UC ID] — [Next UC Name]
-
 ...
-```
 
 ---
 
-## Output Summary
-
-After generating both files, provide a brief summary:
-
-```
-## ✅ Test Design Complete
-
-| Artifact | File | Count |
-|---|---|---|
-| Test Scenarios | path resolved from `func-test-scenarios` in `path-registry.md` (file pattern: `[UC-ID]_[feature-name]_scenarios_[YYYYMMDD]_v[N].md`) | X scenarios across Y UCs |
-
-### Coverage breakdown by test type:
-- Functional: X test scenarios
-- Integration: X test scenarios
-- UI: X test scenarios
-- End-to-End: X test scenarios
-- Acceptance: X test scenarios
-
-### Notes:
-- Any inferred UC IDs or function names
-- Any gaps found in the requirements that limited test case generation
-- Suggestions for areas to revisit (if applicable)
-```
-
----
-
-## Quality Checks Before Finalizing
-
-Before writing the final output, verify:
-
-- [ ] Every UC in the requirement has at least one scenario
-- [ ] All critical knowledge areas from `uc-review` have corresponding test coverage
-  (main flow, alternative flows, error flows, business rules, acceptance criteria)
-- [ ] Every test case has a unique ID
-- [ ] All test data uses realistic values (not abstract placeholders)
-- [ ] Pre-conditions are specific enough that a tester can set up the test independently
-- [ ] Expected results are observable and verifiable (not vague like "works correctly")
-- [ ] API test cases describe the request and expected response clearly
-- [ ] E2E test cases trace the full journey from start to finish
-
----
-
-## Important Notes
-
-- **Scope**: This skill covers functional, integration, UI, E2E, and acceptance testing only.
-- System testing and non-functional testing (performance, security, load) are handled by separate skills.
-- **Version**: All new test cases start at `v1.0`. If updating existing test cases,
-  the user will specify the new version.
-- **Traceability**: Every test case must be traceable back to a UC via its ID. Never generate
-  a test case without a clear UC reference.
-
-## Out-of-Scope Handling
-
-When a scenario is identified as performance, security (beyond functional auth checks), or load testing:
-
-1. Do NOT generate test cases for it
-2. Add an entry to the `## ⚠️ Out-of-Scope Flags` section at the end of the scenarios file:
-
-```markdown
 ## ⚠️ Out-of-Scope Flags
 
 | Scenario Area | Reason | Recommended Action |
-|--------------|--------|--------------------|
-| [Description] | [NFR: PERFORMANCE / SECURITY / LOAD] | Defer to performance/security testing specialist |
+|---------------|--------|--------------------|
+| [Description] | [NFR: PERFORMANCE / SECURITY / LOAD / BLOCKED by audited gap] | Defer to specialist / wait for BA answer |
 ```
+
+## Quality Checks Before Finalizing
+
+Run this checklist before writing the output file:
+
+- [ ] Every UC in the audited report has at least one scenario (or an Out-of-Scope row explaining why not).
+- [ ] Every "to-cover" cell in the Phase 1 coverage matrix has at least one scenario.
+- [ ] Every scenario has a unique `TS_[UC-ID]_NNN` ID.
+- [ ] Every scenario cites a real Req-ID — no orphan scenarios.
+- [ ] Every Test Type is assigned from the closed list (Functional / Integration / UI / End-to-End / Acceptance).
+- [ ] Boundary scenarios exist for every numeric/length/size field mentioned in the UC.
+- [ ] EP partitions are split, not bundled.
+- [ ] Multi-filter / multi-condition features have at least one combinatoric scenario.
+- [ ] All test data uses realistic values (no abstract placeholders like "valid input").
+- [ ] Verbatim message text from `requirement-common-files` is inlined into scenarios that reference error codes / business-rule IDs (so the downstream TC skill has the exact text without re-opening common docs).
+
+## Out-of-Scope Handling
+
+When a scenario area is identified as **performance**, **security beyond functional auth**, or **load** testing:
+
+1. Do NOT generate scenarios for it.
+2. Add a row to the `## ⚠️ Out-of-Scope Flags` table at the end of the scenarios file with reason and recommended action.
+
+When a scenario area is **blocked** by a known audited gap (⚠️ Missing or ⚡ Partial KA):
+
+1. Do NOT fabricate scenarios from inferred content.
+2. Add a row to `## ⚠️ Out-of-Scope Flags` with reason `BLOCKED: <KA name> — needs BA answer` and recommended action `Resolve via qc-qna + re-audit before designing`.
+
+## Boundaries
+
+- This skill ONLY designs test scenarios. Atomic, executable test cases are `qc-func-tc-design`'s responsibility.
+- This skill ONLY covers Functional / Integration / UI / E2E / Acceptance. Performance / load / security beyond functional auth are out of scope — flag, do not generate.
+- Do NOT edit input files (`uc-review-report`, common files, project-context-master).
+- Every scenario MUST trace to a UC via `TS_[UC-ID]_NNN` — no orphan scenarios.
+- qc-dashboard precheck is MANDATORY before Phase 1 begins (so the dashboard always reflects on-disk reality).
+- Output language follows source-input language per `global-rules.md` (Vietnamese audited UC → Vietnamese scenarios; English audited UC → English scenarios).
+- This skill produces ONE file per UC (or per UC group when the audited report bundles them). It does NOT shard scenarios across multiple files.

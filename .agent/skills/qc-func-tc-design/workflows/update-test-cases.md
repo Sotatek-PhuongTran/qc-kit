@@ -1,12 +1,28 @@
 ## Update Test Cases (Design Update Workflow)
 
-> **Scope:** This workflow produces ONLY the updated test case `.md` file. It is fully independent from the `.xlsx` artifact — no script invocation, no xlsx step. Conversion to `.xlsx` and chat-side reporting are orchestrated by `SKILL.md` → "Skill Execution Steps" (Steps B and C). Do NOT write a separate summary file in this workflow.
-
+> **Scope:** This workflow produces ONLY the updated test case `.md` file. It is fully independent from the `.xlsx` artifact — no script invocation, no xlsx step. Conversion to `.xlsx` (Phase 3) and chat-side reporting (Step C) are orchestrated by `SKILL.md`. Do NOT write a separate summary file in this workflow.
+>
 > **Trigger conditions:** This workflow is triggered when EITHER of the following occurs:
 > 1. **Requirement change**: The audited UC Readiness Report has been updated (new version). Test cases need to be aligned with the changed requirements.
 > 2. **User feedback**: The user provides explicit feedback about gaps, errors, or missing coverage in the existing test cases.
+>
+> **Phase mapping (per `SKILL.md` → "Phase Map"):**
+> - **Phase 1 — Analysis & Design Brief** = Steps 1 + 2 below.
+> - **Phase 2 — TC Drafting & MD Write** = Steps 3 + 3.5 + 4 below. (Step 3.5 persists the merged updated TC list to scratch BEFORE the deliverable md write — required by Phase 3 auto-recovery.)
+> - Phase 3 (MD → XLSX) is handled by `convert-md-to-xlsx.md`, not this file.
+>
+> **Checkpoint references:** all phase-boundary write/update steps follow `SKILL.md` → "Checkpoint & Resume Protocol" §5. Do NOT duplicate those rules here.
 
 ---
+
+## Phase 1 — Analysis & Design Brief
+
+### Status update — Start of Phase 1
+
+Per `SKILL.md` → "Checkpoint & Resume Protocol" §2 (write-before-work rule):
+
+1. **agent-work-log**: update current row Status → `Running (Phase 1)`. Append input file names (excluding `process-logging/`).
+2. **qc-dashboard.md**: update the UC's `TC design stt` cell → `Running — Phân tích & Lập đề cương thiết kế` (VI) / `Running — Analysis & Design Brief` (EN). Skip if column missing (graceful degradation). If the UC has no row yet in the dashboard → invoke `qc-dashboard-sync` BEFORE updating.
 
 ### Step 1: Input Analysis (MANDATORY)
 
@@ -97,17 +113,49 @@ Do NOT write this flag into a file — it will be reported on chat.
 
 #### 2C — If Trigger is Type C (Both)
 
-Apply both 2A and 2B analyses sequentially. Consolidate the Impact Table and Feedback Analysis into a unified **Change Analysis Report** held in working memory before proceeding to Step 3.
+Apply both 2A and 2B analyses sequentially. Consolidate the Impact Table and Feedback Analysis into a unified **Change Analysis Report** held in working memory before proceeding to Phase 2.
+
+### Checkpoint write — End of Phase 1
+
+Per `SKILL.md` → "Checkpoint & Resume Protocol" §5.2 (end-of-phase):
+
+1. **Write checkpoint file** `.claude/skills/qc-func-tc-design/process-logging/<UC-ID>/01_analysis.md` containing:
+   - Trigger Type (A / B / C).
+   - **Impact Table** (if Type A or C) — full table from Step 2A.
+   - **Feedback Classification** (if Type B or C) — per-feedback rows with Category + Reason + Action.
+   - **Cat 1 Skill Improvement Flags** (if any) — verbatim text to surface in Step C.
+   - **Cat 2 open requirement gaps** (if any) — items waiting on user confirmation / audited-file update.
+   - Previous TC version + path; current `uc-review-report` version used.
+   - Detected output language (VI / EN).
+   - Target platform variant(s) resolved from `project-context-master.md` §1 (for the variant being updated — see Step 3 multi-platform rule).
+2. **agent-work-log**: update row Status → `Phase 1 done`.
+3. **qc-dashboard.md**: update the UC's `TC design stt` cell → `Phân tích & Lập đề cương thiết kế done` (VI) / `Analysis & Design Brief done` (EN). Skip if column missing.
+
+> **Note:** `last_phase_done: 1` is NOT written here — it gets written at the start of Phase 2 (see "Status update — Start of Phase 2" below). Per §5.1, advancing `last_phase_done` happens only at phase transition.
 
 ---
 
+## Phase 2 — TC Drafting & MD Write
+
+### Status update — Start of Phase 2
+
+Per `SKILL.md` → "Checkpoint & Resume Protocol" §5.1 (start-of-phase / transition write). This is the moment we advance `last_phase_done` to confirm Phase 1 is done.
+
+1. **Update `progress.md`** → `last_phase_done: 1`, `next_phase: 2`, `workflow: update-test-cases`, `updated_at: <now>`. (Preserve any other existing fields / notes.)
+2. **agent-work-log**: update current row Status → `Running (Phase 2)`.
+3. **qc-dashboard.md**: update the UC's `TC design stt` cell → `Running — Soạn TC & ghi MD` (VI) / `Running — TC Drafting & MD Write` (EN). Skip if column missing.
+
+> **Resume note:** Probe `process-logging/<UC-ID>/02_designed_tcs_<V>.md` where `<V>` is the variant being updated (recorded in `01_analysis.md`). If the scratch already exists (a prior run interrupted between Phase 2's scratch persist and md write), SKIP Step 3 below — the merged updated TC list is already done. Read the scratch and jump to Step 4 (Final MD Write). Per `SKILL.md` §4 Resume load table.
+
 ### Step 3: Redesign Affected Test Cases (MANDATORY)
 
-Using the same 6-phase design logic as `generate-test-cases.md`, apply it **only to the impacted scope** identified in Step 2:
+Using the same platform-aware 6-phase design logic as `generate-test-cases.md` Step 2 — load `references/design-technical/design-technical-<variant>.md` for each platform variant declared in `project-context-master.md` §1 → "Product Platform Type" — apply it **only to the impacted scope** identified in Phase 1:
 
-- **New TCs**: Design from scratch using the 6-phase logic for the new or changed ACs.
+- **New TCs**: Design from scratch using the 6-phase logic of the matching variant rubric for the new or changed ACs.
 - **Updated TCs**: Rewrite only the affected fields (Steps, Expected Result, Pre-conditions) — keep the TC ID unchanged. Add a note: `[Updated vN — Reason: AC-XX modified]`.
 - **Deleted TCs**: Mark as DELETED in the working draft — do NOT renumber remaining TCs to avoid traceability breaks.
+
+**Multi-platform update rule:** When the project has multiple platform variants, this update workflow operates on ONE variant `.md` at a time — the variant whose `func-test-cases` was identified in Step 1.1 as the input. If the requirement change cuts across variants, re-trigger update separately for each affected variant `.md`. Do NOT silently update sibling variant files.
 
 **Test Case Writing rules (MANDATORY for new and updated TCs):** Apply all the rules in `qc-func-tc-design/rules/testcase-instruction-rules.md`.
 
@@ -125,19 +173,38 @@ Using the same 6-phase design logic as `generate-test-cases.md`, apply it **only
 
 ---
 
+### Step 3.5: Persist Updated TC List to Scratch (MANDATORY — atomic single Write)
+
+This step is the **safety net for Phase 3 auto-recovery** (same rationale as `generate-test-cases.md` Step 3.5). It locks down the merged updated TC list (unchanged + updated + new TCs, minus deleted) BEFORE the final v[N+1] md write begins, so that if the final md write is interrupted, Phase 3's verification gate can detect the mismatch and auto-recover from this scratch — WITHOUT having to re-run the impact analysis + redesign work of Steps 1–3.
+
+1. **Compose the full scratch content** in working memory, using the SAME content format as the final deliverable md described in Step 4 below:
+   - The complete required prelude for the new version v[N+1] (`# Test Cases — [UC-ID] [feature-name] (v[N+1])`, totals, delta line `+A new, ~U updated, -D deleted`, source UC previous + current versions, update trigger type, output language, updated RTM).
+   - All screen sections (`## <Roman>. …`) with their GUI (`### <Roman>.1. …`) and FUNC (`### <Roman>.2. …`) subsections.
+   - ALL test cases in their final form: unchanged TCs kept verbatim, updated TCs with `[UPDATED — Reason: AC-XX modified]` annotation, new TCs with `[NEW — AC-XX]` annotation. Deleted TCs are EXCLUDED from the body (their removal is reflected in the RTM `Removed` status only).
+   - The same heading-level rules as Step 4 (only `#` / `####` in the prelude, `##` for screens, `###` for GUI/FUNC).
+2. **Write to scratch path** `.claude/skills/qc-func-tc-design/process-logging/<UC-ID>/02_designed_tcs_<V>.md` where `<V>` is the platform variant being updated (recorded in `01_analysis.md` at end of Phase 1). Use **ONE atomic Write call** containing the ENTIRE content. Do NOT use Edit / multiple appends to build the scratch incrementally — if the scratch itself is interrupted mid-write, Phase 3 has nothing to recover from. If volume exceeds a single Write's practical limit, fail loudly and ask the user — multi-part scratch is NOT supported.
+3. Do NOT delete or modify the scratch later in this skill run — it is the durable source of truth for Phase 2 and is only removed in `SKILL.md` → Step D cleanup at end-of-run.
+
+After this step completes, the merged update work of Phase 2 is **durably persisted** for the variant being updated. Step 4 below is a re-materialization of the same content at the deliverable path (new version v[N+1]); if Step 4 is interrupted, the scratch is still on disk for recovery.
+
+> **Multi-platform note:** Per Step 3's multi-platform rule, this workflow updates ONE variant per run. The scratch holds the full v[N+1] content for THAT variant only. Sibling variant scratches / deliverables are not touched. (Phase 3 still iterates per variant — for an update run, "all variants in scope" = the single variant being updated.)
+
+---
+
 ### Step 4: Write the Updated .md File (MANDATORY)
 
-Write the COMPLETE updated test case list into a NEW version of the `.md` at the path defined in `path-registry.md` for `func-test-cases-draft`. Naming follows `rules/naming-convention.md` (immutable versions — increment v[N] → v[N+1], never overwrite).
+The content source is `02_designed_tcs.md` (just written in Step 3.5) — Step 4 re-materializes the same content at the **deliverable path** defined in `path-registry.md` for `func-test-cases-draft`, as a NEW version. Naming follows `rules/naming-convention.md` (immutable versions — increment v[N] → v[N+1], never overwrite). Use a single file or multi-part files (`*_part1.md`, `*_part2.md`, …) depending on volume; each file (single or per-part) is an atomic single Write.
 
 The md must contain ALL test cases — unchanged, updated, and newly added — in their final form. Deleted TCs are excluded from the md body.
 
 **At the TOP of the md (or top of `part1` if multi-part), include the following required prelude:**
 
 ```markdown
-# Test Cases — [UC-ID] [feature-name] (v[N+1])
+# Test Cases — [UC-ID] [feature-name] — <variant> (v[N+1])
 
-**Total test cases:** Y (Δ vs v[N]: +A new, ~U updated, -D deleted)
+**Total test cases:** Y (Delta vs v[N]: +A new, ~U updated, -D deleted)
 **GUI / FUNC counts:** y_gui / y_func
+**Platform variant:** [web-responsive / web-static / mobile-native / mobile-hybrid / desktop-native]
 **Source UC (previous version):** [audited_filename_vX]
 **Source UC (current version):** [audited_filename_vY]
 **Update trigger:** [Type A — Requirement Change / Type B — User Feedback / Type C — Both]
@@ -172,3 +239,30 @@ The md must contain ALL test cases — unchanged, updated, and newly added — i
 - Encoding (Rules 0a–0d): UTF-8 md, preserve dấu, no `unicodedata.normalize` / `unidecode` / Latin-1.
 
 **Do NOT write a separate summary file.** The md (with its prelude) is the only design artifact this workflow produces. Detailed change tables (deleted / updated / new TCs), Cat 1 skill improvement flags, Cat 2 open requirement gaps, and out-of-scope items will be reported on chat by the orchestrator (`SKILL.md` → Step C).
+
+### Checkpoint write — End of Phase 2
+
+Per `SKILL.md` → "Checkpoint & Resume Protocol" §5.2 (end-of-phase). At this point, two artifacts already exist on disk: the scratch `02_designed_tcs_<V>.md` (Step 3.5) and the final updated deliverable `.md` v[N+1] for variant `<V>` (Step 4). The remaining work is to publish the `## Phase 2 Summary` block to progress.md (so Phase 3 can verify the final md), then update worklog + dashboard.
+
+1. **Compute the Phase 2 summary** by counting TCs in the final v[N+1] md (which equals the scratch — both should match exactly at this moment):
+   - Total TCs (single integer) + GUI total + FUNC total (each on its own line in the summary, per `SKILL.md` §1 schema).
+   - **Delta vs v[N]**: `+<A> new, ~<U> updated, -<D> deleted` (counted from the inline annotations: `[NEW]` for new, `[UPDATED]` for modified; deleted count comes from RTM `Removed` rows). ASCII "Delta", not the Greek glyph.
+   - Per-screen breakdown: for each `## <Roman>.` screen, count TC rows in its `### <Roman>.1.` (GUI) and `### <Roman>.2.` (FUNC) tables.
+   - The output language detected in Phase 1.
+   - The platform variant being updated (`<V>`).
+   - The scratch path: absolute path to `02_designed_tcs_<V>.md`.
+   - The final v[N+1] md path(s) written in Step 4 (single file or multi-part list, absolute paths).
+2. **Append `## Phase 2 Summary` block to `progress.md`** using the exact schema from `SKILL.md` → §1 `progress.md` format. The block contains:
+   - A top-level `**Variants in scope:** <V>` line (always exactly ONE variant for the update workflow).
+   - Exactly ONE `### Variant: <V>` sub-block, populated from the fields computed above (totals, language, scratch path, final md paths, screen breakdown table, plus the `**Delta vs v[N]:**` line below the table).
+   - Atomic single Write that overwrites `progress.md` while preserving all existing fields (run_id, uc_id, workflow, started_at, last_phase_done, next_phase, updated_at, ## Notes). Do NOT touch `last_phase_done` here — it stays at its current value (set when Phase 2 started). Update `updated_at: <now>`.
+3. **agent-work-log**: update row Status → `Phase 2 done`. Append the final v[N+1] `.md` path(s) to the Output column (excluding `process-logging/`).
+4. **qc-dashboard.md**: update the UC's `TC design stt` cell → `Soạn TC & ghi MD done` (VI) / `TC Drafting & MD Write done` (EN). Skip if column missing.
+
+> **Note:** `last_phase_done: 2` is NOT written here — it gets written at the START of Phase 3, only AFTER Phase 3's Step 0 verification gate passes. This is what guarantees a partial / mismatched updated md cannot be silently accepted as "Phase 2 done" on resume. See `convert-md-to-xlsx.md` → Step 0.
+
+---
+
+## Hand-off to Phase 3
+
+Next file: `workflows/convert-md-to-xlsx.md`. The orchestrator (`SKILL.md` → Step B) auto-triggers it after Phase 2 finishes successfully.

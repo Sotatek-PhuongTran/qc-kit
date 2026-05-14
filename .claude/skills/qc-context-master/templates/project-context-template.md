@@ -8,6 +8,15 @@
 - Release Version: 
 - Project type: New build / Enhancement / Migration / Integration / Maintenance
 - Domain:
+- Product Platform Type: [Copy the matching value(s) from the table below. This field is MANDATORY because it drives test case design — different platforms have different test coverage rubrics. If the project ships on multiple platforms, list all values separated by commas.]
+
+  | Value            | When to use                                                                                                                |
+  |------------------|----------------------------------------------------------------------------------------------------------------------------|
+  | `web-responsive` | Web app with responsive layout (covers desktop + tablet + mobile viewport widths from a single codebase).                  |
+  | `web-static`     | Web app NOT responsive — desktop-first only (typical for internal back-office tools, admin panels, ERP screens).           |
+  | `mobile-native`  | Native mobile app (Swift / Kotlin / React Native / Flutter / Xamarin) distributed via App Store / Play Store / enterprise. |
+  | `mobile-hybrid`  | Mobile app rendered inside a WebView wrapped by a native shell (Cordova / Capacitor / Ionic / wrapped PWA).                |
+  | `desktop-native` | Desktop app installed on Windows / macOS / Linux (Electron / .NET / WPF / WinUI / Qt / native Cocoa).                      |
 
 ## 2. Business Goal
 

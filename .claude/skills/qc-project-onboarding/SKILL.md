@@ -1,6 +1,6 @@
 ---
 name: qc-project-onboarding
-description: Project onboarding skill for the QC Lead. MUST be the very first skill executed when applying the QC Kit to a new project. Validates and populates the two meta-config files (project-config.md and path-registry.md), then auto-triggers qc-context-master to generate project-context-master.md and bootstrap qc-dashboard.md if all inputs are ready. Trigger ONLY when the user explicitly invokes this skill (e.g., /qc-project-onboarding).
+description: Project onboarding skill for the QC Lead. MUST be the very first skill executed when applying the QC Kit to a new project. Validates and populates the two configuration files (project-config.md in docs/qc-lead/ and path-registry.md in .claude/config/), then auto-triggers qc-context-master to generate project-context-master.md and bootstrap qc-dashboard.md if all inputs are ready. Trigger ONLY when the user explicitly invokes this skill (e.g., /qc-project-onboarding).
 ---
 
 # QC Project Onboarding Skill
@@ -14,18 +14,18 @@ description: Project onboarding skill for the QC Lead. MUST be the very first sk
 
 | Input | Source |
 |---|---|
-| Existing `project-config.md` | `.claude/config/project-config.md` |
+| Existing `project-config.md` | `docs/qc-lead/project-config.md` (resolved via `project-config` logical-name) |
 | Existing `path-registry.md` | `.claude/config/path-registry.md` |
 | User answers during interview | Interactive |
 
 ## Outputs
 
-| Output | Path | Versioning |
-|---|---|---|
-| `project-config.md` | `.claude/config/project-config.md` | In-place. Header `Version` bumps `v1 → v2 → v3 …` ONLY if content actually changed. |
+| Output  | Versioning |
+|---|---|
+| `project-config.md` | In-place. Header `Version` bumps `v1 → v2 → v3 …` ONLY if content actually changed. |
 | `path-registry.md` | `.claude/config/path-registry.md` | In-place. Bumps version if a header version field exists; else just updates content. |
 
-> **Versioning exception:** meta-config files have fixed paths because every downstream skill references them. Filename and path do NOT change; only the `Version` header field is bumped.
+> **Versioning exception:** both files have fixed paths because every downstream skill references them. Filename and path do NOT change; only the `Version` header field is bumped.
 
 > **Indirect outputs (via auto-trigger):** when pre-flight passes, this skill invokes `qc-context-master` which produces `project-context-master.md` and `qc-dashboard.md`. This skill itself NEVER writes those two artifacts directly.
 
@@ -189,7 +189,7 @@ Output exactly:
    - `path-registry.md`: đã update: <list logical-names> | giữ nguyên: <list>
 
    ⚠️ Tôi CHƯA thể tự động gọi `qc-context-master` vì:
-   <reason — e.g., "qc-lead-common-files chưa cấu hình", "folder <path> chưa tồn tại", "folder rỗng">
+   <reason — e.g., "High-level-files chưa cấu hình", "folder <path> chưa tồn tại", "folder rỗng">
 
    📋 **Bước tiếp theo:** chuẩn bị các tài liệu sau (WBS, Product Brief, System Architecture Diagram, Tech Stack, ...) tại `<resolved path>`, sau đó gọi `/qc-context-master` để hoàn tất tổng hợp tri thức dự án.
    ```
@@ -201,7 +201,7 @@ Output exactly:
 
 ## Boundaries
 
-- This skill ONLY edits `.claude/config/project-config.md` and `.claude/config/path-registry.md`. It MUST NOT directly create or edit `project-context-master.md`, `qc-dashboard.md`, or any other artifact — those belong to `qc-context-master`.
+- This skill ONLY edits `docs/qc-lead/project-config.md` and `.claude/config/path-registry.md`. It MUST NOT directly create or edit `project-context-master.md`, `qc-dashboard.md`, or any other artifact — those belong to `qc-context-master`.
 - It MUST NOT invent project information. If user does not provide a value, leave the placeholder untouched.
 - For Section 5 of `project-config.md` (test account credentials), the skill MAY collect passwords (test-only). It MUST refuse to record any credential the user identifies as production.
 - Auto-trigger of `qc-context-master` happens ONLY when pre-flight passes; otherwise the skill instructs the user to run it manually.

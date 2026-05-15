@@ -13,28 +13,40 @@
 > **DO NOT delete rows.** Feature/UC bị remove khỏi WBS sẽ được đánh `In scope? = Removed` (soft-delete).
 
 | Site | Use Case ID | Module | Feature/Use case name | In scope? | Files stt | UC review stt | Scenario design stt | TC design stt | Execute stt |
-| :--- | :--- | :--- | :--- | :--- | :---------------------------- | :----------------- | :----------------- | :----------------- | :----------------- |
-| Mobile | UC1 | Trang chủ & Điều hướng | Trang chủ Dashboard | Yes | Specs: V1<br>WF: V1<br>Audited: Missing<br>Scenario: V1<br>TC md: V1<br>TC xlsx: V1 | Conditionally Ready v1 (Score 71.5/100) |  |  |  |
-| Mobile | UC2 | Tra cứu KCN/KKT & Quỹ đất | Tra cứu KCN, KCN Sinh thái, KKT, TMTD, PTQ, Mô hình khác (UC2-UC31) | Yes | Specs: V1<br>WF: V1<br>Audited: Missing<br>Scenario: Missing<br>TC md: Missing<br>TC xlsx: Missing |  |  |  |  |
-| Mobile | UC40 | Tra cứu KCN/KKT & Quỹ đất | Tra cứu quỹ đất KCN | Yes | Specs: V1<br>WF: V1<br>Audited: Missing<br>Scenario: Missing<br>TC md: Missing<br>TC xlsx: V4 |  |  |  |  |
-| Mobile | UC42-44 | Quản lý hồ sơ & Dịch vụ | Quản lý đặt lịch nộp hồ sơ | Yes | Specs: V1<br>WF: V1<br>Audited: Missing<br>Scenario: V2<br>TC md: V1<br>TC xlsx: V1 |  |  |  |  |
-| Mobile | UC45-51 | Quản lý hồ sơ & Dịch vụ | Quản lý hồ sơ | Yes | Specs: V1<br>WF: V1<br>Audited: Missing<br>Scenario: Missing<br>TC md: Missing<br>TC xlsx: Missing | Conditionally Ready v1 (Score 70.8/100) |  |  |  |
-| Mobile | UC52 | Quản lý hồ sơ & Dịch vụ | Kho tài liệu cá nhân | Yes | Specs: V1<br>WF: V1<br>Audited: Missing<br>Scenario: Missing<br>TC md: Missing<br>TC xlsx: Missing |  |  |  |  |
-| Mobile | UC53_63-65 | Quản lý hồ sơ & Dịch vụ | Phản ánh kiến nghị (UC53, UC63-65) | Yes | Specs: V1<br>WF: V1<br>Audited: Missing<br>Scenario: Missing<br>TC md: V1<br>TC xlsx: V1 |  |  | v1 generated |  |
-| Mobile | UC54 | Quản lý hồ sơ & Dịch vụ | Báo cáo đã nộp | Yes | Specs: V1<br>WF: V1<br>Audited: Missing<br>Scenario: V2<br>TC md: V1<br>TC xlsx: V1 |  |  |  |  |
-| Mobile | UC55 | Tin tức, Thông tin & Hỗ trợ | Tin tức / Chuyên trang đầu tư theo khu vực (UC55) | Yes | Specs: V4<br>WF: V1<br>Audited: Missing<br>Scenario: V4<br>TC md: V4<br>TC xlsx: V4 |  |  |  |  |
-| Mobile | UC56-57_66_68 | Tin tức, Thông tin & Hỗ trợ | Tin tức (UC56-57, UC66, UC68) | Yes | Specs: V1<br>WF: V1<br>Audited: Missing<br>Scenario: V1<br>TC md: V2<br>TC xlsx: V1 |  |  |  |  |
-| Mobile | UC60-61 | Tin tức, Thông tin & Hỗ trợ | Tin tức / Chuyên trang (UC60-61) | Yes | Specs: V2<br>WF: V1<br>Audited: Missing<br>Scenario: Missing<br>TC md: V1<br>TC xlsx: V1 |  |  |  |  |
-| Mobile | UC69 | Tin tức, Thông tin & Hỗ trợ | Văn bản pháp luật (UC69) | Yes | Specs: V2<br>WF: V1<br>Audited: Missing<br>Scenario: V1<br>TC md: V1<br>TC xlsx: V1 |  |  |  |  |
-| Mobile | UC70 | Tin tức, Thông tin & Hỗ trợ | (Không có trong WBS — user đánh dấu Removed) | Removed | Specs: V1<br>WF: V1<br>Audited: Missing<br>Scenario: Missing<br>TC md: Missing<br>TC xlsx: Missing |  |  |  |  |
-| Mobile | UC71-82 | Tin tức, Thông tin & Hỗ trợ | Hướng dẫn sử dụng & FAQ | Yes | Specs: V1<br>WF: V1<br>Audited: Missing<br>Scenario: Missing<br>TC md: Missing<br>TC xlsx: Missing |  |  |  |  |
-| Mobile | UC83-86 | Tin tức, Thông tin & Hỗ trợ | Điều khoản, Chính sách, Liên hệ, Giới thiệu | Yes | Specs: V1<br>WF: V1<br>Audited: Missing<br>Scenario: Missing<br>TC md: Missing<br>TC xlsx: Missing |  |  |  |  |
-| Mobile | UC90 | Tin tức, Thông tin & Hỗ trợ | Xúc tiến đầu tư (UC90, thuộc nhóm UC87-95) | Yes | Specs: V1<br>WF: V1<br>Audited: Missing<br>Scenario: Missing<br>TC md: Missing<br>TC xlsx: Missing |  |  |  |  |
-| Mobile | UC249 | Xác thực & Quản lý tài khoản | Cấu hình & Quản lý tài khoản (UC249, UC250, UC251, UC254, UC260) | Yes | Specs: V2<br>WF: V1<br>Audited: Missing<br>Scenario: Missing<br>TC md: Missing<br>TC xlsx: Missing |  |  |  |  |
-| Mobile | UC250-254 | Xác thực & Quản lý tài khoản | Đăng ký, Quên MK, Cập nhật DN, Cấu hình (UC250-254) | Yes | Specs: V1<br>WF: V1<br>Audited: Missing<br>Scenario: Missing<br>TC md: Missing<br>TC xlsx: Missing |  |  |  |  |
-| Mobile | UC256 | Xác thực & Quản lý tài khoản | Đăng nhập ứng dụng Mobile | Yes | Specs: V1<br>WF: V1<br>Audited: Missing<br>Scenario: Missing<br>TC md: Missing<br>TC xlsx: Missing |  |  |  |  |
-| Mobile | UC257 | Xác thực & Quản lý tài khoản | Đăng xuất ứng dụng Mobile | Yes | Specs: V1<br>WF: V1<br>Audited: Missing<br>Scenario: Missing<br>TC md: Missing<br>TC xlsx: Missing |  |  |  |  |
-| Mobile | UC258_UC259 | Thông báo | Thông báo hệ thống (UC258, UC259) | Yes | Specs: V3<br>WF: V1<br>Audited: Missing<br>Scenario: Missing<br>TC md: Missing<br>TC xlsx: Missing |  |  |  |  |
+| :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- |
+| Mobile | UC1 | Trang chủ & Điều hướng | Trang chủ Dashboard | Yes | Specs: Missing<br>WF: Missing<br>Audited: Missing<br>Scenario: Missing<br>TC md: Missing<br>TC xlsx: Missing |  |  |  |  |
+| Mobile | UC2 | Tra cứu KCN/KKT & Quỹ đất | Tra cứu KCN, KCN Sinh thái, KKT, TMTD, PTQ, Mô hình khác (UC2-UC31) | Yes | Specs: Missing<br>WF: Missing<br>Audited: Missing<br>Scenario: Missing<br>TC md: Missing<br>TC xlsx: Missing |  |  |  |  |
+| Mobile | UC40 | Tra cứu KCN/KKT & Quỹ đất | Tra cứu quỹ đất KCN | Yes | Specs: Missing<br>WF: Missing<br>Audited: Missing<br>Scenario: Missing<br>TC md: Missing<br>TC xlsx: Missing |  |  |  |  |
+| Mobile | UC42-44 | Quản lý hồ sơ & Dịch vụ | Quản lý đặt lịch nộp hồ sơ | Yes | Specs: Missing<br>WF: Missing<br>Audited: Missing<br>Scenario: Missing<br>TC md: Missing<br>TC xlsx: Missing |  |  |  |  |
+| Mobile | UC45-51 | Quản lý hồ sơ & Dịch vụ | Quản lý hồ sơ | Yes | Specs: Missing<br>WF: Missing<br>Audited: Missing<br>Scenario: Missing<br>TC md: Missing<br>TC xlsx: Missing |  |  |  |  |
+| Mobile | UC52 | Quản lý hồ sơ & Dịch vụ | Kho tài liệu cá nhân | Yes | Specs: Missing<br>WF: Missing<br>Audited: Missing<br>Scenario: Missing<br>TC md: Missing<br>TC xlsx: Missing |  |  |  |  |
+| Mobile | UC53_63-65 | Quản lý hồ sơ & Dịch vụ | Phản ánh kiến nghị (UC53, UC63-65) | Yes | Specs: Missing<br>WF: Missing<br>Audited: Missing<br>Scenario: Missing<br>TC md: Missing<br>TC xlsx: Missing |  |  |  |  |
+| Mobile | UC54 | Quản lý hồ sơ & Dịch vụ | Báo cáo đã nộp | Yes | Specs: Missing<br>WF: Missing<br>Audited: Missing<br>Scenario: Missing<br>TC md: Missing<br>TC xlsx: Missing |  |  |  |  |
+| Mobile | UC55 | Tin tức, Thông tin & Hỗ trợ | Tin tức / Chuyên trang đầu tư theo khu vực | Yes | Specs: Missing<br>WF: Missing<br>Audited: Missing<br>Scenario: Missing<br>TC md: Missing<br>TC xlsx: Missing |  |  |  |  |
+| Mobile | UC56-57_66_68 | Tin tức, Thông tin & Hỗ trợ | Tin tức (UC56-57, UC66, UC68) | Yes | Specs: Missing<br>WF: Missing<br>Audited: Missing<br>Scenario: Missing<br>TC md: Missing<br>TC xlsx: Missing |  |  |  |  |
+| Mobile | UC58 | Tin tức, Thông tin & Hỗ trợ | Tin tức / Chuyên trang (UC58 — thuộc file UC55-68) | Need confirm | Specs: Missing<br>WF: Missing<br>Audited: Missing<br>Scenario: Missing<br>TC md: Missing<br>TC xlsx: Missing |  |  |  |  |
+| Mobile | UC59 | Tin tức, Thông tin & Hỗ trợ | Tin tức / Chuyên trang (UC59 — thuộc file UC55-68) | Need confirm | Specs: Missing<br>WF: Missing<br>Audited: Missing<br>Scenario: Missing<br>TC md: Missing<br>TC xlsx: Missing |  |  |  |  |
+| Mobile | UC60-61 | Tin tức, Thông tin & Hỗ trợ | Tin tức / Chuyên trang (UC60-61) | Yes | Specs: Missing<br>WF: Missing<br>Audited: Missing<br>Scenario: Missing<br>TC md: Missing<br>TC xlsx: Missing |  |  |  |  |
+| Mobile | UC62 | Tin tức, Thông tin & Hỗ trợ | Tin tức / Chuyên trang (UC62 — thuộc file UC55-68) | Need confirm | Specs: Missing<br>WF: Missing<br>Audited: Missing<br>Scenario: Missing<br>TC md: Missing<br>TC xlsx: Missing |  |  |  |  |
+| Mobile | UC67 | Tin tức, Thông tin & Hỗ trợ | Tin tức / Chuyên trang (UC67) | Need confirm | Specs: Missing<br>WF: Missing<br>Audited: Missing<br>Scenario: Missing<br>TC md: Missing<br>TC xlsx: Missing |  |  |  |  |
+| Mobile | UC69 | Tin tức, Thông tin & Hỗ trợ | Văn bản pháp luật | Yes | Specs: Missing<br>WF: Missing<br>Audited: Missing<br>Scenario: Missing<br>TC md: Missing<br>TC xlsx: Missing |  |  |  |  |
+| Mobile | UC71-82 | Tin tức, Thông tin & Hỗ trợ | Hướng dẫn sử dụng & FAQ | Yes | Specs: Missing<br>WF: Missing<br>Audited: Missing<br>Scenario: Missing<br>TC md: Missing<br>TC xlsx: Missing |  |  |  |  |
+| Mobile | UC73 | Tin tức, Thông tin & Hỗ trợ | Tra cứu Thủ tục hành chính (TTHC) | Need confirm | Specs: Missing<br>WF: Missing<br>Audited: Missing<br>Scenario: Missing<br>TC md: Missing<br>TC xlsx: Missing |  |  |  |  |
+| Mobile | UC83-86 | Tin tức, Thông tin & Hỗ trợ | Điều khoản, Chính sách, Liên hệ, Giới thiệu | Yes | Specs: Missing<br>WF: Missing<br>Audited: Missing<br>Scenario: Missing<br>TC md: Missing<br>TC xlsx: Missing |  |  |  |  |
+| Mobile | UC87 | Tin tức, Thông tin & Hỗ trợ | Xúc tiến đầu tư (UC87 — thuộc file UC87-95) | Need confirm | Specs: Missing<br>WF: Missing<br>Audited: Missing<br>Scenario: Missing<br>TC md: Missing<br>TC xlsx: Missing |  |  |  |  |
+| Mobile | UC88 | Tin tức, Thông tin & Hỗ trợ | Xúc tiến đầu tư (UC88) | Need confirm | Specs: Missing<br>WF: Missing<br>Audited: Missing<br>Scenario: Missing<br>TC md: Missing<br>TC xlsx: Missing |  |  |  |  |
+| Mobile | UC89 | Tin tức, Thông tin & Hỗ trợ | Xúc tiến đầu tư (UC89) | Need confirm | Specs: Missing<br>WF: Missing<br>Audited: Missing<br>Scenario: Missing<br>TC md: Missing<br>TC xlsx: Missing |  |  |  |  |
+| Mobile | UC90 | Tin tức, Thông tin & Hỗ trợ | Xúc tiến đầu tư (UC90, thuộc nhóm UC87-95) | Yes | Specs: Missing<br>WF: Missing<br>Audited: Missing<br>Scenario: Missing<br>TC md: Missing<br>TC xlsx: Missing |  |  |  |  |
+| Mobile | UC91 | Tin tức, Thông tin & Hỗ trợ | Xúc tiến đầu tư (UC91) | Need confirm | Specs: Missing<br>WF: Missing<br>Audited: Missing<br>Scenario: Missing<br>TC md: Missing<br>TC xlsx: Missing |  |  |  |  |
+| Mobile | UC92 | Tin tức, Thông tin & Hỗ trợ | Xúc tiến đầu tư (UC92 — yêu cầu đăng nhập, khác PQ-07) | Need confirm | Specs: Missing<br>WF: Missing<br>Audited: Missing<br>Scenario: Missing<br>TC md: Missing<br>TC xlsx: Missing |  |  |  |  |
+| Mobile | UC93 | Tin tức, Thông tin & Hỗ trợ | Xúc tiến đầu tư (UC93) | Need confirm | Specs: Missing<br>WF: Missing<br>Audited: Missing<br>Scenario: Missing<br>TC md: Missing<br>TC xlsx: Missing |  |  |  |  |
+| Mobile | UC94 | Tin tức, Thông tin & Hỗ trợ | Xúc tiến đầu tư (UC94) | Need confirm | Specs: Missing<br>WF: Missing<br>Audited: Missing<br>Scenario: Missing<br>TC md: Missing<br>TC xlsx: Missing |  |  |  |  |
+| Mobile | UC95 | Tin tức, Thông tin & Hỗ trợ | Xúc tiến đầu tư (UC95) | Need confirm | Specs: Missing<br>WF: Missing<br>Audited: Missing<br>Scenario: Missing<br>TC md: Missing<br>TC xlsx: Missing |  |  |  |  |
+| Mobile | UC249 | Xác thực & Quản lý tài khoản | Cấu hình & Quản lý tài khoản (UC249, UC250, UC251, UC254, UC260) | Yes | Specs: Missing<br>WF: Missing<br>Audited: Missing<br>Scenario: Missing<br>TC md: Missing<br>TC xlsx: Missing |  |  |  |  |
+| Mobile | UC250-254 | Xác thực & Quản lý tài khoản | Đăng ký, Quên MK, Cập nhật DN, Cấu hình (UC250-254) | Yes | Specs: Missing<br>WF: Missing<br>Audited: Missing<br>Scenario: Missing<br>TC md: Missing<br>TC xlsx: Missing |  |  |  |  |
+| Mobile | UC256 | Xác thực & Quản lý tài khoản | Đăng nhập ứng dụng Mobile | Yes | Specs: Missing<br>WF: Missing<br>Audited: Missing<br>Scenario: Missing<br>TC md: Missing<br>TC xlsx: Missing |  |  |  |  |
+| Mobile | UC257 | Xác thực & Quản lý tài khoản | Đăng xuất ứng dụng Mobile | Yes | Specs: Missing<br>WF: Missing<br>Audited: Missing<br>Scenario: Missing<br>TC md: Missing<br>TC xlsx: Missing |  |  |  |  |
+| Mobile | UC258_UC259 | Thông báo | Thông báo hệ thống (UC258, UC259) | Yes | Specs: Missing<br>WF: Missing<br>Audited: Missing<br>Scenario: Missing<br>TC md: Missing<br>TC xlsx: Missing |  |  |  |  |
 
 ---
 

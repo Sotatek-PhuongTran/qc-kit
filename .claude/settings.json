@@ -2,14 +2,13 @@
   "permissions": {
     "allow": [
       "Bash(git mv *)",
-      "Edit(/.claude/skills/qc-func-tc-design/**)",
-      "Edit(/.claude/skills/qc-context-master/**)",
+      "Edit(.claude/skills/*/process-logging/**)",
+      "Write(.claude/skills/*/process-logging/**)",
+      "Edit(.claude/skills/qc-context-master/state/**)",
       "PowerShell($claude = Get-Item \"c:\\\\Users\\\\Admin\\\\Desktop\\\\qc-kit\\\\.claude\"; $agent = Get-Item \"c:\\\\Users\\\\Admin\\\\Desktop\\\\qc-kit\\\\.agent\"; \"$\\($claude.LinkType\\) $\\($claude.Target\\)\"; \"$\\($agent.LinkType\\) $\\($agent.Target\\)\")",
-      "Edit(/.claude/skills/qc-uc-read/**)",
       "Bash(rm .claude/skills/qc-uc-read/workflows/first-audit-workflow.md .claude/skills/qc-uc-read/workflows/re-audit-workflow.md)",
       "Bash(rm .agent/skills/qc-uc-read/workflows/first-audit-workflow.md .agent/skills/qc-uc-read/workflows/re-audit-workflow.md)",
       "Bash(xargs wc *)",
-      "Edit(/.claude/skills/qc-dashboard-sync/**)",
       "Bash(cp c:/Users/Admin/Desktop/qc-kit/.claude/skills/qc-func-tc-design/SKILL.md c:/Users/Admin/Desktop/qc-kit/.agent/skills/qc-func-tc-design/SKILL.md)",
       "Bash(cp c:/Users/Admin/Desktop/qc-kit/.claude/skills/qc-func-tc-design/workflows/generate-test-cases.md c:/Users/Admin/Desktop/qc-kit/.agent/skills/qc-func-tc-design/workflows/generate-test-cases.md)",
       "Bash(cp c:/Users/Admin/Desktop/qc-kit/.claude/skills/qc-func-tc-design/workflows/update-test-cases.md c:/Users/Admin/Desktop/qc-kit/.agent/skills/qc-func-tc-design/workflows/update-test-cases.md)",

@@ -1,150 +1,89 @@
-# Checkpoint & Resume Protocol
+# Checkpoint and Resume Protocol
 
-> **Scope:** Shared rules referenced by all `qc-context-master` workflows. Read this once at skill start.
->
-> **Purpose:** Make the skill resilient to context-limit / interruption mid-run by:
-> (1) persisting per-phase intermediate output to disk, (2) updating the worklog row in-place at every phase boundary, and (3) detecting prior checkpoints on the next run so the user does not redo finished work.
+Scope: shared rules for all `qc-context-master` workflow phases.
 
----
+Purpose: make the skill resilient to context limit or interruption by persisting phase outputs, updating worklog state, and allowing a later run to continue without redoing completed work.
 
-## 1. `process-logging/` directory
+## Process logging folder
 
-All checkpoint files live in `.claude/skills/qc-context-master/process-logging/`. Create the folder lazily — when the first checkpoint is written.
+All internal checkpoints live under:
 
-### File layout
+`.claude/skills/qc-context-master/process-logging/`
 
-| File                          | Owner phase | Content                                                                 |
-|-------------------------------|-------------|-------------------------------------------------------------------------|
-| `progress.md`                 | Phase 0+    | State machine — current run metadata + last completed phase             |
-| `04_carryover.md`             | Phase 4     | Snapshot of §10 Open Questions after resolve attempt                    |
-| `05_deltas.md`                | Phase 5     | Dashboard sync summary (new / soft-deleted / re-added rows)             |
-| `06_1_draft.md`               | Phase 6.1   | Full 10-section draft with `_[AI-proposed | confidence: NN% | evidence: ...]_` tags |
-| `06_3a_after_passA.md`        | Phase 6.3.A | Draft after Pass A (sections accepted/modified)                         |
-| `06_3b_passB_§<N>.md`         | Phase 6.3.B | Per-section checkpoint after each Pass B interaction                    |
-| `06_3c_passC_§<N>.md`         | Phase 6.3.C | Per-section checkpoint after each Pass C Q&A                            |
+Create it lazily when the first checkpoint is written.
 
-### `progress.md` format
+## Checkpoint files
 
-Single source of truth for resume. Overwrite on every checkpoint write.
+| File | Owner phase | Purpose |
+|---|---|---|
+| `progress.md` | Phase 0+ | Single source of truth for resume. |
+| `01_input_audit.md` | Phase 1 | Resolved paths, mode, source inventory, missing document groups. |
+| `02_feature_inventory.md` | Phase 2 | Feature/use case candidates and dashboard delta candidates. |
+| `03_context_section_01.md` to `03_context_section_08.md` | Phase 3 | Draft content, sources, gaps, assumptions, and confidence per section. |
+| `04_gap_readiness.md` | Phase 4 | Gap classification, readiness section, open questions. |
+| `05_context_rendered.md` | Phase 5 | Final rendered context and write status. |
+| `06_dashboard_handoff.md` | Phase 6 | Handoff content, sync status, dashboard delta summary. |
+| `07_handover.md` | Phase 7 | Final user-facing summary and cleanup status. |
+
+## `progress.md` format
 
 ```markdown
 # qc-context-master progress
 
 - run_id: run-XXX
-- mode: <first-time | update>
+- mode: initialization | update
 - started_at: <ISO-8601 datetime>
-- last_phase_done: <phase-id>   # e.g. 0, 1, 4, 5, 6.1, 6.3a, 6.3b:§3, 6.3c:§7, 7
+- last_phase_done: <phase-id>
 - next_phase: <phase-id>
 - updated_at: <ISO-8601 datetime>
 
 ## Notes
-<any per-run scratch data — e.g. detected ID label, site abbreviations to add, ...>
+<any resume-critical notes>
 ```
 
----
+## Phase checkpoint contract
 
-## 2. Worklog update protocol
+Each phase checkpoint must contain enough information for the next phase to continue without rerunning the previous phase.
 
-The `agent-work-log` row is the **user-visible** status. The skill is allowed to update its **own** row in-place (cột `Status`, `Input`, `Output`, `Duration`). See `docs/qc-lead/agent-work-log.md` for column schema.
+At the end of each phase, do these steps in order:
 
-### Lifecycle
+1. Write the checkpoint file.
+2. Update `progress.md` with `last_phase_done`, `next_phase`, and `updated_at`.
+3. Update the agent worklog row if the project uses one.
 
-| When                                | Action                                                                                          |
-|-------------------------------------|-------------------------------------------------------------------------------------------------|
-| Skill start (after pre-flight pass) | **Append** a new row: `Status = Running (Phase 0)`, Input/Output empty, Duration empty.        |
-| Before entering Phase N             | **Update Status** → `Running (Phase <N>)`. Update `Input` with any new files read in this phase. |
-| After Phase N done                  | **Update Status** → `Phase <N> done`. Update `Output` with any user-facing files written.        |
-| After Phase 7 done                  | **Update Status** → `Done`. Update `Duration` = now − started_at, rounded to 1 decimal.        |
-| Resume detection (next run)         | **Append a new row** for the new run; if prior row's Status was `Running (...)`, update prior row's Status → `Interrupted (last: Phase <N>)`. |
+If a phase writes a real user-visible deliverable, write the deliverable before its checkpoint.
 
-### Files excluded from Input/Output columns
+## Resume detection
 
-- Anything under `process-logging/` — internal scratchpad, not a deliverable.
-- `progress.md` — internal.
-- Templates and state files (`.claude/skills/.../templates/*`, `.claude/skills/.../state/*`).
-
-User-visible deliverables that DO go into Output: `project-context-master.md`, `qc-dashboard.md`.
-
-### Write-before-work rule
-
-Update worklog Status **before** starting a phase, not after. If interruption happens mid-phase, the worklog already reflects the last "in progress" state, and the resume logic can recognize it.
-
----
-
-## 3. Resume detection (runs at Phase 0)
-
-At skill start, after Phase 0 silent audit:
+At skill start:
 
 1. Check `process-logging/progress.md`.
-   - **Not found** → fresh run. Generate new `run_id`. Skip to Phase 1.
-   - **Found** → there is a prior incomplete run. Continue to step 2.
-2. Read `last_phase_done` and `next_phase`.
-3. Ask the user (ONE message, blocking):
-   ```
-   Phát hiện checkpoint từ run trước:
-   - Run ID: <run_id>
-   - Bắt đầu lúc: <started_at>
-   - Đã hoàn thành: Phase <last_phase_done>
+2. If not found, start a fresh run.
+3. If found, report the prior run ID, last completed phase, and next phase.
+4. Ask the user whether to continue or restart.
+5. If continuing, load the checkpoints required for the next phase.
+6. If restarting, delete `process-logging/` and start fresh.
 
-   Bạn muốn:
-   1. **Continue** — tiếp tục từ Phase <next_phase>
-   2. **Restart** — chạy lại từ đầu (xoá toàn bộ checkpoint cũ)
-   ```
-4. If user picks Continue:
-   - Set the prior worklog row Status → `Resumed by run-<new>` (one-time edit).
-   - Append a new worklog row for the new run with `Status = Running (Phase <next_phase>)`.
-   - Load required checkpoint files (see "Resume load table" below).
-   - Jump to `next_phase`.
-5. If user picks Restart:
-   - Delete `process-logging/` folder entirely.
-   - Set the prior worklog row Status → `Interrupted (last: Phase <last_phase_done>)`.
-   - Append new worklog row, start fresh from Phase 1.
+## Resume load table
 
-### Resume load table
+| Resuming at phase | Load these files |
+|---|---|
+| Phase 1 | `progress.md` only |
+| Phase 2 | `01_input_audit.md` |
+| Phase 3 | `01_input_audit.md`, `02_feature_inventory.md` |
+| Phase 4 | all `03_context_section_*.md`, plus `02_feature_inventory.md` |
+| Phase 5 | all section checkpoints and `04_gap_readiness.md` |
+| Phase 6 | `05_context_rendered.md`, `02_feature_inventory.md` |
+| Phase 7 | `05_context_rendered.md`, `06_dashboard_handoff.md` if present |
 
-When resuming, load these files INTO MEMORY before executing the next phase:
+Always re-resolve `path-registry.md` paths after resume because paths may have changed.
 
-| Resuming at Phase | Files to load from process-logging/                                                  |
-|-------------------|---------------------------------------------------------------------------------------|
-| 5                 | `04_carryover.md`                                                                     |
-| 6.1               | `04_carryover.md`, `05_deltas.md`                                                     |
-| 6.3.A             | `06_1_draft.md`                                                                       |
-| 6.3.B             | `06_3a_after_passA.md` (or `06_1_draft.md` if Pass A was skipped)                    |
-| 6.3.C             | Latest `06_3b_passB_§<N>.md` (highest §N), else `06_3a_after_passA.md`               |
-| 7                 | Latest `06_3c_passC_§<N>.md`, else latest `06_3b_passB_§<N>.md`, else `06_3a_after_passA.md` |
+## Worklog notes
 
-Also re-resolve all `path-registry` logical names — paths may have changed since the last run.
+If the project uses `agent-work-log`, update it before entering each phase. Do not include files under `process-logging/` as user-visible outputs.
 
----
+User-visible deliverables include `project-context-master.md` and `qc-dashboard.md` when created or updated through `qc-dashboard-sync`.
 
-## 4. Checkpoint write protocol (used by every phase)
+## Cleanup
 
-After completing a phase, the workflow MUST execute these 3 steps **in order, atomically as possible**:
-
-1. **Write the checkpoint file** for this phase (markdown, full content as defined per-workflow).
-2. **Update `process-logging/progress.md`** — set `last_phase_done`, `next_phase`, `updated_at`.
-3. **Update the agent-work-log row** — set Status to `Phase <N> done`, append any new Input/Output files (excluding process-logging).
-
-If a phase writes a real deliverable to disk (Phase 5 → `qc-dashboard.md`, Phase 7 → `project-context-master.md`), do that FIRST, then do steps 1–3.
-
----
-
-## 5. Cleanup
-
-After Phase 8 (Handover) finishes successfully:
-
-1. Set worklog Status → `Done`. Final Duration calculation.
-2. **Delete the entire `process-logging/` folder.** It is scratch — not part of project deliverables.
-
-Cleanup must NOT happen mid-run, even on error. Only on successful Phase 8 completion.
-
----
-
-## 6. Failure modes
-
-| Symptom                                                  | Recovery                                                                         |
-|----------------------------------------------------------|----------------------------------------------------------------------------------|
-| `progress.md` exists but no checkpoint files             | Treat as fresh run; warn user and delete `progress.md`.                          |
-| Checkpoint file referenced by `progress.md` missing      | STOP and ask user; do not silently re-derive.                                    |
-| Worklog row missing for current `run_id`                 | Append a new row; do not fail the skill.                                         |
-| Path-registry logical name changed between runs          | Re-resolve from current registry; if path differs, ask user before continuing.   |
+Delete `process-logging/` only after Phase 7 completes successfully and all user-visible deliverables are already written or explicitly reported as blocked.

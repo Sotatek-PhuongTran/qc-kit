@@ -2,7 +2,6 @@
 
 ## Common
 - SKIP all other knowledge, histories that not stored in this project.
-- If there is any ambiguity in the user's prompt, DO NOT attempt to guess; HAVE TO ask the user for clarification to obtain complete information.
 
 ## Language & Communication
 - Communication language: Vietnamese is the default language for all exchanges, reports, and explanations.
@@ -30,21 +29,20 @@
 Don't assume. Don't hide confusion. Surface tradeoffs.
 
 Before implementing:
-
-State your assumptions explicitly. If uncertain, ask.
-If multiple interpretations exist, present them - don't pick silently.
-If a simpler approach exists, say so. Push back when warranted.
-If something is unclear, stop. Name what's confusing. Ask.
+- State your assumptions explicitly. If uncertain, ask.
+- If multiple interpretations exist, present them - don't pick silently.
+- If a simpler approach exists, say so. Push back when warranted.
+- If something is unclear, stop. Name what's confusing. Ask.
 
 ## Simplicity First
 Minimum code that solves the problem. Nothing speculative.
 
-No features beyond what was asked.
-No abstractions for single-use code.
-No "flexibility" or "configurability" that wasn't requested.
-No error handling for impossible scenarios.
-If you write 200 lines and it could be 50, rewrite it.
-Ask yourself: "Would a senior engineer say this is overcomplicated?" If yes, simplify.
+- No features beyond what was asked.
+- No abstractions for single-use code.
+- No "flexibility" or "configurability" that wasn't requested.
+- No error handling for impossible scenarios.
+- If you write 200 lines and it could be 50, rewrite it.
+- Ask yourself: "Would a senior engineer say this is overcomplicated?" If yes, simplify.
 
 ## Security & Privacy
 - Data Security: NEVER share sensitive data (PII, passwords, proprietary code) with public models.

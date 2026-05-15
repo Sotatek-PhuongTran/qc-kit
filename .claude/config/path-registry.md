@@ -19,6 +19,7 @@
 | BA      | `requirement-files`       | `docs/BA/<UC-ID>`                                   | `*.md`, `*.docx`, `*.pdf`, `*.png`                        | Tài liệu yêu cầu gốc theo từng UC (SRS, wireframe, v.v.) |
 | QC lead | `project-config`          | `docs/qc-lead/`                    | `project-config.md`                                       | Cấu hình dự án — project overview, links, environments, accounts, third-party APIs (per-project, edit in-place) |
 | QC lead | `project-context-master`  | `docs/qc-lead/`                    | `project-context-master.md`                               | File tổng hợp tri thức dự án — output của `qc-context-master` |
+| QC lead | `qc-site-map`  | `docs/qc-lead/`                    | `qc-site-map.md`                               | File tổng hợp cấu trúc hệ thống/luồng dữ liệu — output của `qc-site-map` |
 | QC lead | `qc-dashboard`            | `docs/qc-lead/`                    | `qc-dashboard.md`                                         | Dashboard markdown — feature/UC list + trạng thái spec/wireframe/test scenarios/test cases|
 | QC      | `uc-review-report`        | `docs/QC/uc-read/<UC-ID>/`                          | `<UC-ID>_<feature>_audited_<YYYYMMDD>_v<N>.md`            | Báo cáo kiểm tra độ sẵn sàng UC — output của `qc-uc-read` |
 | QC      | `question-backlog`        | `docs/QC/uc-read/<UC-ID>/`                          | `<UC-ID>_<feature>_question-backlog_<YYYYMMDD>_v<N>.md`   | Danh sách câu hỏi mở — ghi bởi `qc-qna` |

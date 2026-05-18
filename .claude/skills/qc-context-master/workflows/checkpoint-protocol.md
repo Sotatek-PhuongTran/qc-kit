@@ -18,11 +18,11 @@ Create it lazily when the first checkpoint is written.
 |---|---|---|
 | `progress.md` | Phase 0+ | Single source of truth for resume. |
 | `01_input_audit.md` | Phase 1 | Resolved paths, mode, source inventory, missing document groups. |
-| `02_feature_inventory.md` | Phase 2 | Feature/use case candidates and dashboard delta candidates. |
+| `02_feature_inventory.md` | Phase 2 | Feature/use case candidates and inventory delta. |
 | `03_context_section_01.md` to `03_context_section_08.md` | Phase 3 | Draft content, sources, gaps, assumptions, and confidence per section. |
 | `04_gap_readiness.md` | Phase 4 | Gap classification, readiness section, open questions. |
-| `05_context_rendered.md` | Phase 5 | Final rendered context and write status. |
-| `06_dashboard_handoff.md` | Phase 6 | Handoff content, sync status, dashboard delta summary. |
+| `05_context_rendered.md` | Phase 5 | Final rendered context (with `Sources consolidated` table) and write status. |
+| `06_sitemap_handoff.md` | Phase 6 | Site map handoff decision: auto-invoked / suggested / none. |
 | `07_handover.md` | Phase 7 | Final user-facing summary and cleanup status. |
 
 ## `progress.md` format
@@ -74,7 +74,7 @@ At skill start:
 | Phase 4 | all `03_context_section_*.md`, plus `02_feature_inventory.md` |
 | Phase 5 | all section checkpoints and `04_gap_readiness.md` |
 | Phase 6 | `05_context_rendered.md`, `02_feature_inventory.md` |
-| Phase 7 | `05_context_rendered.md`, `06_dashboard_handoff.md` if present |
+| Phase 7 | `05_context_rendered.md`, `06_sitemap_handoff.md` if present |
 
 Always re-resolve `path-registry.md` paths after resume because paths may have changed.
 
@@ -82,8 +82,8 @@ Always re-resolve `path-registry.md` paths after resume because paths may have c
 
 If the project uses `agent-work-log`, update it before entering each phase. Do not include files under `process-logging/` as user-visible outputs.
 
-User-visible deliverables include `project-context-master.md` and `qc-dashboard.md` when created or updated through `qc-dashboard-sync`.
+User-visible deliverables: only `project-context-master.md` is owned by this skill. Downstream files (`qc-site-map.md`, `qc-dashboard.md`) are owned by their respective skills and never written here.
 
 ## Cleanup
 
-Delete `process-logging/` only after Phase 7 completes successfully and all user-visible deliverables are already written or explicitly reported as blocked.
+Delete `process-logging/` after Phase 7 completes successfully (output written + downstream handoff decided). Cleanup runs even on `Skipped` Phase 0 outcomes to clear any stale checkpoints from previous partial runs.

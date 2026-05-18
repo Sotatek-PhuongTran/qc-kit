@@ -10,6 +10,7 @@ Read the `path-registry.md` file to find the below file's location:
 
 - `.claude/skills/qc-uc-read/references/input-files-format.md` — for file format description of the input files
 - `project-context-master`
+- `qc-site-map` (optional) — if present, read §5/§6/§7/§8 for screen-coverage cross-check and reverse traceability (see Phase 1 Step 1 + scoring-rubric Cross-Artefact Conflict Check). If missing, skip cross-check and warn once.
 - `requirement-common-files` — read first; resolve any code/ID reference (error codes, business rule IDs, common function names) appearing in the UC to its exact text from these files and inline that text into the audit output (see Common Reference Resolution rule in the phase files).
 - `requirement-files`
 - `question-backlog`

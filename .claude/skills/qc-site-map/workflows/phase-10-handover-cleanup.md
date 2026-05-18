@@ -2,36 +2,42 @@
 
 ## Goal
 
-Report completion and clean internal scratch files only when safe.
+Report completion to the user and clean up internal checkpoints on success.
 
 ## Final user summary
 
 Respond in Vietnamese with:
 
-- Mode: Initialization / Update.
-- `qc-site-map.md`: created or updated.
+- Mode: Initialization / Update / Skipped.
+- `qc-site-map.md`: created / updated / unchanged.
+- Sources consolidated: count of files, count with new version since last run.
 - Source quality: official / derived / partial.
 - Number of screens found.
 - Number of features with mapped screens.
 - Number of unmapped screens.
-- Dashboard handoff status.
+- Dashboard handoff:
+  - Initialization → `qc-dashboard-sync` auto-invoked. Result: <summary>
+  - Update with changes → handoff written, user suggested to run `/qc-dashboard-sync`.
+  - Update no change → handoff not written, no downstream action.
 - Major gaps/conflicts/assumptions.
 - Suggested next action for QC Lead.
 
 ## Cleanup rule
 
-Do not delete checkpoints unless:
+Cleanup MUST run when ALL of the following are true:
+- `qc-site-map.md` was successfully written (or Update mode finished without changes).
+- Phase 9 completed (auto-invoked, suggested, or recorded "no downstream action").
+- Final user summary has been produced.
 
-- `qc-site-map.md` was written successfully;
-- dashboard handoff was written or explicitly skipped with a reason;
-- final summary was produced.
+Cleanup action:
 
-If cleanup is performed, leave a short final `10_handover.md` or log summary.
+1. Delete the entire `.claude/skills/qc-site-map/process-logging/` folder, including `progress.md` and all checkpoint files.
+2. Append a single row to the `agent-work-log` file with `Status = Done` and the final summary.
 
-## Output checkpoint
+If cleanup fails (permission error, file lock, etc.), report it as a non-blocking issue. The deliverables are still valid.
 
-Write:
+## Special case: Skipped runs (Phase 0 preflight `no`)
 
-```text
-process-logging/qc-site-map/10_handover.md
-```
+If Phase 0 stopped due to version preflight `no`:
+- Cleanup still runs to remove any stale checkpoints.
+- The worklog row records `Status = Skipped (preflight no-change)`.

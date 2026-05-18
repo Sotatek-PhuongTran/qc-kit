@@ -27,12 +27,14 @@
 
 ---
 
-## 2. Source baseline và nguồn đã sử dụng
+## 2. Sources consolidated
 
-| Source | Loại tài liệu | Dùng để tổng hợp | Độ tin cậy | Ghi chú |
+> Bảng này liệt kê các file đã được đọc và tổng hợp ra nội dung phía dưới. Lần chạy update sau sẽ so version trong tên file (`_v<N>`) để biết source có thay đổi hay không.
+
+| # | File | Version | Loại | Ngày đọc cuối |
 |---|---|---|---|---|
-| `project-context-master.md` | Project baseline | Module, feature, role, platform, flow, integration | High / Medium / Low |  |
-|  |  |  |  |  |
+| 1 | project-context-master.md | no-version | Project baseline | [YYYY-MM-DD] |
+| 2 | [tên file đầy đủ, không có path] | v1 / no-version | Site map / Menu / Feature list / Wireframe / Role matrix / User flow / Release note / Other | [YYYY-MM-DD] |
 
 ---
 

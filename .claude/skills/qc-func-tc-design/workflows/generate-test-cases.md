@@ -25,6 +25,7 @@ Per `SKILL.md` → "Checkpoint & Resume Protocol" §2 (write-before-work rule):
 - Identify the highest version of all the input files (UC Readiness Report, Scenarios). Always select the highest version number available.
 - Read the provided documents and comprehend the use case in preparation for test case design.
 - Detect the output language from the source input language (Vietnamese UC → Vietnamese TCs; otherwise English) and record it as a working note.
+- **If `qc-site-map.md` exists**, read §6/§7/§8/§9/§10 and record per-screen notes in `01_analysis.md`: pre-/post-condition states (§6), role × screen access (§7), screens-in-scope for the feature (§8), data/API/state touchpoints (§9), regression weight (§10). These feed Phase 2 Step 2.2 drafting (Pre-condition/Expected Result fields, permission TCs, integration TCs, state-transition TCs). If missing → skip and warn once.
 
 ### Checkpoint write — End of Phase 1
 

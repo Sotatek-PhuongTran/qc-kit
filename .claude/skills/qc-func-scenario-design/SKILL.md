@@ -20,6 +20,7 @@ Scenarios describe **what** must be verified at a meaningful level of intent (on
 Resolve via `path-registry.md`:
 
 - `project-context-master` — read §1 **Product Platform Type** (informs UI/E2E scenario phrasing — Tap vs Click, Swipe vs Hover, Hardware back vs browser back, etc.).
+- `qc-site-map` (optional) — if present, read §6 Navigation (pre/post-condition + E2E paths), §7 Role/access (permission scenarios), §8 Screen ↔ Feature mapping (screens touched by this UC's feature → coverage matrix), §9 Data/API/Integration/State touchpoints (integration + state edge cases), §10 Regression anchors (risk emphasis). If missing, skip site-map-derived scenarios and warn once.
 - `uc-review-report` — latest version of the audited UC document for `<UC-ID>`.
 - `requirement-common-files` — for verbatim business rules, error codes/messages, and common functions referenced by the UC.
 - `qc-dashboard` — precheck only (auto-trigger `qc-dashboard-sync` if the UC row is missing).
@@ -47,6 +48,7 @@ Resolve via `path-registry.md`:
 Read fully before writing anything.
 
 1. Read `project-context-master.md` §1 → Product Platform Type. Load the matching interaction vocabulary (web/desktop: Click/Hover/Right-click; mobile native: Tap/Long-press/Swipe/Pinch/Hardware-back).
+1a. **If `qc-site-map.md` exists**, read §6/§7/§8/§9/§10. Use §8 to enumerate screens touched by this UC's feature (rows for the coverage matrix in Step 4); §6 to derive pre-/post-condition states for E2E scenarios; §7 for role/permission scenarios; §9 for integration + data-state edge cases; §10 to weight risk-based emphasis. If missing → skip and warn once.
 2. Read the highest-version `uc-review-report` for `<UC-ID>`. Build a working understanding of:
    - All UC IDs in scope and their names
    - All functions/features within each UC

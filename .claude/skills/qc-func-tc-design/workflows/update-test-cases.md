@@ -149,7 +149,7 @@ Per `SKILL.md` → "Checkpoint & Resume Protocol" §5.1 (start-of-phase / transi
 
 ### Step 3: Redesign Affected Test Cases (MANDATORY)
 
-Using the same platform-aware 6-phase design logic as `generate-test-cases.md` Step 2 — load `references/design-technical/design-technical-<variant>.md` for each platform variant declared in `project-context-master.md` §1 → "Product Platform Type" — apply it **only to the impacted scope** identified in Phase 1:
+Using the same platform-aware 6-phase design logic as `generate-test-cases.md` Step 2 — load `references/design-technical/design-technical-<variant>.md` for each platform variant declared in `project-context-master.md` §1 → "Product Platform Type" — apply it **only to the impacted scope** identified in Phase 1. **If `qc-site-map.md` exists**, also cross-check the impacted screens against §8 Screen ↔ Feature mapping (catch screens silently affected), §9 Data/API touchpoints (catch upstream/downstream integration impact), §10 Regression anchors (raise priority of TCs on anchored flows). If missing → skip and warn once.
 
 - **New TCs**: Design from scratch using the 6-phase logic of the matching variant rubric for the new or changed ACs.
 - **Updated TCs**: Rewrite only the affected fields (Steps, Expected Result, Pre-conditions) — keep the TC ID unchanged. Add a note: `[Updated vN — Reason: AC-XX modified]`.

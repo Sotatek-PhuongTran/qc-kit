@@ -1,15 +1,49 @@
 ---
 name: qc-dashboard-sync
-description: Owner of qc-dashboard.md. Scans the docs/ folder structure (via path-registry logical names) and consolidates the existence/version of 6 artifact types — Specs, WF, Audited, Scenario, TC md, TC xlsx — into a single `Files stt` column per feature/UC row. Creates the dashboard from template if missing; auto-adds a row for any UC folder not yet in the dashboard with `In scope? = Need confirm` (and prompts the user); marks rows `In scope? = Removed` when previously-existing docs disappear (with user confirmation). Triggered manually via /qc-dashboard-sync, auto-triggered by qc-context-master after extracting the feature/UC list, and by per-UC skills (qc-uc-read, qc-func-scenario-design, qc-func-tc-design) when they operate on a UC not yet in the dashboard. Does NOT write the process-state columns `UC review stt`, `Scenario design stt`, `TC design stt` — those are owned by the respective review/design skills.
+description: Owner of qc-dashboard.md. Step 3 of the top-down chain qc-context-master -> qc-site-map -> qc-dashboard-sync. Operates in TWO modes. (1) Top-down — triggered by /qc-dashboard-sync or auto-invoked by qc-site-map. Requires project-context-master.md AND site-map-handoff.md to exist as upstream evidence. Surfaces the gap report already produced by qc-site-map (no duplicate conflict-check), then syncs the feature list from site-map-handoff into qc-dashboard.md and scans the existence/version of 6 artifact types (Specs, WF, Audited, Scenario, TC md, TC xlsx) into a single Files stt column. (2) Bottom-up — auto-invoked by per-UC skills (qc-uc-read, qc-func-scenario-design, qc-func-tc-design) for a single UC ID. Adds a row with In scope? = Need confirm and warns the user that the UC is not present in the current site-map/project-context and asks them to re-run the top-down chain. Does NOT write the process-state columns UC review stt, Scenario design stt, TC design stt — those are owned by the respective review/design skills.
 ---
 
 # QC Dashboard Sync Skill
 
+## Two operating modes
+
+This skill operates in two modes that are mutually exclusive within a single run:
+
+| Mode | Triggered by | Scope | Gap review | Prerequisite |
+|---|---|---|---|---|
+| **Top-down** | `/qc-dashboard-sync` (manual) OR auto-invoked by `qc-site-map` | Full feature list + 6-artifact scan for every UC | YES — surfaces site-map's gap tables (Feature-level gaps, Unmapped screens, Dashboard recommendation) and asks user proceed/cancel | `project-context-master.md` AND `.claude/skills/qc-dashboard-sync/inbox/site-map-handoff.md` must both exist |
+| **Bottom-up** | Auto-invoked by per-UC skills (`qc-uc-read`, `qc-func-scenario-design`, `qc-func-tc-design`) with a specific UC ID | Single UC: add row with `Need confirm` + run the 6-artifact scan for that UC only | NO | None — runs even if upstream context is missing, but warns the user |
+
+The caller indicates the mode implicitly:
+- No UC ID passed → top-down.
+- A UC ID passed (`uc_id=<ID>`) → bottom-up for that single ID.
+
 ## Trigger Conditions
 
-- **Manual:** `/qc-dashboard-sync`, "sync dashboard", "đồng bộ dashboard", "update dashboard status".
-- **Auto-trigger from `qc-context-master`** — after it extracts the feature/UC list from WBS, it writes a handoff file and invokes this skill to commit the list into `qc-dashboard.md`. `qc-context-master` itself NEVER writes the dashboard directly.
-- **Auto-trigger from per-UC skills** (`qc-uc-read`, `qc-func-scenario-design`, `qc-func-tc-design`) — when the skill operates on a UC ID that is NOT yet a row in the dashboard, it MUST invoke this skill BEFORE proceeding so the dashboard always reflects on-disk reality.
+- **Manual top-down:** `/qc-dashboard-sync`, "sync dashboard", "đồng bộ dashboard", "update dashboard status".
+- **Auto-trigger top-down from `qc-site-map`** — at the end of its Phase 9, after writing `site-map-handoff.md`, in Initialization mode (or Update mode when the user accepts the prompt).
+- **Auto-trigger bottom-up from per-UC skills** (`qc-uc-read`, `qc-func-scenario-design`, `qc-func-tc-design`) — when the skill operates on a UC ID that is NOT yet a row in the dashboard, it MUST invoke this skill in bottom-up mode BEFORE proceeding so the dashboard always reflects on-disk reality.
+
+`qc-context-master` no longer triggers this skill. The dashboard receives its feature list exclusively via `qc-site-map`'s `site-map-handoff.md`.
+
+## Top-down prerequisites
+
+In top-down mode this skill requires BOTH upstream artifacts to exist:
+
+1. `project-context-master.md` resolved via `path-registry.md`.
+2. `.claude/skills/qc-dashboard-sync/inbox/site-map-handoff.md` written by `qc-site-map`.
+
+If either is missing → STOP with the Vietnamese message:
+
+```text
+Khong du dieu kien chay top-down sync:
+- project-context-master.md: <found | MISSING>
+- site-map-handoff.md (tu qc-site-map): <found | MISSING>
+
+Hay chay chuoi theo thu tu: /qc-context-master -> /qc-site-map -> /qc-dashboard-sync.
+```
+
+Do not fall through to bottom-up mode automatically — bottom-up is triggered only by per-UC skills with an explicit UC ID.
 
 ## Inputs
 
@@ -18,6 +52,7 @@ Resolve via `path-registry.md`:
 | Logical name | Role | Used for |
 |---|---|---|
 | `qc-dashboard` | Dashboard markdown file. Created from template if missing. | Read/write target. |
+| `project-context-master` | Project baseline. | **Top-down mode only** — existence check only (evidence that the chain ran in order: qc-context-master → qc-site-map → here). Content is NOT parsed for a competing feature list; the canonical feature list comes from `site-map-handoff.md`. |
 | `requirement-files` | Parent folder; per-`<ID>` sub-folders. | Specs + WF scans. |
 | `uc-review-report` | Parent folder; per-`<ID>` sub-folders. | Audited scan. |
 | `func-test-scenarios` | Parent folder; per-`<ID>` sub-folders. | Scenario scan. |
@@ -25,24 +60,36 @@ Resolve via `path-registry.md`:
 | `func-test-cases` | Parent folder; per-`<ID>` sub-folders. | TC xlsx scan. |
 | `requirement-common-files` | — | **Exclusion path** during orphan scan (its folder is not a UC). |
 
-Optional input (auto-trigger mode):
+### Top-down handoff input (from `qc-site-map`)
 
-- **Handoff file** at `.claude/skills/qc-dashboard-sync/inbox/feature-list-handoff.md`. If present, contains the feature/UC list the caller wants to merge into the dashboard. Schema:
+- **Handoff file** at `.claude/skills/qc-dashboard-sync/inbox/site-map-handoff.md`. REQUIRED in top-down mode. Schema (written by `qc-site-map` Phase 9):
 
   ```markdown
   ---
-  source_skill: <skill-name>     # e.g., qc-context-master
-  run_id: <caller-run-id>
+  source_skill: qc-site-map
+  handoff_type: site-map-feature-coverage
+  mode: initialization | update
+  generated_at: <ISO-8601 datetime>
   ---
 
-  | ID | Site | Module | Feature/Use case name | In scope? |
-  |---|---|---|---|---|
-  | <ID> | <Site or blank> | <Module or blank> | <name or blank> | Yes / No / Need confirm |
+  # Site Map Handoff for Dashboard
+
+  ## Feature-level site map coverage
+  | Feature ID | Feature name | Site / Portal | Module | Mapped screen(s) | Site map status | Notes |
+  ...
+
+  ## Feature-level gaps
+  ## Unmapped screens
+  ## Dashboard update recommendation
   ```
 
-  This skill consumes (reads + deletes) the file after Phase 6.
+  This skill READS the file but does NOT delete it. Lifecycle is owned by `qc-site-map` (which overwrites it on its next run). Only the `Feature-level site map coverage` table provides the canonical feature list — the other tables (`Feature-level gaps`, `Unmapped screens`, `Dashboard update recommendation`) are surfaced to the user in Phase 0.5.
 
-Template:
+### Bottom-up input (from per-UC skills)
+
+- Single `uc_id` parameter (e.g., `UC-100`). No handoff file. Pure disk scan of that specific UC's folders.
+
+### Template
 
 - `templates/qc-dashboard-template.md` — used to bootstrap the dashboard when it does not exist.
 
@@ -89,25 +136,100 @@ Use literal string `Missing` when the file is absent. Use `V<N>` (capital V) whe
 
 ## Workflow
 
-### Phase 0 — Pre-flight & Setup
+The workflow below is the **top-down workflow** (Phases 0 → 0.5 → 0.6 → 1 → 2 → 3 → 4 → 5 → 6). For bottom-up, see the dedicated section after Phase 6.
+
+### Phase 0 — Mode detection, prerequisites & input parse
+
+This phase is purely read-only. No dashboard file is created or modified here; that happens in Phase 0.6 after the user reviews the gap report.
 
 1. Generate a new `run_id` (read `agent-work-log` for max ID, increment). Append a row with `Status = Running (Phase 0)`, Input/Output empty.
-2. Resolve `qc-dashboard` path from `path-registry.md`.
-   - **If the file does not exist:** read `templates/qc-dashboard-template.md`. Determine the `<ID label>`:
-     - If handoff file is present, scan its `ID` column for the dominant prefix (`UC`, `F`, `FEAT`, ...) and ask the user: `"Tên cột định danh trong dashboard nên là gì? (gợi ý: Use Case ID / Feature ID / Story ID)"`.
-     - If no handoff and no existing dashboard → default to `Use Case ID`.
-     - Replace placeholder `{{ID_LABEL}}` in the template (header + notes section) with the chosen label.
-   - Write the populated template to the resolved path. The body table is empty at this point.
-3. Parse the markdown table from the (now-existing) dashboard:
-   - Header row → identify `<ID label>` from column 2; remember it verbatim for write-back.
-   - Data rows → build `featureIndex = Map<ID → { rowIndex, Site, Module, Name, InScope, FilesStt, UcReviewStt, ScenarioDesignStt, TcDesignStt, ExecuteStt }>`.
-   - Capture the notes/ghi-chú block below the table verbatim.
-4. **Schema validation** — header must have exactly 10 columns in this order:
-   `Site | <ID label> | Module | Feature/Use case name | In scope? | Files stt | UC review stt | Scenario design stt | TC design stt | Execute stt`
-   If mismatch → STOP and report the offending header. Do NOT auto-fix.
-5. Check for the handoff file. If present, parse into `handoffList = Map<ID → { Site, Module, Name, InScope }>`.
+2. **Mode detection:**
+   - Caller passed `uc_id=<ID>` → switch to bottom-up workflow (see section "Bottom-up workflow"). Skip the rest of Phase 0 in this top-down workflow.
+   - Otherwise → top-down.
+3. **Top-down prerequisite check:**
+   - Resolve `project-context-master` path from `path-registry.md`. Verify the file EXISTS with real content. (Content is not parsed here — its presence is only required as evidence that the top-down chain ran in order. The canonical feature list comes from the site-map handoff.)
+   - Verify `.claude/skills/qc-dashboard-sync/inbox/site-map-handoff.md` exists.
+   - If either is missing → STOP with the Vietnamese message defined in "Top-down prerequisites" above. Do not fall through to bottom-up.
+4. **Parse the site-map handoff file.**
+   - Parse the `Feature-level site map coverage` table into `handoffList = Map<ID → { Site, Module, Name, MappedScreens, SiteMapStatus, Notes }>`. The `Feature ID` column maps to ID; `Feature name` to Name; `Site / Portal` to Site; `Module` to Module.
+   - Treat `Site map status = Mapped | Partial` as `In scope? = Yes`, `Missing | Conflict | Need confirm` as `In scope? = Need confirm`. Final In-scope value will be confirmed in Phase 4.
+   - Parse the `Feature-level gaps`, `Unmapped screens`, and `Dashboard update recommendation` tables — keep them as `siteMapGaps`, `unmappedScreens`, `dashboardRecommendations` for Phase 0.5.
+5. Resolve `qc-dashboard` path from `path-registry.md`. **Do NOT create or write the file yet.**
+   - If the dashboard file EXISTS: parse it now (header → `existingLabel`; data rows → `featureIndex`; notes block captured verbatim). Run schema validation (10 columns in the canonical order). If mismatch → STOP and report. Do NOT auto-fix.
+   - If the dashboard file does NOT exist: skip parsing. `featureIndex` is empty. The `<ID label>` will be determined in Phase 0.6 from the handoff and a user prompt.
+6. **Detect ID label mismatch** (only when dashboard already exists):
+   - Compute `handoffDominantPrefix` by scanning the `Feature ID` column of `handoffList` — pick the most common prefix among `UC`, `F`, `FEAT`, `STORY`, `S`. Map it to `expectedLabel` (`UC` → `Use Case ID`, `F`/`FEAT` → `Feature ID`, `S`/`STORY` → `Story ID`).
+   - Compare `existingLabel` against `expectedLabel`.
+   - If they differ → set `labelMigrationNeeded = true` and remember `(existingLabel, expectedLabel)` for Phase 0.6 + Phase 5.
+   - Rationale: top-down is the canonical source. If the dashboard was originally bootstrapped by bottom-up with default `Use Case ID` but the handoff uses `F-` IDs, the top-down label wins.
 
 Update worklog: `Status = Phase 0 done`.
+
+### Phase 0.5 — Site-map gap review (top-down only)
+
+`qc-site-map` already performs the upstream consistency analysis (site-map content vs `project-context-master.md`) when it builds its handoff. The gap report and unmapped screens are surfaced verbatim from the handoff — this skill does NOT redo the comparison.
+
+1. Read the three secondary tables captured in Phase 0 step 4: `siteMapGaps`, `unmappedScreens`, `dashboardRecommendations`.
+2. If ALL three are empty → skip the prompt, jump to Phase 0.6.
+3. Otherwise, present a consolidated report and ask the user to proceed or cancel:
+
+   ```text
+   📋 Bao cao tu site-map-handoff.md (do qc-site-map tao):
+
+   **Feature-level gaps (<N> mục):**
+   | Feature ID | Feature name | Gap | Impact to QC | Owner | Priority |
+   |---|---|---|---|---|---|
+   | ... | ... | No mapped screen / unclear navigation / role access missing / source conflict | ... | QC Lead / BA / Tech Lead | High / Medium / Low |
+
+   **Unmapped screens (<N> mục):** (screens chưa map được vào feature nào — sẽ KHÔNG tạo dashboard row)
+   | Screen ID | Screen / Page | Why unmapped | Suggested action |
+   |---|---|---|---|
+   | ... | ... | ... | ... |
+
+   **Dashboard update recommendation (<N> mục):**
+   | Feature ID | Recommended note/status | Reason |
+   |---|---|---|
+   | ... | Site map: Ready / Partial / Missing / Conflict | ... |
+
+   👉 Lua chon:
+   - `proceed` — chay sync voi du lieu hien tai. Cac gap nay duoc bao luu trong site-map-handoff.md va qc-site-map.md de QC Lead theo doi rieng; dashboard.md chi giu feature list va Files stt.
+   - `cancel` — dung sync. Xem xet sua tai lieu upstream (chay /qc-context-master hoac /qc-site-map) roi chay lai /qc-dashboard-sync.
+   ```
+
+4. User answers `cancel` → STOP. Worklog: `Status = Cancelled (Phase 0.5 gap review)`. **No dashboard file was created or modified in Phase 0**, so nothing to roll back.
+5. User answers `proceed` → continue to Phase 0.6. The dashboard schema does NOT have a Notes column; gap data is informational at this prompt only.
+
+Update worklog: `Status = Phase 0.5 done`.
+
+### Phase 0.6 — Bootstrap or relabel dashboard
+
+Only executed AFTER Phase 0.5 user proceeds. Splitting this out of Phase 0 ensures a cancelled run never leaves an empty dashboard on disk.
+
+Two sub-cases:
+
+**A. Dashboard MISSING — bootstrap:**
+
+1. Read `templates/qc-dashboard-template.md`.
+2. Determine the `<ID label>`: use `expectedLabel` derived from handoff dominant prefix (computed in Phase 0 step 6). Confirm with the user: `"Ten cot dinh danh trong dashboard nen la gi? (mac dinh: <expectedLabel>. Goi y khac: Use Case ID / Feature ID / Story ID)"`. Accept user's override.
+3. Replace placeholder `{{ID_LABEL}}` in the template (header + notes section) with the chosen label.
+4. Write the populated template to the resolved `qc-dashboard` path. The body table is empty at this point.
+5. Re-parse the freshly written dashboard so `featureIndex` is initialized (empty map) and `<ID label>` is captured verbatim for write-back. Run schema validation.
+
+**B. Dashboard EXISTS with `labelMigrationNeeded == true` — relabel:**
+
+1. Do NOT prompt the user. Top-down is canonical: silently migrate.
+2. In-memory only (the actual write happens in Phase 5):
+   - Set `<ID label>` to `expectedLabel`.
+   - Append a migration note to be inserted into the ghi-chú block in Phase 5:
+
+     ```text
+     > **<YYYY-MM-DD> — ID label migration**: dashboard duoc re-label tu `<existingLabel>` sang `<expectedLabel>` do site-map-handoff dung prefix `<handoffDominantPrefix>` lam canonical. Cac row pre-existing co ID o dang cu duoc giu nguyen (khong auto-rename). Neu can map sang ID prefix moi, QC Lead vui long doi chieu manual voi qc-site-map.md hoac project-context-master.md. Co the ghi tracking note dang `(orig: <old-ID>)` ngay sau cot `Feature/Use case name` cua row tuong ung.
+     ```
+3. `featureIndex` (parsed in Phase 0 step 5) is kept as-is; existing rows retain their original ID values in column 2. Phase 1 disk scan + Phase 2 reconcile will still pick up new handoff rows correctly using the handoff's own IDs.
+
+**C. Dashboard EXISTS with `labelMigrationNeeded == false`:** skip Phase 0.6 entirely.
+
+Update worklog: `Status = Phase 0.6 done`.
 
 ### Phase 1 — Disk Scan (collect observed IDs)
 
@@ -227,16 +349,16 @@ Update worklog: `Status = Phase 4 done`.
 1. Re-render the markdown table:
    - For every row, write columns **1, 2, 3, 4, 5, 6** with the values computed above.
    - **Columns 7 (`UC review stt`), 8 (`Scenario design stt`), 9 (`TC design stt`), 10 (`Execute stt`) are preserved verbatim** from `featureIndex[ID]` (blank for new rows).
-   - Preserve the header row exactly (including the `<ID label>` value).
+   - Preserve the header row, **applying label migration if `labelMigrationNeeded` was set in Phase 0.6 case B**: replace `<existingLabel>` with `<expectedLabel>` in column 2 of the header. Otherwise keep the header verbatim.
    - Row order: existing rows in their original order, then new rows (sorted by Site alphabetical, then by ID).
-2. Preserve the ghi-chú/notes block below the table verbatim (do not rewrite from template).
+2. Preserve the ghi-chú/notes block below the table verbatim (do not rewrite from template). **If a label migration note was prepared in Phase 0.6 case B, append it to the END of the ghi-chú block as a new bullet line** — do not overwrite existing notes.
 3. Write back to the `qc-dashboard` path. **In-place edit** (per path-registry's versioning exception for meta-config files).
 
 Update worklog: `Status = Phase 5 done`. Add `qc-dashboard.md` to the Output column.
 
 ### Phase 6 — Cleanup & Handover
 
-1. If the handoff file was consumed → delete it.
+1. **Do NOT delete `site-map-handoff.md`.** Lifecycle ownership rule: `qc-site-map` is the sole writer and deleter (it overwrites the file at the start of its own Phase 9). Leaving the file in place means the user can manually re-run `/qc-dashboard-sync` after editing artifacts on disk, without being forced to re-run the entire top-down chain. The handoff content stays accurate as long as `qc-site-map` has not been re-run with changes.
 2. Output the summary:
    ```
    ✅ **Dashboard sync hoàn tất.**
@@ -262,6 +384,54 @@ Update worklog: `Status = Phase 5 done`. Add `qc-dashboard.md` to the Output col
    ```
 4. Update worklog: `Status = Done`. Fill Duration.
 
+## Bottom-up workflow
+
+Triggered by per-UC skills (`qc-uc-read`, `qc-func-scenario-design`, `qc-func-tc-design`) when they encounter a UC ID that is not yet a row in `qc-dashboard.md`. The caller passes `uc_id=<ID>`.
+
+### Bottom-up steps
+
+1. Generate `run_id` and append worklog row `Status = Running (bottom-up, uc_id=<ID>)`.
+2. Resolve `qc-dashboard` path. If the file does not exist → create it from `templates/qc-dashboard-template.md` with `<ID label> = Use Case ID` (default) so the per-UC skill can proceed; do NOT prompt for the label here (top-down handles the prompt; in bottom-up the default is safe).
+3. Parse the existing dashboard (header + featureIndex). Schema validation: if mismatch → STOP and report.
+4. **Single-UC scope check:**
+   - If `<ID>` is already in `featureIndex` → exit early. Report `<ID> da co trong dashboard, khong can add`.
+   - Otherwise → continue.
+5. Run the 6-artifact sub-scans for `<ID>` only (same logic as top-down Phase 3 but limited to a single ID; resolve the folder path inside `requirement-files/<ID>/`, `uc-review-report/<ID>/`, etc., applying the same ID-extraction regex on sub-folder names).
+6. Add a new row to `featureIndex`:
+   - `Site / Module / Feature name` → leave BLANK (no upstream context to fill them).
+   - `In scope?` → `Need confirm`.
+   - `Files stt` → composed from step 5.
+   - Process-state columns (7-10) → blank.
+7. **Optional upstream alignment check:**
+   - If `project-context-master.md` exists, read its feature list. If `<ID>` is NOT present → set a warning flag.
+   - If `site-map-handoff.md` exists in inbox, read it. If `<ID>` is NOT present → set a warning flag.
+8. Write the dashboard back (in-place).
+9. Emit the user message:
+
+   ```text
+   ✅ Da them row moi cho <ID> vao qc-dashboard.md (In scope? = Need confirm).
+
+   ⚠️ Canh bao: <ID> KHONG ton tai trong cac tai lieu upstream hien tai:
+   - project-context-master.md: <CO | KHONG CO | KHONG TIM THAY FILE>
+   - site-map-handoff.md (qc-site-map): <CO | KHONG CO | KHONG TIM THAY FILE>
+
+   De dong bo day du, hay chay lai chuoi top-down:
+   1. /qc-context-master  (cap nhat project context neu can)
+   2. /qc-site-map        (re-map feature/screen)
+   3. /qc-dashboard-sync  (sync dashboard tu site-map-handoff)
+   ```
+
+   Suppress the warning when both upstream files contain `<ID>`.
+
+10. Worklog: `Status = Done (bottom-up)`. Append `qc-dashboard.md` as the Output.
+
+### Bottom-up boundaries
+
+- Bottom-up does NOT delete or consume any handoff file.
+- Bottom-up does NOT run the site-map gap review (Phase 0.5 is top-down only).
+- Bottom-up does NOT prompt the user during the run (per-UC skills run within a larger flow; an extra prompt would derail them); the warning is emitted as text only.
+- Bottom-up may create the dashboard file from template if missing, with the default ID label.
+
 ## Boundaries
 
 - **OWNER** of `qc-dashboard.md`. Creates the file from template on first run; updates in-place on subsequent runs.
@@ -269,22 +439,21 @@ Update worklog: `Status = Phase 5 done`. Add `qc-dashboard.md` to the Output col
 - **NEVER writes** columns 7 (`UC review stt`), 8 (`Scenario design stt`), 9 (`TC design stt`), 10 (`Execute stt`). Always preserved verbatim.
 - **Soft-delete model:** rows are NEVER physically deleted from the markdown table. `In scope? = Removed` is the soft-delete marker.
 - Rows with `In scope? = Removed` are **skipped from Files-stt scanning**; their `Files stt` cell is frozen at the last-known value until `In scope?` is changed back to `Yes` / `Need confirm`.
-- The skill does NOT invent values for Site / Module / Feature name — if `qc-context-master` did not pass them via handoff, those cells are left BLANK and the user is told to fill manually.
+- The skill does NOT invent values for Site / Module / Feature name — in top-down mode they come from the site-map handoff; in bottom-up they remain BLANK.
 - Folders matching the exclusion rules (Common, Shared, _template, …) are NEVER added as orphans.
 - Schema mismatch → STOP and report. Do NOT auto-fix.
-- Handoff file is always consumed (read + delete) — no stale state left behind.
+- Site-map handoff file (top-down) is consumed (read only). This skill does NOT delete it — `qc-site-map` overwrites it on its next run with changes.
 
 ## Cross-skill contract
 
-- **`qc-context-master`** — after extracting the feature/UC list from WBS, MUST:
-  1. Write the list to the handoff file path (see Inputs).
-  2. Invoke `qc-dashboard-sync` via the Skill tool.
-  3. NEVER edit `qc-dashboard.md` directly.
+- **`qc-context-master`** — Step 1 of the top-down chain. Writes `project-context-master.md` only. NEVER writes any handoff file for this skill. NEVER invokes this skill directly. In Initialization mode it invokes `qc-site-map`; in Update mode it suggests the user to run `qc-site-map`.
 
-- **`qc-uc-read`** — before reviewing a UC, MUST check whether the UC ID exists as a row in `qc-dashboard.md`. If absent, MUST invoke `qc-dashboard-sync` first (no handoff file needed — pure disk scan picks up the UC folder and adds a row with `Need confirm`). After running, this skill writes its own column 7 (`UC review stt`).
+- **`qc-site-map`** — Step 2 of the top-down chain. Writes `qc-site-map.md` + `.claude/skills/qc-dashboard-sync/inbox/site-map-handoff.md`. In Initialization mode it invokes this skill directly. In Update mode it suggests the user to run `/qc-dashboard-sync`. The handoff file it writes is the SOLE upstream feature list source for top-down sync.
 
-- **`qc-func-scenario-design`** — same precheck contract. Writes column 8 (`Scenario design stt`).
+- **`qc-uc-read`** — before reviewing a UC, MUST check whether the UC ID exists as a row in `qc-dashboard.md`. If absent, MUST invoke this skill in BOTTOM-UP mode (pass `uc_id=<ID>`). After running, `qc-uc-read` writes its own column 7 (`UC review stt`).
 
-- **`qc-func-tc-design`** — same precheck contract. Writes column 9 (`TC design stt`).
+- **`qc-func-scenario-design`** — same bottom-up precheck contract. Writes column 8 (`Scenario design stt`).
 
-Other skills (e.g., a future `qc-execute` skill) follow the same precheck pattern and own column 10 (`Execute stt`) when they exist.
+- **`qc-func-tc-design`** — same bottom-up precheck contract. Writes column 9 (`TC design stt`).
+
+Other skills (e.g., a future `qc-execute` skill) follow the same bottom-up precheck pattern and own column 10 (`Execute stt`) when they exist.

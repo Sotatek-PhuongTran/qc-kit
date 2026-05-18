@@ -319,6 +319,7 @@ Read the `path-registry.md` file to find the below file locations:
 
 **Required by BOTH workflows (read first, before any drafting):**
 - `project-context-master` — read §1 "Product Platform Type" to determine which `references/design-technical/design-technical-<variant>.md` rubric(s) to load. If the field is missing or blank, STOP and ask the user to populate it (the field is mandatory because the rubric drives test design coverage).
+- `qc-site-map` (optional) — if present, read §6 Navigation (TC Pre-/Post-condition), §7 Role/access (permission TCs), §8 Screen ↔ Feature mapping (TC scope per screen touched by the feature), §9 Data/API/Integration/State touchpoints (integration + state transition TCs), §10 Regression anchors (risk-based TC prioritization). If missing, skip site-map-derived TCs and warn once.
 
 For **generate-test-cases** workflow:
 - `uc-review-report` - read the latest version

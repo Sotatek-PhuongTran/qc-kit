@@ -1,50 +1,52 @@
 # Phase 7 - Handover and Cleanup
 
-Goal: report completion to the user and clean up internal checkpoints after success.
+Goal: report completion to the user and clean up internal checkpoints on success.
 
 ## Inputs
 
 - `05_context_rendered.md`
-- `06_dashboard_handoff.md` if available
+- `06_sitemap_handoff.md`
 - written `project-context-master.md`
-- `qc-dashboard.md` status if returned by `qc-dashboard-sync`
+- `qc-site-map` invocation result if it was called from Phase 6
 
 ## User-facing handover
 
 Respond in Vietnamese with a concise summary:
 
 ```text
-Hoan tat <Initialization|Update> project context.
+Hoan tat <Initialization | Update | Skipped> project context.
 
-- project-context-master.md: created/updated at <path>
-- qc-dashboard handoff: sent/blocked
-- feature candidates: <counts>
-- derived / need confirm: <counts>
-- important missing context: <top items>
-- conflicts: <count or none>
-- suggested next action: <action>
+- project-context-master.md: created / updated / unchanged at <path>
+- Sources consolidated: <count> files (<count-with-version> co version, <count-no-version> khong co version)
+- Feature candidates: <counts>
+- Derived / need confirm: <counts>
+- Important missing context: <top items>
+- Conflicts: <count or none>
+- Next-step:
+  - Initialization -> qc-site-map auto-invoked. Ket qua: <summary>
+  - Update with changes -> de xuat user chay /qc-site-map
+  - Update no change -> khong can chay downstream
+- Suggested next action: <action>
 ```
 
 Do not paste the full `project-context-master.md` into chat unless the user asks.
 
-## Checkpoint
+## Cleanup rule
 
-Write `process-logging/07_handover.md`:
+Cleanup MUST run when ALL of the following are true:
+- `project-context-master.md` was successfully written (or Update mode finished without changes).
+- Phase 6 completed (either auto-invoked, suggested, or recorded "no downstream action").
+- Final user summary has been produced.
 
-```markdown
-# Handover
+Cleanup action:
 
-- final status:
-- project-context-master path:
-- dashboard handoff status:
-- cleanup status:
+1. Delete the entire `.claude/skills/qc-context-master/process-logging/` folder, including `progress.md` and all checkpoint files.
+2. Append a single row to the `agent-work-log` file (path from `path-registry.md` logical name `agent-work-log`) with `Status = Done` and the final summary.
 
-## User summary
-<message sent to user>
-```
+If cleanup fails (permission error, file lock, etc.), report it as a non-blocking issue. The deliverables are still valid.
 
-## Cleanup
+## Special case: Skipped runs (Phase 0 preflight `no`)
 
-After the handover checkpoint and any worklog update succeeds, delete `.claude/skills/qc-context-master/process-logging/`.
-
-If cleanup fails, report it as a non-blocking issue. The deliverables are still valid.
+If Phase 0 stopped due to version preflight `no`:
+- Cleanup still runs to remove any stale checkpoints that may have been written by a previous interrupted run.
+- The worklog row records `Status = Skipped (preflight no-change)`.

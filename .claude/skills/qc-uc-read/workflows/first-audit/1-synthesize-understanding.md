@@ -26,6 +26,7 @@ Per `workflows/checkpoint-protocol.md` §2 (write-before-work rule):
 This is so test cases written downstream from the audit file have the exact verbatim message/rule text in `Expected Result` without re-opening the common docs.
 
 - Then read each provided UC file or pasted content fully before scoring anything.
+- **Site-map cross-check (optional input):** if `qc-site-map` exists, read §5 Screen/Page inventory + §6 Navigation & screen flow + §7 Role/access by screen + §8 Screen ↔ Feature mapping. Hold in working memory: (a) screens mapped to the UC's feature in §8, (b) flows in §6 touching those screens, (c) roles in §7 with access. These feed Phase 2 KA #3/#4/#7 gap detection and the Cross-Artefact Conflict Check. If missing, skip and warn once.
 
 ### Input-type routing
 

@@ -12,6 +12,16 @@
 
 ---
 
+## Sources consolidated
+
+> Bảng này liệt kê các file đã được đọc và tổng hợp ra nội dung phía dưới. Lần chạy update sau sẽ so version trong tên file (`_v<N>`) để biết source có thay đổi hay không.
+
+| # | File | Version | Loại | Ngày đọc cuối |
+|---|---|---|---|---|
+| 1 | [tên file đầy đủ, không có path] | v1 / không có version | Feature inventory / Scope / Architecture / Business rules / Site map / Release note / NFR / Other | [YYYY-MM-DD] |
+
+---
+
 ## 1. Cách các QC Agent sử dụng file này
 
 | Nhóm Agent / Skill | Cách sử dụng project context | Cần đọc thêm file nào |

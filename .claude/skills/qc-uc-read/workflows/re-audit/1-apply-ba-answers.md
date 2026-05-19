@@ -12,7 +12,7 @@
 
 Per `workflows/checkpoint-protocol.md` §2:
 
-1. **agent-work-log**: update current row Status → `Running (Phase 1)`. Append input file names (previous audited file + question-backlog).
+1. **Worklog**: rewrite last entry → `status = "Running (Phase 1)"`. Append input file names (previous audited file + question-backlog) to `input`.
 2. **qc-dashboard.md**: update the UC's `UC review stt` cell → `Running — Applying BA Answers` (skip if column missing).
 
 ---
@@ -57,7 +57,7 @@ Per `workflows/checkpoint-protocol.md` §5:
    - List of new conflicts or gaps surfaced by BA answers (for handling in Phase 2)
    - Working notes: UC-ID, version of previous audited file read (`v[N]`), version that will be written next (`v[N+1]`)
 2. **Update `progress.md`** → `last_phase_done: 1`, `next_phase: 2`, `updated_at: <now>`.
-3. **agent-work-log**: update row Status → `Phase 1 done`.
+3. **Worklog**: rewrite last entry → `status = "Phase 1 done"`.
 4. **qc-dashboard.md**: update the UC's `UC review stt` cell → `Applying BA Answers done` (skip if column missing).
 
 ---

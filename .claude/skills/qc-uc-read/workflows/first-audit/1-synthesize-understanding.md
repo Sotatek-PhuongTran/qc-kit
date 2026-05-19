@@ -12,7 +12,7 @@
 
 Per `workflows/checkpoint-protocol.md` §2 (write-before-work rule):
 
-1. **agent-work-log**: update current row Status → `Running (Phase 1)`. Append input file names (excluding `process-logging/`).
+1. **Worklog**: rewrite last entry → `status = "Running (Phase 1)"`. Append input file names to `input` (excluding `process-logging/`).
 2. **qc-dashboard.md**: update the UC's `UC review stt` cell → `Running — Synthesizing Requirement Understanding` (use the input UC's language — see protocol §3 phase friendly names table). Skip if column missing (graceful degradation).
 
 ---
@@ -144,7 +144,7 @@ Per `workflows/checkpoint-protocol.md` §5:
    - The UI coverage delta table (must show `Delta = 0` for every image)
    - Working notes: detected input language, UC-ID, version of source files read, list of blocked artefacts (if any)
 2. **Update `progress.md`** → `last_phase_done: 1`, `next_phase: 2`, `updated_at: <now>`.
-3. **agent-work-log**: update row Status → `Phase 1 done`.
+3. **Worklog**: rewrite last entry → `status = "Phase 1 done"`.
 4. **qc-dashboard.md**: update the UC's `UC review stt` cell → `Synthesizing Requirement Understanding done` (skip if column missing).
 
 ---

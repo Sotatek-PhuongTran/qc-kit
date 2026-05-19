@@ -12,7 +12,7 @@
 
 Per `workflows/checkpoint-protocol.md` §2:
 
-1. **agent-work-log**: update current row Status → `Running (Phase 2)`.
+1. **Worklog**: rewrite last entry → `status = "Running (Phase 2)"`.
 2. **qc-dashboard.md**: update the UC's `UC review stt` cell → `Running — Recalculating Score & Updating Backlog` (skip if column missing).
 
 If this run is a **resume from a prior checkpoint** (entered directly at Phase 2): first load `01_applied-answers.md` and the previous `uc-review-report v[N].md` per `checkpoint-protocol.md` §4 Resume load table.
@@ -86,7 +86,7 @@ Per `workflows/checkpoint-protocol.md` §5:
    - List of resolved question IDs (from Step 4)
    - List of new question IDs created via `qc-qna` (from Step 5)
 2. **Update `progress.md`** → `last_phase_done: 2`, `next_phase: 3`, `updated_at: <now>`.
-3. **agent-work-log**: update row Status → `Phase 2 done`. Add `question-backlog` to the `Output` column (since it was modified).
+3. **Worklog**: rewrite last entry → `status = "Phase 2 done"`. Add `question-backlog` to `output` (since it was modified).
 4. **qc-dashboard.md**: update the UC's `UC review stt` cell → `Recalculating Score & Updating Backlog done` (skip if column missing).
 
 ---

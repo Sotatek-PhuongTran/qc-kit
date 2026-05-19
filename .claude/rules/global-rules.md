@@ -50,4 +50,4 @@ Minimum code that solves the problem. Nothing speculative.
 
 ## Agent Work Log
 
-- Whenever a skill is executed, the agent MUST append a log row to the `agent-work-log` file (look up the `logical-name` in `path-registry.md` for the actual path).
+- Every skill MUST log to its device's JSONL file under `worklog-per-device` (resolve path via `path-registry.md`). If the file does not exist yet, create it. Schema and lifecycle: see the README at the same folder (`docs/qc-lead/agent-work-log.local/README.md`). Do NOT write directly to the master `agent-work-log` — that is owned exclusively by `qc-get-work-log`.

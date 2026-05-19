@@ -27,14 +27,14 @@ Resolve via `path-registry.md`:
 ## Output Contract
 
 - **`question-backlog`** — created from template if missing (written into the same folder as the audited file); updated in-place if exists. Versioning follows `naming-convention.md`.
-- **`agent-work-log`** — append a run row at skill start, update `Status` / `Output` / `Duration` in-place at phase boundaries (per `global-rules.md` Agent Work Log requirement).
+- **`worklog-per-device`** — log every phase boundary per the protocol at `docs/qc-lead/agent-work-log.local/README.md`. Do NOT touch the master `agent-work-log`.
 
 ## Workflow
 
 ### Phase 0 — Setup
 
 1. Extract `<UC-ID>` from caller args / user prompt / audited filename. If multiple UCs share the audited file (group review), resolve `<UC-ID>` to the canonical group ID used in the dashboard.
-2. Append `agent-work-log` row: `Status = Running (Phase 1)`, `Input = <audited file path>`, `started_at = now`.
+2. Worklog: append new entry to the device's JSONL with `status = "Running (Phase 1)"`, `input = [<audited file path>]`, `start = now` (per the protocol).
 3. Resolve the audited file:
    - If the caller passed an explicit path → use it.
    - Otherwise → locate the highest-version `uc-review-report` for `<UC-ID>` in the resolved folder.
@@ -85,7 +85,7 @@ Resolve via `path-registry.md`:
 
 ### Phase 4 — Return
 
-1. **agent-work-log:** Status → `Done`. Output = `<backlog file path>`. Duration = now − started_at, rounded to 1 decimal.
+1. Worklog: rewrite last entry → `status = "Done"`, `output = [<backlog file path>]`, `end = now`, `duration_min = computed` (per the protocol).
 2. Return a short summary to the caller (caller may be `qc-uc-read` or the user):
    ```
    ✅ Question transfer complete.

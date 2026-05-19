@@ -1,3 +1,8 @@
-# Append-only log: cho phép git tự union khi 2 nhánh cùng append row mới.
-# Run ID format `run-<YYYYMMDD>-<HHMMSS>-<user>` đảm bảo không trùng ID khi merge.
+# Master worklog: aggregated by qc-get-work-log. Kept merge=union as a safety net
+# in case two Leads run the aggregator on parallel branches.
 docs/qc-lead/agent-work-log.md merge=union
+
+# Per-device JSONL worklogs: one file per machine, no cross-device contention
+# expected. Force LF line endings so the line-per-entry format stays parseable
+# across Windows/Unix.
+docs/qc-lead/agent-work-log.local/worklog_*.jsonl text eol=lf

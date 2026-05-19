@@ -12,7 +12,7 @@
 
 Per `workflows/checkpoint-protocol.md` §2:
 
-1. **agent-work-log**: update current row Status → `Running (Phase 3)`.
+1. **Worklog**: rewrite last entry → `status = "Running (Phase 3)"`.
 2. **qc-dashboard.md**: update the UC's `UC review stt` cell → `Running — Generating Review Report` (skip if column missing).
 
 If this run is a **resume from Phase 3**: first load `01_synthesis.md` and `02_scoring.md` into memory per `checkpoint-protocol.md` §4 Resume load table.
@@ -153,7 +153,7 @@ This auto-trigger is the documented kit flow: first-audit always produces fresh 
 
 Per `workflows/checkpoint-protocol.md` §5 and §6:
 
-1. **agent-work-log**: update row Status → `Done`. Set `Duration` = now − started_at, rounded to 1 decimal. Add the output file name to `Output` column. If `qc-qna` wrote to `question-backlog`, also add `question-backlog` to `Output`.
+1. **Worklog**: rewrite last entry → `status = "Done"`, `end = now`, `duration_min = computed`. Add the output file name to `output`. If `qc-qna` wrote to `question-backlog`, also add it to `output`.
 2. **qc-dashboard.md**: update the UC's `UC review stt` cell → `<Verdict> v[N] (Score <X>/100)` (e.g., `Conditionally Ready v1 (Score 73.1/100)`). Skip if column missing.
 3. **Cleanup**: delete the entire `.claude/skills/qc-uc-read/process-logging/<UC-ID>/` folder. Cleanup only happens on successful completion.
 

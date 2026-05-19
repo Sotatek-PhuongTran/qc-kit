@@ -80,7 +80,7 @@ Always re-resolve `path-registry.md` paths after resume because paths may have c
 
 ## Worklog notes
 
-If the project uses `agent-work-log`, update it before entering each phase. Do not include files under `process-logging/` as user-visible outputs.
+Worklog: update the device's JSONL entry before entering each phase, per the protocol at `docs/qc-lead/agent-work-log.local/README.md`. Do not include files under `process-logging/` in `input`/`output`.
 
 User-visible deliverables: only `project-context-master.md` is owned by this skill. Downstream files (`qc-site-map.md`, `qc-dashboard.md`) are owned by their respective skills and never written here.
 

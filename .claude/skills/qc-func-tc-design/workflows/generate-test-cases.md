@@ -17,7 +17,7 @@
 
 Per `SKILL.md` → "Checkpoint & Resume Protocol" §2 (write-before-work rule):
 
-1. **agent-work-log**: update current row Status → `Running (Phase 1)`. Append input file names (excluding `process-logging/`).
+1. **Worklog**: rewrite last entry → `status = "Running (Phase 1)"`. Append input file names to `input` (excluding `process-logging/`).
 2. **qc-dashboard.md**: update the UC's `TC design stt` cell → `Running — Phân tích & Lập đề cương thiết kế` (use the input UC's language — Vietnamese here; English equivalent: `Running — Analysis & Design Brief`). Skip if column missing (graceful degradation). If the UC has no row yet in the dashboard → invoke `qc-dashboard-sync` BEFORE updating.
 
 ### Step 1: Input Analysis (MANDATORY)
@@ -38,7 +38,7 @@ Per `SKILL.md` → "Checkpoint & Resume Protocol" §5.2 (end-of-phase):
    - **Planned TC scope**: how many screens × ~estimated TCs per screen (GUI + FUNC rough split).
    - **Detected output language** (VI / EN).
    - Working notes: version of source files read, target md path (resolved from `func-test-cases-draft` in path-registry).
-2. **agent-work-log**: update row Status → `Phase 1 done`.
+2. **Worklog**: rewrite last entry → `status = "Phase 1 done"`.
 3. **qc-dashboard.md**: update the UC's `TC design stt` cell → `Phân tích & Lập đề cương thiết kế done` (skip if column missing).
 
 > **Note:** `last_phase_done: 1` is NOT written here — it gets written at the start of Phase 2 (see "Status update — Start of Phase 2" below). Per §5.1, advancing `last_phase_done` happens only at phase transition.
@@ -52,7 +52,7 @@ Per `SKILL.md` → "Checkpoint & Resume Protocol" §5.2 (end-of-phase):
 Per `SKILL.md` → "Checkpoint & Resume Protocol" §5.1 (start-of-phase / transition write). This is the moment we advance `last_phase_done` to confirm Phase 1 is done.
 
 1. **Update `progress.md`** → `last_phase_done: 1`, `next_phase: 2`, `updated_at: <now>`. (Preserve any other existing fields / notes.)
-2. **agent-work-log**: update current row Status → `Running (Phase 2)`.
+2. **Worklog**: rewrite last entry → `status = "Running (Phase 2)"`.
 3. **qc-dashboard.md**: update the UC's `TC design stt` cell → `Running — Soạn TC & ghi MD` (VI) / `Running — TC Drafting & MD Write` (EN). Skip if column missing.
 
 > **Resume note:** For EACH platform variant resolved in Step 2.1 below, probe for `process-logging/<UC-ID>/02_designed_tcs_<variant>.md`. If a variant's scratch already exists (prior run finished that variant's drafting), SKIP Steps 2 + 3 + 3.5 for that variant — its design is already done. Read its scratch and jump directly to Step 4 for that variant. Variants without scratch get fresh drafting from Step 2 onward. Per `SKILL.md` §4 Resume load table.
@@ -156,7 +156,7 @@ Per `SKILL.md` → "Checkpoint & Resume Protocol" §5.2 (end-of-phase). At this 
    - A top-level `**Variants in scope:**` line listing all variants comma-separated.
    - ONE `### Variant: <V>` sub-block per variant, in the same order. Each sub-block has the per-variant fields computed above (totals, language, scratch path, final md paths, screen breakdown table).
    - This is an atomic single Write that overwrites `progress.md` while preserving all existing fields (run_id, uc_id, workflow, started_at, last_phase_done, next_phase, updated_at, ## Notes). Do NOT touch `last_phase_done` here — it stays at its current value (set when Phase 2 started). Update `updated_at: <now>`.
-3. **agent-work-log**: update row Status → `Phase 2 done`. Append ALL variants' final `.md` path(s) to the Output column (excluding `process-logging/`).
+3. **Worklog**: rewrite last entry → `status = "Phase 2 done"`. Append ALL variants' final `.md` path(s) to `output` (excluding `process-logging/`).
 4. **qc-dashboard.md**: update the UC's `TC design stt` cell → `Soạn TC & ghi MD done` (VI) / `TC Drafting & MD Write done` (EN). Skip if column missing.
 
 > **Note:** `last_phase_done: 2` is NOT written here — it gets written at the START of Phase 3, only AFTER Phase 3's Step 0 verification gate passes for ALL variants. This is what guarantees a partial / mismatched md for ANY variant cannot be silently accepted as "Phase 2 done" on resume. See `convert-md-to-xlsx.md` → Step 0.

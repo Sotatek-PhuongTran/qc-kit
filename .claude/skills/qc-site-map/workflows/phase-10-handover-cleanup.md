@@ -32,7 +32,7 @@ Cleanup MUST run when ALL of the following are true:
 Cleanup action:
 
 1. Delete the entire `.claude/skills/qc-site-map/process-logging/` folder, including `progress.md` and all checkpoint files.
-2. Append a single row to the `agent-work-log` file with `Status = Done` and the final summary.
+2. Worklog: rewrite last entry → `status = "Done"`, `end = now`, `duration_min = computed`, fill the final summary in `output` (per the protocol).
 
 If cleanup fails (permission error, file lock, etc.), report it as a non-blocking issue. The deliverables are still valid.
 

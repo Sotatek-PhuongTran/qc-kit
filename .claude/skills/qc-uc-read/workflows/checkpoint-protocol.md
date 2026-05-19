@@ -3,7 +3,7 @@
 > **Scope:** Shared rules referenced by all `qc-uc-read` workflow phase files. Read this once at skill start.
 >
 > **Purpose:** Make the skill resilient to context-limit / interruption mid-run by:
-> (1) persisting per-phase intermediate output to disk, (2) updating the `agent-work-log` row in-place at every phase boundary, (3) updating the UC's row in `qc-dashboard.md` (UC review stt column) at every phase boundary, and (4) detecting prior checkpoints on the next run so the user does not redo finished work.
+> (1) persisting per-phase intermediate output to disk, (2) updating the device's worklog JSONL entry at every phase boundary, (3) updating the UC's row in `qc-dashboard.md` (UC review stt column) at every phase boundary, and (4) detecting prior checkpoints on the next run so the user does not redo finished work.
 
 ---
 
@@ -44,37 +44,23 @@ Single source of truth for resume. Overwrite on every checkpoint write.
 
 ---
 
-## 2. agent-work-log update protocol
+## 2. Worklog updates
 
-The `agent-work-log` row is the **user-visible** status. The skill is allowed to update its **own** row in-place (columns `Status`, `Input`, `Output`, `Duration`). See `docs/qc-lead/agent-work-log.md` for column schema.
+All worklog updates target the device's JSONL file under `worklog-per-device`. Schema, lifecycle (append-on-start, rewrite-on-phase-boundary, terminal states), `run_id` generation, and write-before-work rule are defined once in `docs/qc-lead/agent-work-log.local/README.md`. Do not duplicate them here.
 
-### Lifecycle
-
-| When                                | Action                                                                                                                                                       |
-| ----------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| Skill start (after Phase 0 routing) | **Append** a new row: `Status = Running (Phase 1)`, Input/Output empty, Duration empty.                                                                      |
-| Before entering Phase N             | **Update Status** → `Running (Phase <N>)`. Update `Input` with any new files read in this phase.                                                            |
-| After Phase N done                  | **Update Status** → `Phase <N> done`. Update `Output` with any user-visible files written.                                                                  |
-| After final phase done              | **Update Status** → `Done`. Update `Duration` = now − started_at, rounded to 1 decimal.                                                                      |
-| Resume detection (next run)         | **Append a new row** for the new run; if prior row's Status was `Running (...)`, update prior row's Status → `Interrupted (last: Phase <N>)`.              |
-
-### Files excluded from Input/Output columns
+### Files excluded from `input` / `output` arrays
 
 - Anything under `process-logging/` — internal scratchpad, not a deliverable.
 - `progress.md` — internal.
 - Templates and references (`.claude/skills/.../templates/*`, `.claude/skills/.../references/*`).
 
-User-visible deliverables that DO go into Output: `uc-review-report v[N].md`, `question-backlog` (if updated).
-
-### Write-before-work rule
-
-Update `agent-work-log` Status **before** starting a phase, not after. If interruption happens mid-phase, the worklog already reflects the last "in progress" state, and the resume logic can recognize it.
+User-visible deliverables that DO go into `output`: `uc-review-report v[N].md`, `question-backlog` (if updated).
 
 ---
 
 ## 3. qc-dashboard update protocol
 
-`qc-uc-read` owns ONE column in `qc-dashboard.md`: **`UC review stt`** (Review status). The UC's row is identified by matching the `<ID_LABEL>` column (column 2) against the UC-ID being audited.
+`qc-uc-read` owns ONE column in `qc-dashboard.md`: **`UC review stt`** (Review status, column 8). The UC's row is identified by matching **column 3 `Folder ID`** against the on-disk folder being processed. The canonical Feature ID lives in column 2 `<ID label>` (which may differ from the Folder ID when `qc-site-map` Mode 3 has reconciled an alias) — read it for display/reporting but do NOT use it for row lookup.
 
 > **Graceful degradation:** If the `UC review stt` column does NOT exist in the current `qc-dashboard.md`, skip dashboard update (worklog update still happens). Log a one-line warning in the agent's user-facing output: *"Cột `UC review stt` chưa tồn tại trong qc-dashboard.md — bỏ qua update dashboard. Thêm cột này để bật tracking."*
 
@@ -89,7 +75,7 @@ Update `agent-work-log` Status **before** starting a phase, not after. If interr
 
 ### Phase friendly names
 
-Use these names verbatim in both `agent-work-log` (`Status` column) and `qc-dashboard` (`UC review stt` column). They are output in the **input UC document's language** (if Vietnamese UC → Vietnamese names; otherwise English).
+Use these names verbatim in both the worklog entry's `status` field and `qc-dashboard` (`UC review stt` column). They are output in the **input UC document's language** (if Vietnamese UC → Vietnamese names; otherwise English).
 
 | Workflow      | Phase | English name                              | Vietnamese name                                          |
 | ------------- | ----- | ----------------------------------------- | -------------------------------------------------------- |
@@ -107,7 +93,7 @@ Use these names verbatim in both `agent-work-log` (`Status` column) and `qc-dash
 At skill start, after the routing decision is made (first-audit vs re-audit) and `<UC-ID>` is determined:
 
 1. Check `.claude/skills/qc-uc-read/process-logging/<UC-ID>/progress.md`.
-   - **Not found** → fresh run. Generate new `run_id` (read `agent-work-log` for max ID, increment). Skip to Phase 1.
+   - **Not found** → fresh run. Generate new `run_id` per the worklog protocol. Skip to Phase 1.
    - **Found** → there is a prior incomplete run. Continue to step 2.
 2. Read `last_phase_done`, `next_phase`, and `mode`.
 3. Ask the user (ONE message, blocking):
@@ -123,14 +109,14 @@ At skill start, after the routing decision is made (first-audit vs re-audit) and
    2. **Restart** — chạy lại từ đầu (xoá toàn bộ checkpoint cũ)
    ```
 4. If user picks **Continue**:
-   - Set the prior `agent-work-log` row Status → `Resumed by run-<new>` (one-time edit).
-   - Append a new `agent-work-log` row for the new run with `Status = Running (Phase <next_phase>)`.
+   - Worklog: rewrite the prior entry's `status` → `Resumed by run-<new>` (one-time edit).
+   - Worklog: append a new entry for the new run with `status = "Running (Phase <next_phase>)"`.
    - Load required checkpoint files (see "Resume load table" below).
    - Jump to `next_phase` workflow file.
 5. If user picks **Restart**:
    - Delete `.claude/skills/qc-uc-read/process-logging/<UC-ID>/` folder entirely.
-   - Set the prior `agent-work-log` row Status → `Interrupted (last: Phase <last_phase_done>)`.
-   - Append new `agent-work-log` row, start fresh from Phase 1.
+   - Worklog: rewrite the prior entry's `status` → `Interrupted (last: Phase <last_phase_done>)`.
+   - Worklog: append a new entry, start fresh from Phase 1.
 
 ### Resume load table
 
@@ -153,7 +139,7 @@ After completing a phase, the workflow MUST execute these 4 steps **in order, at
 
 1. **Write the checkpoint file** for this phase (markdown, full content as defined per phase workflow). For Phase 3, this step is the actual deliverable write (`uc-review-report v[N].md`).
 2. **Update `process-logging/<UC-ID>/progress.md`** — set `last_phase_done`, `next_phase`, `updated_at`.
-3. **Update the `agent-work-log` row** — set Status to `Phase <N> done`, append any new Input/Output files (excluding `process-logging/`).
+3. **Update the worklog JSONL entry** — rewrite last entry's `status` to `Phase <N> done`, append any new `input`/`output` files (excluding `process-logging/`).
 4. **Update the `qc-dashboard.md` `UC review stt` cell** for this UC — set to `<phase friendly name> done` (or the final verdict if Phase 3).
 
 ---
@@ -162,7 +148,7 @@ After completing a phase, the workflow MUST execute these 4 steps **in order, at
 
 After the final phase (Phase 3) finishes successfully:
 
-1. Set `agent-work-log` Status → `Done`. Final Duration calculation.
+1. Worklog: rewrite last entry → `status = "Done"`, `end = now`, `duration_min = computed`.
 2. Set `qc-dashboard.md` `UC review stt` cell → `<Verdict> v<N> (Score <X>/100)`.
 3. **Delete the entire `.claude/skills/qc-uc-read/process-logging/<UC-ID>/` folder.** It is scratch — not part of project deliverables.
 
@@ -176,6 +162,6 @@ Cleanup must NOT happen mid-run, even on error. Only on successful Phase 3 compl
 | -------------------------------------------------------- | -------------------------------------------------------------------------------- |
 | `progress.md` exists but no checkpoint files             | Treat as fresh run; warn user and delete `progress.md`.                          |
 | Checkpoint file referenced by `progress.md` missing      | STOP and ask user; do not silently re-derive.                                    |
-| `agent-work-log` row missing for current `run_id`        | Append a new row; do not fail the skill.                                         |
+| Per-device JSONL missing entry for current `run_id`      | Append a new entry; do not fail the skill.                                       |
 | Path-registry logical name changed between runs          | Re-resolve from current registry; if path differs, ask user before continuing.   |
 | `UC review stt` column missing in qc-dashboard.md           | Skip dashboard update; warn user once (see §3 Graceful degradation).             |

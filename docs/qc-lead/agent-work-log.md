@@ -1,42 +1,16 @@
 # Agent Work Log
 
-> **Document:** Agent Work Log
-> **Date created:** 2026-05-12
-> **Author:** Agent (auto-generated)
-> **Version:** in-place (no versioning)
+> Aggregated view of skill runs across all devices. Source data lives in [`agent-work-log.local/`](./agent-work-log.local/) — one JSONL file per device.
+>
+> Generated/updated by skill `qc-get-work-log`. Do not hand-edit per-device tables below — re-run the skill instead. Hand-edits to the **Legacy** section are allowed (frozen historical data).
+>
+> Schema, dedup rule, timezone (UTC+7) — see [`agent-work-log.local/README.md`](./agent-work-log.local/README.md).
 
 ---
 
-## Cách dùng
+## Legacy (pre-2026-05-19, single-table format)
 
-File này ghi lại mọi lần chạy skill của agent trong dự án. Mỗi lần run được gán **một Run ID duy nhất** theo format `run-<YYYYMMDD>-<HHMMSS>-<user>`.
-- Nếu trong cùng 1 lần run có nhiều skill được gọi (vd: skill A auto-trigger skill B), các skill sẽ được ghi thành **nhiều row** với cùng Run ID nhưng kèm hậu tố thứ tự `.N` (`.1` — kỹ năng đầu tiên; `.2` — kỹ năng thứ hai; …theo thứ tự thực thi).
-- **Append + self-update**: row mới luôn được **append** vào cuối bảng tại thời điểm skill bắt đầu. Trong khi skill còn chạy, agent **được phép update in-place** các cột `Status`, `Input`, `Output`, `Duration` của **chính row của mình**. **KHÔNG** chỉnh sửa row của skill khác hoặc của run khác.
-- **Cách sinh Run ID** (KHÔNG đọc max và +1 — tránh trùng ID khi nhiều member chạy đồng thời):
-  1. Lấy timestamp local hiện tại theo format `YYYYMMDD-HHMMSS` (ví dụ `20260515-143022`).
-  2. Lấy git user qua `git config user.email`, tách phần trước `@`, lowercase, loại bỏ ký tự không phải `[a-z0-9]` (ví dụ `chris.le3@basao.com` → `chrisle3`). Nếu git chưa cấu hình email, fallback `unknown`.
-  3. Ghép: `run-<YYYYMMDD>-<HHMMSS>-<user>`. Ví dụ: `run-20260515-143022-chrisle3`.
-  4. Sub-skill trong cùng run: nối thêm `.N` (`run-20260515-143022-chrisle3.1`, `.2`, …).
-- **Multi-member git workflow**: file này được khai báo `merge=union` trong `.gitattributes` ở root repo. Khi 2 nhánh cùng append row mới ở cuối bảng, git sẽ tự union cả 2 phía thay vì báo conflict. Format Run ID ở trên đảm bảo không trùng ID dù 2 người chạy cùng lúc, nên union là an toàn. Sau merge, thứ tự dòng có thể không strictly chronological — sort lại theo cột `Start time` nếu cần.
-- **Multi-line trong cell**: dùng `<br>` để xuống dòng (Input / Output / Issue có nhiều mục).
-
-## Cấu trúc Output
-- **Run ID**: `run-<YYYYMMDD>-<HHMMSS>-<user>` hoặc `run-<YYYYMMDD>-<HHMMSS>-<user>.N`
-- **Skill**: tên kỹ năng được thực thi
-- **Status**: trạng thái run, được cập nhật theo phase. Giá trị:
-  - `Running (Phase <N>)` — đang chạy phase N (set ngay TRƯỚC khi bắt đầu phase)
-  - `Phase <N> done` — vừa hoàn thành phase N (set ngay SAU khi phase done)
-  - `Done` — toàn bộ skill hoàn thành
-  - `Interrupted (last: Phase <N>)` — phát hiện run trước bị cắt, do run sau set khi resume
-- **Input**: danh sách các file đã đọc, mỗi file một dòng. KHÔNG ghi các file `process-logging/`.
-- **Output**: danh sách các file được tạo/chỉnh sửa, mỗi file một dòng. KHÔNG ghi các file `process-logging/`.
-- **Issue**: các sự cố người dùng có thể xử lý (tên tệp tham chiếu không khớp, cấu trúc không khớp với mô tả, dữ liệu bị thiếu, sự mơ hồ, v.v.). Nếu không có sự cố, hãy viết `-`. Mỗi sự cố trên một dòng (sử dụng `<br>`)
-- **Start time**: thời điểm bắt đầu skill, định dạng `YYYY-MM-DD HH:MM:SS` (giờ địa phương). Set ngay khi append row.
-- **End time**: thời điểm skill chuyển sang status `Done` (hoặc `Stopped` / `Interrupted`), định dạng `YYYY-MM-DD HH:MM:SS`. Để trống khi đang chạy; điền ngay khi kết thúc.
-- **Duration**: tổng số phút từ `Start time` → `End time`, làm tròn 1 chữ số thập phân. Trong khi đang chạy có thể để trống hoặc cập nhật running total.
----
-
-## Run Log
+> Frozen historical data from before the per-device model. No device/member info available; preserved verbatim for traceability.
 
 | Run ID | Skill | Status | Input | Output | Issue | Start time | End time | Duration (phút) |
 |--------|-------|--------|-------|--------|-------|------------|----------|-----------------|
@@ -59,3 +33,16 @@ File này ghi lại mọi lần chạy skill của agent trong dự án. Mỗi l
 | run-015 | qc-dashboard-sync | Done | docs/qc-lead/ (qc-dashboard.md không tồn tại — user rename old → `qc-bảng cũ.md`)<br>.claude/config/path-registry.md<br>.claude/skills/qc-dashboard-sync/templates/qc-dashboard-template.md<br>.claude/skills/qc-dashboard-sync/inbox/feature-list-handoff.md (re-built v2 với 33 row, sau đó consumed + deleted) | docs/qc-lead/qc-dashboard.md (fresh bootstrap từ template, ID label = `Use Case ID`, 33 row mới: 20 Yes + 13 Need confirm, Files stt all-Missing cho tất cả) | (1) Fresh bootstrap theo yêu cầu user — old dashboard giữ ở `qc-bảng cũ.md` làm backup; 20 row Yes (UC chính đã được BA xác nhận in-scope qua ASSUMPTION_BACKLOG_Mobile.md PQ-01..PQ-07) + 13 row Need confirm (UC con thuộc nhóm UC55-68 và UC87-95 + UC73 TTHC mơ hồ).<br>(2) UC70 đã bị bỏ khỏi dashboard mới (history trước đánh Removed). Nếu cần track soft-delete, user thêm thủ công.<br>(3) Tất cả 33 row có Files stt = all-Missing vì `docs/BA/` và `docs/QC/` chưa có (Q-015) — sau khi BA/QC khôi phục, chạy lại `/qc-dashboard-sync` để re-scan. | 2026-05-15 12:30:00 | 2026-05-15 12:40:00 | 10.0 |
 | run-014 | qc-context-master-02 | Done | docs/qc-lead/project-config.md<br>docs/qc-lead/project-context-master.md (pre-existing — Update mode)<br>docs/qc-lead/qc-dashboard.md<br>.claude/config/path-registry.md<br>.claude/skills/qc-context-master-02/SKILL.md + workflows/* + references/* + templates (template.vi)<br>docs/qc-lead/high-level-files/UC_LIST_Mobile.md<br>docs/qc-lead/high-level-files/ASSUMPTION_BACKLOG_Mobile.md<br>docs/qc-lead/high-level-files/ACTION_ITEMS_Mobile.md | docs/qc-lead/project-context-master.md (in-place rewrite theo VN template 10 section + Phụ lục A; merge giữ Project ID = MBFS, Out-of-scope NV-01..NV-08, UC70 Removed, run-009 carve-outs)<br>.claude/skills/qc-dashboard-sync/inbox/feature-list-handoff.md (13 candidate Need confirm: UC58/UC59/UC62/UC67/UC73 + UC87..UC95 minus UC90) | (1) `docs/BA/` và `docs/QC/` không còn tồn tại trên repo (đã bị clear bởi commit 45c7d81) → spec chi tiết + common rule book không truy cập được; qc-dashboard.md "Files stt" hiện đang stale (xem Q-015).<br>(2) UC73 (TTHC) trong UC_LIST nhưng không có row trong dashboard, existing project-context lại ghi "UC70 — TTHC" Removed → có thể nhầm UC73 ↔ UC70 (Q-014).<br>(3) Cách gom row dashboard chưa khớp 1-1 với UC_LIST: UC55-68 (12 UC) gom 3 row; UC87-95 (9 UC) gom 1 row UC90 — UC92 yêu cầu đăng nhập nhưng đang gộp chung row public (Q-013).<br>(4) `qc-dashboard-sync` chưa được auto-invoke trong run này — chờ QC Lead chạy `/qc-dashboard-sync` để merge handoff. | 2026-05-15 11:50:00 | 2026-05-15 12:25:00 | 35.0 |
 | run-20260515-130000-chrisle3 | qc-site-map | Done | docs/qc-lead/project-context-master.md<br>docs/qc-lead/project-config.md<br>docs/qc-lead/qc-dashboard.md<br>.claude/config/path-registry.md<br>.claude/skills/qc-site-map/SKILL.md + workflows/* + references/* + templates/qc-site-map-template.vi.md<br>docs/qc-lead/high-level-files/UC_LIST_Mobile.md<br>docs/qc-lead/high-level-files/ASSUMPTION_BACKLOG_Mobile.md<br>docs/qc-lead/high-level-files/ACTION_ITEMS_Mobile.md | docs/qc-lead/qc-site-map.md (Initialization — 64 screens, 22 flows, 14 regression anchors, readiness Partial)<br>.claude/skills/qc-dashboard-sync/inbox/site-map-handoff.md (feature-level coverage cho 33 row + 5 unmapped screens) | (1) `docs/BA/` (spec + wireframe) bị clear bởi commit 45c7d81 → toàn bộ screen ở mức `Derived`, không có wireframe để promote `Confirmed` (Q-015, GAP-001).<br>(2) UC73 vs UC70 (Q-014, GAP-003) → đánh dấu `Conflict` cho SCR-069/070, cần BA + QC Lead resolve.<br>(3) UC41 (AI-UC-01), UC2 chi tiết tab (AI-UC-02), UC55 đăng ký tư vấn (AI-UC55-01) chờ BA/KH → SCR-050, SCR-047, SCR-066 `Need confirm`.<br>(4) AI-UX-01..04 (Toast / Empty / Error) chưa thiết kế → SCR-090..093 `Need confirm`.<br>(5) Handoff đã ghi vào inbox; KHÔNG auto-invoke `/qc-dashboard-sync` vì site map không thay đổi cột mà qc-dashboard-sync sở hữu — khuyến nghị QC Lead chạy thủ công sau khi BA hoàn tất UC41. | 2026-05-15 13:00:00 | 2026-05-15 13:00:00 | 5.0 |
+
+---
+
+## Per-device tables
+
+> Auto-generated by `qc-get-work-log`. One section per device, sorted by Start time ascending within each section. New runs (from 2026-05-19 onward) appear here.
+
+### DESKTOP-3N54HKV
+
+| Member | Skill | Status | Input | Output | Issue | Start time | End time | Duration (phút) |
+|--------|-------|--------|-------|--------|-------|------------|----------|-----------------|
+| Joy | qc-qna | Running (Phase 1) | docs/ba/UC-047-052_thuc-hien-du-an-dau-tu-nam_audited_20260519_v1.md | - | - | 2026-05-19 16:21:52 +07 |  |  |
+| Joy | qc-get-work-log | Done | docs/qc-lead/agent-work-log.md<br>docs/qc-lead/agent-work-log.local/worklog_DESKTOP-3N54HKV.jsonl | docs/qc-lead/agent-work-log.md | - | 2026-05-19 16:23:31 +07 | 2026-05-19 16:25:37 +07 | 2.1 |

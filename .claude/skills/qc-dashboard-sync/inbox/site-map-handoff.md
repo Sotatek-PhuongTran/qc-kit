@@ -11,41 +11,41 @@ Site map vừa được tạo lần đầu (`docs/qc-lead/qc-site-map.md`). Hand
 
 ## Feature-level site map coverage
 
-| Feature ID | Feature name | Site / Portal | Module | Mapped screen(s) | Site map status | Notes |
-|---|---|---|---|---|---|---|
-| UC1 | Trang chủ Dashboard | Mobile | B. Trang chủ & Điều hướng | SCR-020, 021, 022, 023 | Mapped | Sidebar (SCR-022) = Confirmed; còn lại Derived |
-| UC2 | Tra cứu KCN/KKT/TMTD/PTQ/Mô hình (UC2-UC31) | Mobile | D. Tra cứu KCN/KKT | SCR-040..047 | Partial | SCR-047 (tab Hạ tầng/Nhà đầu tư) chờ BA — AI-UC-02 |
-| UC40 | Tra cứu quỹ đất KCN | Mobile | D. Tra cứu KCN/KKT | SCR-048, 049 | Mapped | NV-06 trạng thái; KT-04 không export |
-| UC42-44 | Quản lý đặt lịch | Mobile | C. Hồ sơ & Dịch vụ | SCR-030, 031 | Mapped | NV-01/02 no tạo/huỷ; SCR-031 detail Need confirm |
-| UC45-51 | Quản lý hồ sơ | Mobile | C. Hồ sơ & Dịch vụ | SCR-032, 033 | Mapped | UX-05 search + tab; KT-06 PDF in-app |
-| UC52 | Kho tài liệu cá nhân | Mobile | C. Hồ sơ & Dịch vụ | SCR-034, 035 | Mapped | NV-04 read-only; KT-07 |
-| UC53_63-65 | Phản ánh kiến nghị | Mobile | C. Hồ sơ & Dịch vụ | SCR-036, 037, 038 | Mapped | UX-06 state; UX-07 auto-fill |
-| UC54 | Báo cáo đã nộp | Mobile | C. Hồ sơ & Dịch vụ | SCR-039 | Mapped | NV-05 |
-| UC55 | Tin tức / Chuyên trang đầu tư | Mobile | E. Tin tức / Hỗ trợ | SCR-064, 065, 066 | Partial | SCR-066 form đăng ký tư vấn — AI-UC55-01 chờ KH |
-| UC56-57_66_68 | Tin tức (UC56-57, UC66, UC68) | Mobile | E. Tin tức / Hỗ trợ | SCR-060, 061, 062 | Mapped | KT-09 WebView |
-| UC58 | Tin tức UC58 | Mobile | E. Tin tức / Hỗ trợ | SCR-060/061/062 (gom hub) | Need confirm | Q-013: gom row chưa khớp 1-1 |
-| UC59 | Tin tức UC59 | Mobile | E. Tin tức / Hỗ trợ | SCR-060/061/062 (gom hub) | Need confirm | Q-013 |
-| UC60-61 | Tin tức UC60-61 | Mobile | E. Tin tức / Hỗ trợ | SCR-060, 061, 062 | Mapped | |
-| UC62 | Tin tức UC62 | Mobile | E. Tin tức / Hỗ trợ | SCR-060/061/062 (gom hub) | Need confirm | Q-013 |
-| UC67 | Tin tức UC67 | Mobile | E. Tin tức / Hỗ trợ | SCR-060/061/062 (gom hub) | Need confirm | Q-013 |
-| UC69 | Văn bản pháp luật | Mobile | E. Tin tức / Hỗ trợ | SCR-067, 068 | Mapped | KT-09 |
-| UC71-82 | Hướng dẫn & FAQ | Mobile | E. Tin tức / Hỗ trợ | SCR-075 | Mapped | UX-11 multi-expand |
-| UC73 | Tra cứu TTHC | Mobile | E. Tin tức / Hỗ trợ | SCR-069, 070 | **Conflict** | UC73 vs UC70 Removed (Q-014) — cần BA + QC Lead xác nhận |
-| UC83-86 | Điều khoản / Chính sách / Liên hệ / Giới thiệu | Mobile | E. Tin tức / Hỗ trợ | SCR-076, 077, 078, 079 | Mapped | KT-12/13 Liên hệ external; NV-10 Giới thiệu chờ BA |
-| UC87 | Xúc tiến UC87 | Mobile | E. Tin tức / Hỗ trợ | SCR-071/072/073 (gom hub) | Need confirm | Q-013 |
-| UC88 | Xúc tiến UC88 | Mobile | E. Tin tức / Hỗ trợ | SCR-071/072/073 (gom hub) | Need confirm | Q-013 |
-| UC89 | Xúc tiến UC89 | Mobile | E. Tin tức / Hỗ trợ | SCR-071/072/073 (gom hub) | Need confirm | Q-013 |
-| UC90 | Xúc tiến UC90 | Mobile | E. Tin tức / Hỗ trợ | SCR-071, 072, 073 | Mapped | KT-15 lazy 20 |
-| UC91 | Xúc tiến UC91 | Mobile | E. Tin tức / Hỗ trợ | SCR-071/072/073 (gom hub) | Need confirm | Q-013 |
-| UC92 | Xúc tiến UC92 (login required) | Mobile | E. Tin tức / Hỗ trợ | SCR-074 | Mapped | PQ-07 exception — high regression |
-| UC93 | Xúc tiến UC93 | Mobile | E. Tin tức / Hỗ trợ | SCR-071/072/073 (gom hub) | Need confirm | Q-013 |
-| UC94 | Xúc tiến UC94 | Mobile | E. Tin tức / Hỗ trợ | SCR-071/072/073 (gom hub) | Need confirm | Q-013 |
-| UC95 | Xúc tiến UC95 | Mobile | E. Tin tức / Hỗ trợ | SCR-071/072/073 (gom hub) | Need confirm | Q-013 |
-| UC249 | Cấu hình & QL TK | Mobile | A. Xác thực & QL TK | SCR-010, 011, 013 | Mapped | BS-07 invalidation; UX-12 no Avatar |
-| UC250-254 | Đăng ký / Quên MK / Cập nhật DN | Mobile | A. Xác thực & QL TK | SCR-004..009, 012 | Mapped | BS-09/10/11; UX-13/14 |
-| UC256 | Đăng nhập Mobile | Mobile | A. Xác thực & QL TK | SCR-001, 002, 003 | Mapped | BS-01 VNeID dependency |
-| UC257 | Đăng xuất Mobile | Mobile | A. Xác thực & QL TK | SCR-014 | Mapped | BS-05 |
-| UC258_UC259 | Thông báo hệ thống | Mobile | F. Thông báo | SCR-080, 081, 082 | Mapped | NV-09 chờ BA; KT-16/17/18 |
+| Feature ID | Feature name | Site / Portal | Module | Mapped screen(s) | Folder alias(es) | In scope? | Site map status | Notes |
+|---|---|---|---|---|---|---|---|---|
+| UC1 | Trang chủ Dashboard | Mobile | B. Trang chủ & Điều hướng | SCR-020, 021, 022, 023 | — | Yes | Mapped | Sidebar (SCR-022) = Confirmed; còn lại Derived |
+| UC2 | Tra cứu KCN/KKT/TMTD/PTQ/Mô hình (UC2-UC31) | Mobile | D. Tra cứu KCN/KKT | SCR-040..047 | — | Yes | Partial | SCR-047 (tab Hạ tầng/Nhà đầu tư) chờ BA — AI-UC-02 |
+| UC40 | Tra cứu quỹ đất KCN | Mobile | D. Tra cứu KCN/KKT | SCR-048, 049 | — | Yes | Mapped | NV-06 trạng thái; KT-04 không export |
+| UC42-44 | Quản lý đặt lịch | Mobile | C. Hồ sơ & Dịch vụ | SCR-030, 031 | — | Yes | Mapped | NV-01/02 no tạo/huỷ; SCR-031 detail Need confirm |
+| UC45-51 | Quản lý hồ sơ | Mobile | C. Hồ sơ & Dịch vụ | SCR-032, 033 | — | Yes | Mapped | UX-05 search + tab; KT-06 PDF in-app |
+| UC52 | Kho tài liệu cá nhân | Mobile | C. Hồ sơ & Dịch vụ | SCR-034, 035 | — | Yes | Mapped | NV-04 read-only; KT-07 |
+| UC53_63-65 | Phản ánh kiến nghị | Mobile | C. Hồ sơ & Dịch vụ | SCR-036, 037, 038 | — | Yes | Mapped | UX-06 state; UX-07 auto-fill |
+| UC54 | Báo cáo đã nộp | Mobile | C. Hồ sơ & Dịch vụ | SCR-039 | — | Yes | Mapped | NV-05 |
+| UC55 | Tin tức / Chuyên trang đầu tư | Mobile | E. Tin tức / Hỗ trợ | SCR-064, 065, 066 | — | Yes | Partial | SCR-066 form đăng ký tư vấn — AI-UC55-01 chờ KH |
+| UC56-57_66_68 | Tin tức (UC56-57, UC66, UC68) | Mobile | E. Tin tức / Hỗ trợ | SCR-060, 061, 062 | — | Yes | Mapped | KT-09 WebView |
+| UC58 | Tin tức UC58 | Mobile | E. Tin tức / Hỗ trợ | SCR-060/061/062 (gom hub) | — | Need confirm | Need confirm | Q-013: gom row chưa khớp 1-1 |
+| UC59 | Tin tức UC59 | Mobile | E. Tin tức / Hỗ trợ | SCR-060/061/062 (gom hub) | — | Need confirm | Need confirm | Q-013 |
+| UC60-61 | Tin tức UC60-61 | Mobile | E. Tin tức / Hỗ trợ | SCR-060, 061, 062 | — | Yes | Mapped | |
+| UC62 | Tin tức UC62 | Mobile | E. Tin tức / Hỗ trợ | SCR-060/061/062 (gom hub) | — | Need confirm | Need confirm | Q-013 |
+| UC67 | Tin tức UC67 | Mobile | E. Tin tức / Hỗ trợ | SCR-060/061/062 (gom hub) | — | Need confirm | Need confirm | Q-013 |
+| UC69 | Văn bản pháp luật | Mobile | E. Tin tức / Hỗ trợ | SCR-067, 068 | — | Yes | Mapped | KT-09 |
+| UC71-82 | Hướng dẫn & FAQ | Mobile | E. Tin tức / Hỗ trợ | SCR-075 | — | Yes | Mapped | UX-11 multi-expand |
+| UC73 | Tra cứu TTHC | Mobile | E. Tin tức / Hỗ trợ | SCR-069, 070 | — | Need confirm | **Conflict** | UC73 vs UC70 Removed (Q-014) — cần BA + QC Lead xác nhận |
+| UC83-86 | Điều khoản / Chính sách / Liên hệ / Giới thiệu | Mobile | E. Tin tức / Hỗ trợ | SCR-076, 077, 078, 079 | — | Yes | Mapped | KT-12/13 Liên hệ external; NV-10 Giới thiệu chờ BA |
+| UC87 | Xúc tiến UC87 | Mobile | E. Tin tức / Hỗ trợ | SCR-071/072/073 (gom hub) | — | Need confirm | Need confirm | Q-013 |
+| UC88 | Xúc tiến UC88 | Mobile | E. Tin tức / Hỗ trợ | SCR-071/072/073 (gom hub) | — | Need confirm | Need confirm | Q-013 |
+| UC89 | Xúc tiến UC89 | Mobile | E. Tin tức / Hỗ trợ | SCR-071/072/073 (gom hub) | — | Need confirm | Need confirm | Q-013 |
+| UC90 | Xúc tiến UC90 | Mobile | E. Tin tức / Hỗ trợ | SCR-071, 072, 073 | — | Yes | Mapped | KT-15 lazy 20 |
+| UC91 | Xúc tiến UC91 | Mobile | E. Tin tức / Hỗ trợ | SCR-071/072/073 (gom hub) | — | Need confirm | Need confirm | Q-013 |
+| UC92 | Xúc tiến UC92 (login required) | Mobile | E. Tin tức / Hỗ trợ | SCR-074 | — | Yes | Mapped | PQ-07 exception — high regression |
+| UC93 | Xúc tiến UC93 | Mobile | E. Tin tức / Hỗ trợ | SCR-071/072/073 (gom hub) | — | Need confirm | Need confirm | Q-013 |
+| UC94 | Xúc tiến UC94 | Mobile | E. Tin tức / Hỗ trợ | SCR-071/072/073 (gom hub) | — | Need confirm | Need confirm | Q-013 |
+| UC95 | Xúc tiến UC95 | Mobile | E. Tin tức / Hỗ trợ | SCR-071/072/073 (gom hub) | — | Need confirm | Need confirm | Q-013 |
+| UC249 | Cấu hình & QL TK | Mobile | A. Xác thực & QL TK | SCR-010, 011, 013 | — | Yes | Mapped | BS-07 invalidation; UX-12 no Avatar |
+| UC250-254 | Đăng ký / Quên MK / Cập nhật DN | Mobile | A. Xác thực & QL TK | SCR-004..009, 012 | — | Yes | Mapped | BS-09/10/11; UX-13/14 |
+| UC256 | Đăng nhập Mobile | Mobile | A. Xác thực & QL TK | SCR-001, 002, 003 | — | Yes | Mapped | BS-01 VNeID dependency |
+| UC257 | Đăng xuất Mobile | Mobile | A. Xác thực & QL TK | SCR-014 | — | Yes | Mapped | BS-05 |
+| UC258_UC259 | Thông báo hệ thống | Mobile | F. Thông báo | SCR-080, 081, 082 | — | Yes | Mapped | NV-09 chờ BA; KT-16/17/18 |
 
 ## Feature-level gaps
 

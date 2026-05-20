@@ -21,7 +21,7 @@
 
 Per `SKILL.md` → "Checkpoint & Resume Protocol" §2 (write-before-work rule):
 
-1. **agent-work-log**: update current row Status → `Running (Phase 1)`. Append input file names (excluding `process-logging/`).
+1. **Worklog**: rewrite last entry → `status = "Running (Phase 1)"`. Append input file names to `input` (excluding `process-logging/`).
 2. **qc-dashboard.md**: update the UC's `TC design stt` cell → `Running — Phân tích & Lập đề cương thiết kế` (VI) / `Running — Analysis & Design Brief` (EN). Skip if column missing (graceful degradation). If the UC has no row yet in the dashboard → invoke `qc-dashboard-sync` BEFORE updating.
 
 ### Step 1: Input Analysis (MANDATORY)
@@ -128,7 +128,7 @@ Per `SKILL.md` → "Checkpoint & Resume Protocol" §5.2 (end-of-phase):
    - Previous TC version + path; current `uc-review-report` version used.
    - Detected output language (VI / EN).
    - Target platform variant(s) resolved from `project-context-master.md` §1 (for the variant being updated — see Step 3 multi-platform rule).
-2. **agent-work-log**: update row Status → `Phase 1 done`.
+2. **Worklog**: rewrite last entry → `status = "Phase 1 done"`.
 3. **qc-dashboard.md**: update the UC's `TC design stt` cell → `Phân tích & Lập đề cương thiết kế done` (VI) / `Analysis & Design Brief done` (EN). Skip if column missing.
 
 > **Note:** `last_phase_done: 1` is NOT written here — it gets written at the start of Phase 2 (see "Status update — Start of Phase 2" below). Per §5.1, advancing `last_phase_done` happens only at phase transition.
@@ -142,14 +142,14 @@ Per `SKILL.md` → "Checkpoint & Resume Protocol" §5.2 (end-of-phase):
 Per `SKILL.md` → "Checkpoint & Resume Protocol" §5.1 (start-of-phase / transition write). This is the moment we advance `last_phase_done` to confirm Phase 1 is done.
 
 1. **Update `progress.md`** → `last_phase_done: 1`, `next_phase: 2`, `workflow: update-test-cases`, `updated_at: <now>`. (Preserve any other existing fields / notes.)
-2. **agent-work-log**: update current row Status → `Running (Phase 2)`.
+2. **Worklog**: rewrite last entry → `status = "Running (Phase 2)"`.
 3. **qc-dashboard.md**: update the UC's `TC design stt` cell → `Running — Soạn TC & ghi MD` (VI) / `Running — TC Drafting & MD Write` (EN). Skip if column missing.
 
 > **Resume note:** Probe `process-logging/<UC-ID>/02_designed_tcs_<V>.md` where `<V>` is the variant being updated (recorded in `01_analysis.md`). If the scratch already exists (a prior run interrupted between Phase 2's scratch persist and md write), SKIP Step 3 below — the merged updated TC list is already done. Read the scratch and jump to Step 4 (Final MD Write). Per `SKILL.md` §4 Resume load table.
 
 ### Step 3: Redesign Affected Test Cases (MANDATORY)
 
-Using the same platform-aware 6-phase design logic as `generate-test-cases.md` Step 2 — load `references/design-technical/design-technical-<variant>.md` for each platform variant declared in `project-context-master.md` §1 → "Product Platform Type" — apply it **only to the impacted scope** identified in Phase 1:
+Using the same platform-aware 6-phase design logic as `generate-test-cases.md` Step 2 — load `references/design-technical/design-technical-<variant>.md` for each platform variant declared in `project-context-master.md` §1 → "Product Platform Type" — apply it **only to the impacted scope** identified in Phase 1. **If `qc-site-map.md` exists**, also cross-check the impacted screens against §8 Screen ↔ Feature mapping (catch screens silently affected), §9 Data/API touchpoints (catch upstream/downstream integration impact), §10 Regression anchors (raise priority of TCs on anchored flows). If missing → skip and warn once.
 
 - **New TCs**: Design from scratch using the 6-phase logic of the matching variant rubric for the new or changed ACs.
 - **Updated TCs**: Rewrite only the affected fields (Steps, Expected Result, Pre-conditions) — keep the TC ID unchanged. Add a note: `[Updated vN — Reason: AC-XX modified]`.
@@ -256,7 +256,7 @@ Per `SKILL.md` → "Checkpoint & Resume Protocol" §5.2 (end-of-phase). At this 
    - A top-level `**Variants in scope:** <V>` line (always exactly ONE variant for the update workflow).
    - Exactly ONE `### Variant: <V>` sub-block, populated from the fields computed above (totals, language, scratch path, final md paths, screen breakdown table, plus the `**Delta vs v[N]:**` line below the table).
    - Atomic single Write that overwrites `progress.md` while preserving all existing fields (run_id, uc_id, workflow, started_at, last_phase_done, next_phase, updated_at, ## Notes). Do NOT touch `last_phase_done` here — it stays at its current value (set when Phase 2 started). Update `updated_at: <now>`.
-3. **agent-work-log**: update row Status → `Phase 2 done`. Append the final v[N+1] `.md` path(s) to the Output column (excluding `process-logging/`).
+3. **Worklog**: rewrite last entry → `status = "Phase 2 done"`. Append the final v[N+1] `.md` path(s) to `output` (excluding `process-logging/`).
 4. **qc-dashboard.md**: update the UC's `TC design stt` cell → `Soạn TC & ghi MD done` (VI) / `TC Drafting & MD Write done` (EN). Skip if column missing.
 
 > **Note:** `last_phase_done: 2` is NOT written here — it gets written at the START of Phase 3, only AFTER Phase 3's Step 0 verification gate passes. This is what guarantees a partial / mismatched updated md cannot be silently accepted as "Phase 2 done" on resume. See `convert-md-to-xlsx.md` → Step 0.

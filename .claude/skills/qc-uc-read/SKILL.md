@@ -10,6 +10,7 @@ Read the `path-registry.md` file to find the below file's location:
 
 - `.claude/skills/qc-uc-read/references/input-files-format.md` — for file format description of the input files
 - `project-context-master`
+- `qc-site-map` (optional) — if present, read §5/§6/§7/§8 for screen-coverage cross-check and reverse traceability (see Phase 1 Step 1 + scoring-rubric Cross-Artefact Conflict Check). If missing, skip cross-check and warn once.
 - `requirement-common-files` — read first; resolve any code/ID reference (error codes, business rule IDs, common function names) appearing in the UC to its exact text from these files and inline that text into the audit output (see Common Reference Resolution rule in the phase files).
 - `requirement-files`
 - `question-backlog`
@@ -28,7 +29,7 @@ Read the `path-registry.md` file to find the below file's location:
 This skill writes **per-phase checkpoint files** to `.claude/skills/qc-uc-read/process-logging/<UC-ID>/` so that a context-limit / interruption mid-run does NOT force the user to redo finished work. Read `workflows/checkpoint-protocol.md` ONCE at skill start; it defines:
 
 - `process-logging/<UC-ID>/` directory layout and `progress.md` format
-- `agent-work-log` update protocol (write-before-work rule)
+- Worklog update protocol — defers to `docs/qc-lead/agent-work-log.local/README.md` (write-before-work rule)
 - `qc-dashboard.md` `UC review stt` column update protocol (with graceful degradation if column missing)
 - Resume detection at Phase 0
 - Cleanup at the end of Phase 3
@@ -43,11 +44,11 @@ The protocol is referenced by every phase file — do NOT duplicate its rules he
 
 ## Workflow
 
-### Phase 0 — Routing + Resume Detection
+### Phase 0 — Routing + Resume Detection + Dashboard Precheck
 
-> No user-facing output during the silent-audit substep.
+> No user-facing output during the silent-audit substep, EXCEPT the dashboard precheck warning if Case A or B applies.
 
-1. **Identify the UC-ID** from the user's prompt or from the requirement file name.
+1. **Identify the UC-ID** from the user's prompt or from the requirement file name. This is treated as the on-disk Folder ID; the dashboard precheck below may resolve it to a different canonical ID if a Mode 3 alias mapping exists.
 
 2. **Determine `mode`:** check the UC-ID folder for the existence of `uc-review-report` file.
    - **If the file exists** → check the `question-backlog` file.
@@ -60,9 +61,41 @@ The protocol is referenced by every phase file — do NOT duplicate its rules he
    - **Found** → ask the user `Continue from Phase <next>?` or `Restart fresh?`. Branch accordingly. If user picks Continue and the stored `mode` differs from the freshly-determined `mode`, warn the user and prefer the stored mode unless they explicitly Restart.
    - **Not found** → fresh run.
 
-4. Generate a new `run_id` (read `agent-work-log` for max ID, increment).
+4. **Dashboard precheck (Case A / B / C per `qc-dashboard-sync` SKILL.md "Per-UC skill precheck contract"):** runs BEFORE generating `run_id` so a user `site-map first` answer does not pollute the worklog.
+   - Resolve `qc-dashboard.md`. Parse `featureIndex` (by column 2 `<ID label>`) + `folderIDIndex` (by column 3 `Folder ID`).
+   - **Case A — UC NOT in dashboard:**
 
-5. **Append a new row** to `agent-work-log` with `Status = Running (Phase 1)`, Input/Output empty, started_at recorded. (For resume, follow the resume protocol in §4.)
+     ```text
+     ⚠️ UC `<UC-ID>` chua co trong qc-dashboard.md va se duoc them moi (Folder ID = <UC-ID>, In scope? = Need confirm).
+     Day la dau hieu UC nay chua duoc reconcile voi site-map.
+
+     Ban muon:
+     1. `site-map first` — Dung lai. Chay /qc-site-map (chon Mode 3) truoc de reconcile orphans, roi quay lai chay review.
+     2. `continue` — Tiep tuc. Bottom-up se add row + ghi vao dashboard-orphans.md; ban co the chay /qc-site-map Mode 3 sau de reconcile.
+     ```
+
+     - `site-map first` → STOP. Print `Da dung. Vui long chay /qc-site-map (chon Mode 3) roi chay lai /qc-uc-read.`
+     - `continue` → invoke `qc-dashboard-sync` bottom-up with `uc_id=<UC-ID>` via the Skill tool. Wait for it to return.
+
+   - **Case B — UC in dashboard BUT still listed in `dashboard-orphans.md`:**
+
+     ```text
+     ⚠️ UC `<UC-ID>` da co trong qc-dashboard.md nhung VAN dang nam trong dashboard-orphans.md (qc-site-map Mode 3 chua reconcile).
+     Ket qua review co the bi rename/realign khi Mode 3 chay sau.
+
+     Ban muon:
+     1. `site-map first` — Dung lai. Chay /qc-site-map (chon Mode 3) truoc de reconcile, roi quay lai chay review.
+     2. `continue` — Tiep tuc. Output se duoc tracking duoi Folder ID hien tai; co the can rename sau khi Mode 3 chay.
+     ```
+
+     - `site-map first` → STOP.
+     - `continue` → proceed (no bottom-up trigger).
+
+   - **Case C** — proceed silently.
+
+5. Generate a new `run_id` per the worklog protocol.
+
+6. **Append a new entry** to the device's worklog JSONL with `status = "Running (Phase 1)"`, `input`/`output` empty, `start = now`. (For resume, follow the resume protocol in §4.)
 
 ### Phase 1 — 3 (per workflow)
 

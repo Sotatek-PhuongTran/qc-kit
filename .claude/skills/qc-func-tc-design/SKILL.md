@@ -40,14 +40,46 @@ After Phase 3 finishes successfully → run **chat-side reporting** (no file). T
 
 Once the design workflow is determined, execute the skill in the following ordered steps.
 
-### Step A — Phase 0: Routing + Resume Detection
+### Step A — Phase 0: Routing + Resume Detection + Dashboard Precheck
 
-1. **Identify the UC-ID** from the user invocation or filename.
+1. **Identify the UC-ID** from the user invocation or filename. This is the on-disk Folder ID. If `qc-site-map` Mode 3 later reconciles it to a different canonical Feature ID, the dashboard row will be renamed; this skill always works against the original folder.
 2. **Identify the workflow** (`generate` or `update`) — ask if not stated. For `update`, verify that `func-test-cases` for the `<UC-ID>` exists (or is provided by the user). If it does NOT exist, ask the user to provide the test cases directory before proceeding.
 3. **Resume detection** (per Checkpoint & Resume Protocol §4): check `.claude/skills/qc-func-tc-design/process-logging/<UC-ID>/progress.md`. If found, prompt **Continue from Phase N** vs **Restart** and branch accordingly.
-4. **Generate `run_id`** (read `agent-work-log` for max ID, increment).
-5. **Append** a new row to `agent-work-log` with `Status = Running (Phase 1)`, Input/Output empty, started_at recorded.
-6. **Initialize `progress.md`** (fresh run only — skip if resuming): create `.claude/skills/qc-func-tc-design/process-logging/<UC-ID>/progress.md` with `last_phase_done: ` (empty), `next_phase: 1`, plus run_id / uc_id / workflow / started_at / updated_at. This is the FIRST file written for the run; the folder is created lazily here.
+4. **Dashboard precheck (Case A / B / C per `qc-dashboard-sync` SKILL.md "Per-UC skill precheck contract"):** run this BEFORE generating `run_id` or appending the worklog row so a user `site-map first` answer does not pollute the log.
+   - Resolve `qc-dashboard.md`. Parse `featureIndex` (by column 2 `<ID label>`) + `folderIDIndex` (by column 3 `Folder ID`).
+   - **Case A — UC NOT in dashboard:** emit the two-choice Vietnamese warning:
+
+     ```text
+     ⚠️ UC `<UC-ID>` chua co trong qc-dashboard.md va se duoc them moi (Folder ID = <UC-ID>, In scope? = Need confirm).
+     Day la dau hieu UC nay chua duoc reconcile voi site-map.
+
+     Ban muon:
+     1. `site-map first` — Dung lai. Chay /qc-site-map (chon Mode 3) truoc de reconcile orphans, roi quay lai chay /qc-func-tc-design.
+     2. `continue` — Tiep tuc. Bottom-up se add row + ghi vao dashboard-orphans.md; ban co the chay /qc-site-map Mode 3 sau de reconcile.
+     ```
+
+     - User `site-map first` → STOP. Print: `Da dung. Vui long chay /qc-site-map (chon Mode 3) roi chay lai /qc-func-tc-design.`
+     - User `continue` → invoke `qc-dashboard-sync` bottom-up via the Skill tool with `uc_id=<UC-ID>`. Wait for it to return.
+
+   - **Case B — UC IS in dashboard BUT its Folder ID is still in `.claude/skills/qc-site-map/inbox/dashboard-orphans.md`:** emit the adapted warning:
+
+     ```text
+     ⚠️ UC `<UC-ID>` da co trong qc-dashboard.md nhung VAN dang nam trong dashboard-orphans.md (qc-site-map Mode 3 chua reconcile).
+     Ket qua test cases co the bi rename/realign khi Mode 3 chay sau.
+
+     Ban muon:
+     1. `site-map first` — Dung lai. Chay /qc-site-map (chon Mode 3) truoc de reconcile, roi quay lai chay /qc-func-tc-design.
+     2. `continue` — Tiep tuc. Output se duoc tracking duoi Folder ID hien tai; co the can rename sau khi Mode 3 chay.
+     ```
+
+     - User `site-map first` → STOP.
+     - User `continue` → proceed normally (no bottom-up trigger needed).
+
+   - **Case C — UC IS in dashboard AND not in orphan inbox:** no warning, no prompt. Proceed.
+
+5. **Generate `run_id`** per the worklog protocol.
+6. **Append** a new entry to the device's worklog JSONL with `status = "Running (Phase 1)"`, `input`/`output` empty, `start = now`.
+7. **Initialize `progress.md`** (fresh run only — skip if resuming): create `.claude/skills/qc-func-tc-design/process-logging/<UC-ID>/progress.md` with `last_phase_done: ` (empty), `next_phase: 1`, plus run_id / uc_id / workflow / started_at / updated_at. This is the FIRST file written for the run; the folder is created lazily here.
 
 ### Step B — Run Phases 1 → 2 → 3
 
@@ -73,7 +105,7 @@ Do NOT write a summary file under any circumstances.
 
 ### Step D — Cleanup (only after Phase 3 success AND chat report sent)
 
-1. Set `agent-work-log` Status → `Done`. Compute and fill Duration.
+1. Worklog: rewrite last entry → `status = "Done"`, `end = now`, `duration_min = computed`.
 2. Set `qc-dashboard.md` `TC design stt` cell → `v<N> generated` (generate workflow) or `v<N> updated` (update workflow).
 3. **Delete the entire `.claude/skills/qc-func-tc-design/process-logging/<UC-ID>/` folder.** It is scratch — not part of project deliverables.
 
@@ -83,7 +115,7 @@ Cleanup must NOT happen mid-run, even on error. Only after the full flow (Phase 
 
 > **Scope:** Inline shared rules referenced by every Phase boundary in this skill. Read this once at skill start.
 >
-> **Purpose:** Make the skill resilient to context-limit / interruption mid-run by (1) persisting per-phase intermediate output to disk, (2) updating the `agent-work-log` row in-place at every phase boundary, (3) updating the UC's row in `qc-dashboard.md` (`TC design stt` column) at every phase boundary, and (4) detecting prior checkpoints on the next run so the user does not redo finished work.
+> **Purpose:** Make the skill resilient to context-limit / interruption mid-run by (1) persisting per-phase intermediate output to disk, (2) updating the device's worklog JSONL entry at every phase boundary, (3) updating the UC's row in `qc-dashboard.md` (`TC design stt` column) at every phase boundary, and (4) detecting prior checkpoints on the next run so the user does not redo finished work.
 
 ### 1. `process-logging/` directory
 
@@ -156,49 +188,35 @@ Single source of truth for resume. Overwrite on every checkpoint write.
 - The `Delta vs v[N]` line uses ASCII "Delta", NOT the Greek glyph `Δ`. The version reference is `v[N]` (the previous version), because the new file is `v[N+1]`. The same convention is used in the md prelude of `update-test-cases.md`.
 - For `update-test-cases` runs, `Variants in scope` always contains exactly ONE variant — the variant being updated — and there is exactly one `### Variant:` sub-block.
 
-### 2. agent-work-log update protocol
+### 2. Worklog updates
 
-The `agent-work-log` row is the **user-visible** status. The skill is allowed to update its **own** row in-place (columns `Status`, `Input`, `Output`, `Duration`). See `docs/qc-lead/agent-work-log.md` for column schema.
+All worklog updates target the device's JSONL file under `worklog-per-device`. Schema, lifecycle (append-on-start, rewrite-on-phase-boundary, terminal states), `run_id` generation, and write-before-work rule are defined once in `docs/qc-lead/agent-work-log.local/README.md`. Do not duplicate them here.
 
-#### Lifecycle
-
-| When                                | Action                                                                                                                                                       |
-| ----------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| Skill start (after Phase 0 routing) | **Append** a new row: `Status = Running (Phase 1)`, Input/Output empty, Duration empty.                                                                      |
-| Before entering Phase N             | **Update Status** → `Running (Phase <N>)`. Update `Input` with any new files read in this phase.                                                            |
-| After Phase N done                  | **Update Status** → `Phase <N> done`. Update `Output` with any user-visible files written.                                                                  |
-| After Phase 3 done + chat report    | **Update Status** → `Done`. Update `Duration` = now − started_at, rounded to 1 decimal.                                                                      |
-| Resume detection (next run)         | **Append a new row** for the new run; if prior row's Status was `Running (...)`, update prior row's Status → `Interrupted (last: Phase <N>)`.              |
-
-#### Files excluded from Input/Output columns
+#### Files excluded from `input` / `output` arrays
 
 - Anything under `process-logging/` — internal scratchpad, not a deliverable.
 - `progress.md` — internal.
 - Templates, references, rules, scripts under `.claude/skills/.../`.
 
-User-visible deliverables that DO go into Output: `func-test-cases-draft` `.md` (Phase 2), `func-test-cases` `.xlsx` (Phase 3).
-
-#### Write-before-work rule
-
-Update `agent-work-log` Status **before** starting a phase, not after. If interruption happens mid-phase, the worklog already reflects the last "in progress" state, and the resume logic can recognize it.
+User-visible deliverables that DO go into `output`: `func-test-cases-draft` `.md` (Phase 2), `func-test-cases` `.xlsx` (Phase 3).
 
 #### Ordering at a phase transition
 
 When Phase N+1 starts (a transition write — see §5.1), execute the writes in this exact order so that the durable resume state advances atomically before any user-visible status changes:
 
 1. **`progress.md`** — `last_phase_done: N`, `next_phase: N+1`, `updated_at: <now>`. (For Phase 3 entry, this happens INSIDE `convert-md-to-xlsx.md` Step 0 AFTER the verification gate passes.)
-2. **`agent-work-log`** — Status → `Running (Phase N+1)`, append any new Input files.
+2. **Worklog JSONL** — rewrite last entry → `status = "Running (Phase N+1)"`, append any new `input` files.
 3. **`qc-dashboard.md`** — `TC design stt` cell → `Running — <Phase N+1 friendly name>`.
 
 The same ordering applies at end-of-phase (§5.2), but `progress.md` only receives the artifact-related writes (e.g., `## Phase 2 Summary`); `last_phase_done` is NOT touched there.
 
 ### 3. qc-dashboard update protocol
 
-`qc-func-tc-design` owns ONE column in `qc-dashboard.md`: **`TC design stt`** (TC design status, column 9). The UC's row is identified by matching the `<ID label>` column (column 2) against the UC-ID being designed.
+`qc-func-tc-design` owns ONE column in `qc-dashboard.md`: **`TC design stt`** (TC design status, column 10). The UC's row is identified by matching column 3 `Folder ID` against the on-disk folder being processed; column 2 `<ID label>` carries the canonical Feature ID (which may differ from the Folder ID when `qc-site-map` Mode 3 has reconciled an alias).
 
 > **Graceful degradation:** If the `TC design stt` column does NOT exist in the current `qc-dashboard.md`, skip dashboard update (worklog update still happens). Log a one-line warning in the agent's user-facing output: *"Cột `TC design stt` chưa tồn tại trong qc-dashboard.md — bỏ qua update dashboard. Thêm cột này để bật tracking."*
 >
-> **Auto-add row:** If the UC-ID is NOT yet a row in the dashboard, invoke `qc-dashboard-sync` BEFORE updating (per the cross-skill contract documented in `qc-dashboard-sync` SKILL.md).
+> **Auto-add row (Case A) + orphan-pending warning (Case B):** Before updating the dashboard, run the precheck per the cross-skill contract documented in `qc-dashboard-sync` SKILL.md "Per-UC skill precheck contract". The precheck emits a two-choice Vietnamese warning (`site-map first` / `continue`) in both Case A (UC not in dashboard) and Case B (UC in dashboard but still in `dashboard-orphans.md`). Honor user's `site-map first` answer by STOPPING the skill before Phase 1.
 
 #### Status values
 
@@ -211,7 +229,7 @@ The same ordering applies at end-of-phase (§5.2), but `progress.md` only receiv
 
 #### Phase friendly names
 
-Use these names verbatim in both `agent-work-log` (`Status` column) and `qc-dashboard` (`TC design stt` column). They are output in the **input UC document's language** (if Vietnamese UC → Vietnamese names; otherwise English).
+Use these names verbatim in both the worklog entry's `status` field and `qc-dashboard` (`TC design stt` column). They are output in the **input UC document's language** (if Vietnamese UC → Vietnamese names; otherwise English).
 
 | Phase | English name                | Vietnamese name                          |
 | ----- | --------------------------- | ---------------------------------------- |
@@ -224,7 +242,7 @@ Use these names verbatim in both `agent-work-log` (`Status` column) and `qc-dash
 At skill start, after the workflow decision is made (generate vs update) and `<UC-ID>` is determined:
 
 1. Check `.claude/skills/qc-func-tc-design/process-logging/<UC-ID>/progress.md`.
-   - **Not found** → fresh run. Generate new `run_id` (read `agent-work-log` for max ID, increment). Skip to Phase 1.
+   - **Not found** → fresh run. Generate new `run_id` per the worklog protocol. Skip to Phase 1.
    - **Found** → there is a prior incomplete run. Continue to step 2.
 2. Read `last_phase_done`, `next_phase`, and `workflow`.
 3. Ask the user (ONE message, blocking):
@@ -240,15 +258,15 @@ At skill start, after the workflow decision is made (generate vs update) and `<U
    2. **Restart** — chạy lại từ đầu (xoá toàn bộ checkpoint cũ)
    ```
 4. If user picks **Continue**:
-   - Set the prior `agent-work-log` row Status → `Resumed by run-<new>` (one-time edit).
-   - Append a new `agent-work-log` row for the new run with `Status = Running (Phase <next_phase>)`.
+   - Worklog: rewrite the prior entry's `status` → `Resumed by run-<new>` (one-time edit).
+   - Worklog: append a new entry for the new run with `status = "Running (Phase <next_phase>)"`.
    - Load required checkpoint files (see "Resume load table" below).
    - If the stored `workflow` differs from the freshly-determined workflow, warn the user and prefer the stored workflow unless they explicitly Restart.
    - Jump to `next_phase` work.
 5. If user picks **Restart**:
    - Delete `.claude/skills/qc-func-tc-design/process-logging/<UC-ID>/` folder entirely.
-   - Set the prior `agent-work-log` row Status → `Interrupted (last: Phase <last_phase_done>)`.
-   - Append new `agent-work-log` row, start fresh from Phase 1.
+   - Worklog: rewrite the prior entry's `status` → `Interrupted (last: Phase <last_phase_done>)`.
+   - Worklog: append a new entry, start fresh from Phase 1.
 
 #### Resume load table
 
@@ -272,10 +290,10 @@ Run these steps BEFORE doing any work for Phase N. They mark "Phase N-1 is confi
 
 1. **(Phase 3 only) Run the Phase 2 verification gate** — see `convert-md-to-xlsx.md` → Step 0. For EACH platform variant listed in the `## Phase 2 Summary` block, compare that variant's final md (deliverable) against its summary sub-block (counts + per-screen breakdown). If a variant mismatches → auto-recover from `02_designed_tcs_<variant>.md` scratch (overwrite that variant's final md same-version), re-run verification for that variant. If recovery also fails (scratch missing or scratch-derived md still mismatches) → STOP and report. **Do NOT advance `last_phase_done` until ALL variants pass verification.**
 2. **Update `process-logging/<UC-ID>/progress.md`** — set `last_phase_done: <N-1>`, `next_phase: <N>`, `updated_at: <now>`. Preserve the existing `## Phase 2 Summary` block (if any). For start of Phase 1, this is part of Phase 0 init (last_phase_done stays empty, next_phase: 1).
-3. **Update the `agent-work-log` row** — set Status to `Running (Phase <N>)`, append any new Input files (excluding `process-logging/`). For Phase 3, no new Input files are appended (the Phase 2 final md was already recorded in Output at end of Phase 2).
+3. **Update the worklog JSONL entry** — rewrite last entry's `status` to `Running (Phase <N>)`, append any new `input` files (excluding `process-logging/`). For Phase 3, no new `input` files are appended (the Phase 2 final md was already recorded in `output` at end of Phase 2).
 4. **Update the `qc-dashboard.md` `TC design stt` cell** — set to `Running — <phase N friendly name>`.
 
-Order within the transition: `progress.md` → `agent-work-log` → `qc-dashboard.md` (see §2 "Ordering at a phase transition").
+Order within the transition: `progress.md` → worklog JSONL → `qc-dashboard.md` (see §2 "Ordering at a phase transition").
 
 #### 5.2 — End of Phase N (deliverable write)
 
@@ -290,7 +308,7 @@ Run these steps AFTER finishing the actual work of Phase N. They write the artif
    - **Phase 2 (once, AFTER all variants' files in 1a + 1b are on disk)**:
      - 1c. Append the `## Phase 2 Summary` block to `progress.md` — one `### Variant: <name>` sub-block per variant, plus the top-level `**Variants in scope:**` line. Schema per §1 above. Atomic single Write that preserves all other progress.md fields. (This is NOT a `last_phase_done` advance; that happens later in §5.1 of Phase 3.)
    - **Phase 3 (per platform variant in scope)**: that variant's deliverable `.xlsx` at the output path (produced by the converter script).
-2. **Update the `agent-work-log` row** — set Status to `Phase <N> done`, append any new Output files (excluding `process-logging/`). For Phase 2 multi-variant, append ALL variants' final md paths. For Phase 3 multi-variant, append ALL variants' xlsx paths.
+2. **Update the worklog JSONL entry** — rewrite last entry's `status` to `Phase <N> done`, append any new `output` files (excluding `process-logging/`). For Phase 2 multi-variant, append ALL variants' final md paths. For Phase 3 multi-variant, append ALL variants' xlsx paths.
 3. **Update the `qc-dashboard.md` `TC design stt` cell** — set to `<phase N friendly name> done`.
 
 **Do NOT update `last_phase_done` in §5.2.** It stays at `<N-1>` until the next phase's §5.1 transition advances it to `<N>` — only AFTER any gating check has confirmed Phase N's artifact is valid. For Phase 3 (the last phase), there is no Phase 4 to transition into, so its `last_phase_done: 3` write happens at the end of Phase 3 directly (right after the last variant's `.xlsx` is verified by Step 4 of `convert-md-to-xlsx.md`).
@@ -305,7 +323,7 @@ Cleanup happens in **Step D** of the orchestration (after Phase 3 SUCCESS AND ch
 | -------------------------------------------------------- | -------------------------------------------------------------------------------- |
 | `progress.md` exists but no `01_analysis.md`             | Treat as fresh run; warn user and delete `progress.md`.                          |
 | `01_analysis.md` referenced by `progress.md` is missing  | STOP and ask user; do not silently re-derive.                                    |
-| `agent-work-log` row missing for current `run_id`        | Append a new row; do not fail the skill.                                         |
+| Per-device JSONL missing entry for current `run_id`      | Append a new entry; do not fail the skill.                                       |
 | Path-registry logical name changed between runs          | Re-resolve from current registry; if path differs, ask user before continuing.   |
 | `TC design stt` column missing in qc-dashboard.md        | Skip dashboard update; warn user once (see §3 Graceful degradation).             |
 | Phase 3 Step 3 (converter script) or Step 4 (xlsx self-verification) fails (mojibake, script error, missing prerequisites) for some variant | STOP. Do NOT run cleanup. The Phase 2 scratch + final md for that variant are preserved (and so are any already-produced xlsx for earlier variants). The user can re-trigger conversion after fixing the root cause; resume will re-run Phase 3 Step 0 + Steps 1–4 for all variants (idempotent on the variants that already converted, because Step 0 will simply pass). |
@@ -319,6 +337,7 @@ Read the `path-registry.md` file to find the below file locations:
 
 **Required by BOTH workflows (read first, before any drafting):**
 - `project-context-master` — read §1 "Product Platform Type" to determine which `references/design-technical/design-technical-<variant>.md` rubric(s) to load. If the field is missing or blank, STOP and ask the user to populate it (the field is mandatory because the rubric drives test design coverage).
+- `qc-site-map` (optional) — if present, read §6 Navigation (TC Pre-/Post-condition), §7 Role/access (permission TCs), §8 Screen ↔ Feature mapping (TC scope per screen touched by the feature), §9 Data/API/Integration/State touchpoints (integration + state transition TCs), §10 Regression anchors (risk-based TC prioritization). If missing, skip site-map-derived TCs and warn once.
 
 For **generate-test-cases** workflow:
 - `uc-review-report` - read the latest version

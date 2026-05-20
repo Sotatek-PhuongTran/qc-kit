@@ -27,21 +27,21 @@ Resolve via `path-registry.md`:
 ## Output Contract
 
 - **`question-backlog`** — created from template if missing (written into the same folder as the audited file); updated in-place if exists. Versioning follows `naming-convention.md`.
-- **`agent-work-log`** — append a run row at skill start, update `Status` / `Output` / `Duration` in-place at phase boundaries (per `global-rules.md` Agent Work Log requirement).
+- **`worklog-per-device`** — log every phase boundary per the protocol at `docs/qc-lead/agent-work-log.local/README.md`. Do NOT touch the master `agent-work-log`.
 
 ## Workflow
 
 ### Phase 0 — Setup
 
 1. Extract `<UC-ID>` from caller args / user prompt / audited filename. If multiple UCs share the audited file (group review), resolve `<UC-ID>` to the canonical group ID used in the dashboard.
-2. Append `agent-work-log` row: `Status = Running (Phase 1)`, `Input = <audited file path>`, `started_at = now`.
+2. Worklog: append new entry to the device's JSONL with `status = "Running (Phase 1)"`, `input = [<audited file path>]`, `start = now` (per the protocol).
 3. Resolve the audited file:
    - If the caller passed an explicit path → use it.
    - Otherwise → locate the highest-version `uc-review-report` for `<UC-ID>` in the resolved folder.
 
 ### Phase 1 — Read Audited File
 
-1. Open the audited file. Locate the section heading `### 📋 Unified Gap & Question Report`.
+1. Open the audited file. Locate the section heading `Unified Gap & Question Report`.
 2. Parse the table beneath it. Extract every row where `Status = Open` into an in-memory list of question objects:
    ```
    { ID, Priority, Ref, Question, "Why It Matters" }
@@ -51,20 +51,20 @@ Resolve via `path-registry.md`:
 ### Phase 2 — Reconcile with Existing Backlog
 
 1. Check for an existing `question-backlog` file (highest version) for `<UC-ID>`.
-
 2. **If the backlog does NOT exist:**
+
    - Read the master template `.claude/skills/qc-qna/templates/question-backlog_template.md`.
    - Create a new file in the same folder as the audited file. Name per `naming-convention.md`:
      ```
      [UC-ID]_[feature-name]_questions_[YYYYMMDD]_v1.md
      ```
    - Populate the header (UC-ID, created date from current date, author from `userEmail` context if available, version `v1`).
-
 3. **If the backlog EXISTS:**
+
    - Read its three sections: `## Open Questions`, `## Answered Questions`, `## Deferred Questions`.
    - For each ID in the audited Open list:
      - ID already in `Answered Questions` or has `Status = Resolved` in `Open Questions` → **SKIP and WARN** the user:
-       *"⚠️ Q<ID> đã được BA trả lời nhưng audited report mới vẫn để Open. UC này cần re-audit qua `/qc-uc-read` để đồng bộ trạng thái."*
+       *"⚠️ Q`<ID>` đã được BA trả lời nhưng audited report mới vẫn để Open. UC này cần re-audit qua `/qc-uc-read` để đồng bộ trạng thái."*
      - ID already in `Open Questions` with `Status = Open` → SKIP (already pending — no-op).
      - ID is NEW (not in any section of the backlog) → APPEND to `## Open Questions` table.
    - For each ID currently in backlog `Open Questions` whose ID is NOT in the audited Open list → **leave alone**. The BA may still answer them; `qc-uc-read` re-audit Phase 2 will reconcile resolved questions.
@@ -78,6 +78,7 @@ Resolve via `path-registry.md`:
    ```
    | ID | Priority | Ref | Question | Why It Matters | Status |
    ```
+
    New rows have `Status = Open` by default.
 3. Write the backlog file.
    - **First-time create:** new file with version `v1`.
@@ -85,7 +86,7 @@ Resolve via `path-registry.md`:
 
 ### Phase 4 — Return
 
-1. **agent-work-log:** Status → `Done`. Output = `<backlog file path>`. Duration = now − started_at, rounded to 1 decimal.
+1. Worklog: rewrite last entry → `status = "Done"`, `output = [<backlog file path>]`, `end = now`, `duration_min = computed` (per the protocol).
 2. Return a short summary to the caller (caller may be `qc-uc-read` or the user):
    ```
    ✅ Question transfer complete.
@@ -94,6 +95,7 @@ Resolve via `path-registry.md`:
    - Already-pending (skipped): M
    - Conflicts (audited Open vs backlog Answered): K  →  ⚠️ recommend re-audit
    ```
+
    If `N = 0`, output a one-line note instead: *"No new questions to transfer — backlog already reflects audited report."*
 
 ## Boundaries

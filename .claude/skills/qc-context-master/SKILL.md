@@ -1,159 +1,159 @@
 ---
 name: qc-context-master
-description: Generates and maintains the project's knowledge core — project-context-master.md (10-section project context distilled from common files) and qc-dashboard.md (Feature/UC list with append-only/soft-delete; owns columns Site, ID, Module, name, In scope?). Auto-triggered by qc-project-onboarding after meta-config is set up. Also invoke directly when the user wants to regenerate or update project context, sync the feature list with the WBS, or resolve open questions. Trigger on /qc-context-master, "tổng hợp project context", "update project context", "update feature list", "đồng bộ feature list".
+description: generates and updates compact project-level qc context for agentic qc workflows. Step 1 of the top-down chain qc-context-master -> qc-site-map -> qc-dashboard-sync. Use when the user asks to initialize or update project context, summarize high-level ba documents, or prepare shared project understanding for qc agents. Supports initialization when project-context-master.md does not exist and update when it exists. Produces project-context-master.md only. In Initialization mode auto-invokes qc-site-map after writing. In Update mode suggests the user to run qc-site-map only if changes are detected.
 ---
+# QC Context Master
 
-# QC Context Master Skill
+## Purpose
 
-## Trigger Conditions
+Generate and maintain `project-context-master.md` as the compact project-level context layer for the QC Agentic workflow.
 
-- **Auto-triggered** by `qc-project-onboarding` immediately after Steps 1 & 2 complete and pre-flight passes.
-- **Manually invoked** when the user:
-  - Types `/qc-context-master`.
-  - Says "tổng hợp project context", "update project context", "update feature scope", "đồng bộ feature list", "sync feature scope".
+This context helps downstream QC Agents understand the whole project before they read detailed function-level documents. It supports high-level BA document review, site map / feature list / dashboard alignment, function-level spec review, scenario design at function / integration / regression levels, test case design, test execution support, and bug verification.
+
+`project-context-master.md` must not replace detailed source documents such as specs, wireframes, API docs, use case details, or technical documents from BA / BE / Tech Lead. It should summarize only project-level context needed to orient downstream QC Agents.
+
+The generated `project-context-master.md` follows the Vietnamese template and should be written in Vietnamese by default so the QC Lead can review and edit it easily.
+
+## Modes
+
+Determine mode from the resolved `project-context-master` path in `path-registry.md`.
+
+| Mode           | Condition                                                | Behavior                                                                                                                                      |
+| -------------- | -------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------- |
+| Initialization | `project-context-master.md` does not exist or is empty   | Create new project-level context. After writing, auto-invoke `qc-site-map` to continue the chain.                                             |
+| Update         | `project-context-master.md` exists with real content     | Run version preflight against the existing `Sources consolidated` table. Preserve QC Lead-reviewed content, re-read current inputs, update changed context, report gaps/conflicts. If output content changes, suggest the user to run `qc-site-map` next. |
+
+In Update mode, always read the existing `project-context-master.md` before extracting from new inputs.
+
+## Version preflight (Update mode only)
+
+Before re-running the full pipeline, parse the `Sources consolidated` table from the existing `project-context-master.md`. For each source, scan its parent folder for the latest version (`_v<N>` suffix in filename) and compare with the recorded version.
+
+- If at least one source has a new version, a new file, or a deleted file -> proceed with the full pipeline.
+- If no version change is detected on any source, ask the user:
+
+```text
+Khong phat hien version moi cua cac source files da consolidated lan truoc:
+- <file 1>: v<N> (khong doi)
+- <file 2>: v<N> (khong doi)
+...
+
+Luu y: co che nay chi detect version qua ten file (regex _v<N>).
+Neu ban da sua content ma khong tang version, hay tra loi yes de chay lai.
+
+Ban co muon chay lai khong? [yes/no]
+```
+
+- User answers `no` -> exit early without changes, log the skip in the worklog.
+- User answers `yes` -> continue with the full pipeline.
 
 ## Inputs
-Read the `path-registry.md` file to find below files if the path is not already mentioned:
-- `High-level-files`
-- `requirement-common-files`
-- Existing `project-context-master` (if any)
-- Existing `qc-dashboard` (if any)
-- Existing `project-config` (cross-reference for §1, §4, §8)
-- Site abbreviation mapping (auto-managed): `.claude/skills/qc-context-master/state/site-abbreviations.md`
-- Template `templates/project-context-template.md`
-- Template `.claude/skills/qc-dashboard-sync/templates/qc-dashboard-template.md` (owned by `qc-dashboard-sync`; read here only for handoff-schema reference)
+
+Resolve paths from `path-registry.md` whenever possible.
+
+Required or expected inputs:
+
+- `High-level-files` folder from BA.
+- `requirement-common-files` folder from BA.
+- `project-config.md`.
+- `path-registry.md`.
+- Existing `project-context-master.md` in Update mode.
+- `templates/project-context-master-template.vi.md`.
+- `references/project-context-master-writing-guide.md`.
+
+This skill does NOT need to read `qc-dashboard.md` — the dashboard is owned by `qc-dashboard-sync` and reached only via `qc-site-map` downstream.
+
+`High-level-files` may contain any available project-level BA documents such as site map, feature list, WBS, project plan, scope document, Product Brief, high-level BRD/PRD, system architecture, tech overview, integration overview, business rules, data model, state diagrams, release notes, change logs, NFR, security, compliance, or legal documents. Not all document types are required. If this folder is missing or empty, stop the skill.
 
 ## Outputs
-Read the `path-registry.md` file to find below files if the path is not already mentioned:
-- `project-context-master` — written directly by this skill.
-- `qc-dashboard` — **NOT written directly.** This skill computes the feature/UC list and hands it off to `qc-dashboard-sync` via `.claude/skills/qc-dashboard-sync/inbox/feature-list-handoff.md`. `qc-dashboard-sync` is the sole owner of `qc-dashboard.md` and is responsible for creating/updating it (including columns `Site`, `<ID label>`, `Module`, `Feature/Use case name`, `In scope?`, `Files stt`). Process-state columns (`UC review stt`, `Scenario design stt`, `TC design stt`, `Execute stt`) are owned by their respective skills and MUST NOT be touched here.
-- `.claude/skills/qc-dashboard-sync/inbox/feature-list-handoff.md` — handoff file (transient; consumed and deleted by `qc-dashboard-sync`).
-- `.claude/skills/qc-context-master/state/site-abbreviations.md` — append-only mapping table.
-- `agent-work-log` — append a new row at skill start, update in-place as phases progress (per `workflows/checkpoint-protocol.md` §2).
 
-## Checkpoint & Resume
+This skill produces:
 
-This skill writes **per-phase checkpoint files** to `.claude/skills/qc-context-master/process-logging/` so that a context-limit / interruption mid-run does NOT force the user to redo finished work. Read `workflows/checkpoint-protocol.md` ONCE at skill start; it defines:
+1. `project-context-master.md` directly. Must include the `Sources consolidated` table in the header listing every source file that was read and used during generation, with detected version.
+2. In Initialization mode: auto-invokes `qc-site-map` after writing the output. No handoff file is written.
+3. In Update mode: when output content changes, suggests the user to run `qc-site-map` next. No auto-invoke.
 
-- `process-logging/` directory layout and `progress.md` format
-- Worklog update protocol (write-before-work rule)
-- Resume detection at Phase 0
-- Cleanup at Phase 8
+This skill MUST NOT write `qc-dashboard.md` directly and MUST NOT write any handoff file for `qc-dashboard-sync`. Feature list flows to dashboard via `qc-site-map` only.
 
-The protocol is referenced by every Phase 5/6/7/8 workflow — do NOT duplicate its rules here.
+## Workflow overview
 
-## Workflow
+Follow these workflow files in order. Each workflow must write its checkpoint before moving to the next workflow.
 
-### Phase 0 — Silent Audit + Resume Detection
+1. `workflows/phase-0-audit-resume.md` — also runs the version preflight in Update mode.
+2. `workflows/phase-1-preflight-input-audit.md` — records each source with its detected version into the source inventory.
+3. `workflows/phase-2-feature-inventory.md`
+4. `workflows/phase-3-project-context-extract.md`
+5. `workflows/phase-4-gap-readiness.md`
+6. `workflows/phase-5-render-context.md` — writes the `Sources consolidated` table into the output header.
+7. `workflows/phase-6-sitemap-handoff.md` — Initialization: auto-invoke `qc-site-map`. Update: suggest the user to run `qc-site-map` when output changed.
+8. `workflows/phase-7-handover-cleanup.md` — on success, deletes the entire `process-logging/` folder.
 
-> No user-facing output during the silent-audit substep.
+Also read `workflows/checkpoint-protocol.md` at skill start.
 
-1. Read existing `project-context-master` (if any) and `qc-dashboard` (if any).
-2. Determine `mode`:
-   - **First-time generation** — `project-context-master` does not exist or is empty.
-   - **Update run** — file exists with real content.
-3. **Resume detection** (per `workflows/checkpoint-protocol.md` §3):
-   - Check `process-logging/progress.md`.
-   - If found → ask user `Continue from Phase <next>?` or `Restart fresh?`. Branch accordingly.
-   - If not found → fresh run.
-4. Generate a new `run_id` (read `agent-work-log` for max ID, increment).
-5. **Append a new row** to agent-work-log with `Status = Running (Phase 0)`, Input/Output empty, started_at recorded.
+## Required reading before extraction
 
-### Phase 1 — Pre-flight Check
+Before drafting project context, read:
 
-Update worklog Status → `Running (Phase 1)`.
+- `templates/project-context-master-template.vi.md`
+- `references/project-context-master-writing-guide.md`
 
-1. Resolve `High-level-files` logical name. If unconfigured, folder missing, or empty → STOP and output:
-   > "Không tìm thấy high-level files (WBS, Product Brief, System Architecture Diagram, Tech Stack, ...) tại `<path>`. Vui lòng chuẩn bị các tài liệu này, sau đó chạy lại `/qc-context-master`."
+Use the template as the output structure. Use the writing guide as the operational rule set for source selection, section writing, deduplication, missing information, assumptions, and conflict handling.
 
-2. Resolve `qc-dashboard` logical name from path-registry. The file does NOT need to exist yet — it will be created from template in Phase 5 if missing. If the logical name is missing from path-registry, STOP and ask the user to register it.
+## Missing high-level information policy
 
-3. Read templates:
-   - `.claude/skills/qc-context-master/templates/project-context-template.md`
-   - `.claude/skills/qc-dashboard-sync/templates/qc-dashboard-template.md` (owned by `qc-dashboard-sync`)
+When high-level information is incomplete, classify the gap:
 
-Update worklog Status → `Phase 1 done`. (No checkpoint file — Phase 1 is cheap to re-run.)
+1. `QC-fillable`: QC Lead can manually provide or confirm it. Continue, mark `TBD` or `Assumption`, and add an Open Question.
+2. `Derivable from detailed requirement docs`: mainly feature/use case inventory can be inferred from SRS/spec folders. Continue, mark source as derived, and require QC Lead confirmation.
+3. `Needs BA/Tech Lead source`: architecture, integration behavior, data model, state lifecycle, NFR, security, compliance, or legal constraints. Do not infer or invent. Mark `Missing` or `Partial` and ask the owner.
+4. `Blocking`: no high-level files, no writable output path, or no usable project-level context. Stop.
 
-### Phase 2 — Greeting
+## Feature inventory fallback
 
-Update worklog Status → `Running (Phase 2)`.
+Feature/use case inventory is critical for downstream skills: `qc-site-map` (to map screens to features) and indirectly `qc-dashboard.md` (rows are sourced from `qc-site-map` aggregation), plus impact analysis and regression support.
 
-Output exactly ONE of the two greeting blocks below (verbatim — hard-coded):
+Extract feature candidates in this order:
 
-#### Greeting A — First-time generation
+1. Explicit feature list / WBS / scope table from `High-level-files`.
+2. Site map or module list from `High-level-files`.
+3. `requirement-common-files` or SRS/spec folder by scanning file names, folder names, headings, UC IDs, feature IDs, or story IDs.
 
-```
-Bắt đầu tổng hợp tri thức dự án.
+If derived from detailed docs:
 
-Tôi sẽ:
-1. Đọc common files (WBS, Product Brief, System Architecture Diagram, Tech Stack, ...) tại `<High-level-files path>`.
-2. Trích xuất 10 mục cho `project-context-master.md`, kèm confidence score + evidence cho mỗi mục.
-3. Đồng bộ `qc-dashboard.md`: tạo file từ template nếu chưa có; thêm features mới từ WBS; soft-delete (`In scope? = Removed`) features đã bị remove. Không touch các cột status.
-4. Phỏng vấn nhiều lượt (Pass A confirm → Pass B refine → Pass C direct Q&A) — mỗi lượt đều có option `skip`. Mục bị skip sẽ giữ tag `[AI-proposed]` và đẩy câu hỏi high-level vào Open Questions.
+- Mark source as `derived from requirement-common-files`.
+- Do not treat derived items as official until confirmed.
+- Use temporary IDs such as `TMP-001` only when no official ID exists.
+- Mark temporary IDs as `Need confirm`.
 
-Tiến độ sẽ được lưu sau mỗi phase vào `process-logging/` — nếu bị gián đoạn, lần chạy sau có thể tiếp tục từ phase cuối cùng đã hoàn thành.
+If no feature candidates can be extracted, write `project-context-master.md` with a clear gap. `qc-site-map` (downstream) will still run on whatever screen evidence is available but will not be able to map screens to features.
 
-Bắt đầu...
-```
+## Stop conditions
 
-#### Greeting B — Update run
+Stop and ask the user only when:
 
-```
-Đồng bộ tri thức dự án.
+1. `High-level-files` folder is missing or empty.
+2. `path-registry.md` cannot resolve where to write `project-context-master.md`.
+3. No usable project-level information can be extracted from any source.
+4. In Initialization mode, `qc-site-map` cannot be found or invoked.
+5. A required existing file path changed in a way that may overwrite user work.
+6. A conflict blocks safe writing of `project-context-master.md`.
+7. Version preflight returned no detected changes and the user answered `no`.
 
-Tôi sẽ:
-1. Re-read common files để check cập nhật.
-2. Carry-over Open Questions từ lần trước, resolve những câu giờ đã có data.
-3. Đồng bộ `qc-dashboard.md`: append features mới, soft-delete (`In scope? = Removed`) features bị remove, re-add (`In scope? = Yes`) nếu cần.
-4. Refresh các mục `project-context-master.md` từ nội dung mới nhất, re-score confidence; phỏng vấn nhiều lượt (Pass A/B/C, có `skip`) cho các mục còn thiếu hoặc còn tag `[AI-proposed]` từ lần trước.
+Otherwise, continue with available information, mark gaps, and report what needs confirmation.
 
-Tiến độ sẽ được lưu sau mỗi phase vào `process-logging/` — nếu bị gián đoạn, lần chạy sau có thể tiếp tục từ phase cuối cùng đã hoàn thành.
+## Final response
 
-Bắt đầu...
-```
+At completion, respond in Vietnamese with:
 
-Update worklog Status → `Phase 2 done`.
+- Mode: Initialization or Update (or `Skipped` when version preflight returned no change and user declined).
+- `project-context-master.md`: created or updated.
+- Sources consolidated: count of files read, count of files with new version since last run.
+- Feature candidates summary: new, derived, need confirmation, not found in current source.
+- Highest-impact missing context.
+- Next-step status:
+  - Initialization -> `qc-site-map` auto-invoked.
+  - Update with changes -> suggest the user to run `qc-site-map` next.
+  - Update with no content change -> no downstream action suggested.
+- Suggested next action for QC Lead.
 
-### Phase 3 — Detect Output Language
-
-Update worklog Status → `Running (Phase 3)`.
-
-Follow `global-rules.md` to define the `project-context-master.md` language (keep template headers as-is in English).
-
-Update worklog Status → `Phase 3 done`.
-
-### Phase 4 — Carry-over from Previous Run
-
-Update worklog Status → `Running (Phase 4)`.
-
-If `project-context-master.md` exists:
-1. Read Section 10 `Open Questions` table.
-2. For each row with status `Open`, attempt to resolve from current common files.
-3. Resolved → set status to `Resolved` (DO NOT delete the row — preserve audit trail).
-4. Still unresolved → keep status `Open`; will re-ask in Phase 6.
-5. Question IDs: keep originals (Q-001, Q-002, ...). New questions continue from `max(ID) + 1`.
-
-If `project-context-master.md` does not exist, skip this phase's logic but still write the empty checkpoint.
-
-**Checkpoint write** (per `workflows/checkpoint-protocol.md` §4):
-1. Write `process-logging/04_carryover.md` capturing the resolved/open §10 question states (or an empty snapshot for first-time run).
-2. Update `process-logging/progress.md` → `last_phase_done: 4`, `next_phase: 5`.
-3. Update worklog Status → `Phase 4 done`.
-
-### Phase 5 — Site Mapping + Feature List Sync
-
-→ Dispatch to **`workflows/phase-5-dashboard-sync.md`**.
-
-The workflow handles: site detection, dashboard create-or-update, delta computation, write, deltas report, checkpoint, and worklog update. Control returns here after `qc-dashboard.md` is written and `05_deltas.md` checkpoint is saved.
-
-### Phase 6 — Extract, Propose, and Interview
-
-→ Dispatch to **`workflows/phase-6-extract-interview.md`**.
-
-The workflow handles: extraction of 10 sections with confidence scoring (Phase 6.1), the three interview passes (Pass A consolidated review, Pass B per-section refinement, Pass C per-section Q&A), per-section checkpointing, and worklog updates. Control returns here after the last Pass C section is processed.
-
-### Phase 7 + 8 — Finalize & Handover
-
-→ Dispatch to **`workflows/phase-7-8-finalize.md`**.
-
-The workflow handles: final render of `project-context-master.md`, write to disk, handover summary output, final worklog update (`Status = Done`, Duration), and `process-logging/` cleanup.
+Do not paste the full generated file into chat unless the user asks.

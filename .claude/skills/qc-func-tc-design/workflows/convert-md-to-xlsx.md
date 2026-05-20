@@ -68,7 +68,7 @@ For EACH variant Vᵢ, run these checks in order; the FIRST failed check for V�
 **If ALL variants pass (no auto-recovery needed, OR auto-recovery succeeded for the ones that failed) — advance the UC to Phase 3:** (Per `SKILL.md` §5.1 transition write; ordering: progress.md → worklog → dashboard.)
 
 1. **Update `progress.md`** → `last_phase_done: 2`, `next_phase: 3`, `updated_at: <now>`. (Preserve all existing fields including the `## Phase 2 Summary` block.)
-2. **agent-work-log**: update current row Status → `Running (Phase 3)`. (No new Input files appended for Phase 3 — the Phase 2 final mds were already recorded in Output at end of Phase 2.)
+2. **Worklog**: rewrite last entry → `status = "Running (Phase 3)"`. (No new `input` files appended for Phase 3 — the Phase 2 final mds were already recorded in `output` at end of Phase 2.)
 3. **qc-dashboard.md**: update the UC's `TC design stt` cell → `Running — Chuyển MD sang XLSX` (VI) / `Running — MD → XLSX Conversion` (EN). Skip if column missing (graceful degradation).
 4. Proceed to Pass B (Step 1 below).
 
@@ -144,7 +144,7 @@ Per `SKILL.md` → "Checkpoint & Resume Protocol" §5.2 (end-of-phase). Phase 3 
 
 1. **The deliverable `.xlsx` files (one per variant, written in Step 3 and verified in Step 4) ARE the Phase 3 deliverables.** Do NOT write a separate file in `process-logging/`.
 2. **Update `progress.md`** → `last_phase_done: 3`, `next_phase: -` (done), `updated_at: <now>`. (Preserve `## Phase 2 Summary` and all other fields.)
-3. **agent-work-log**: update row Status → `Phase 3 done`. Append ALL variants' `.xlsx` paths to the Output column (excluding `process-logging/`).
+3. **Worklog**: rewrite last entry → `status = "Phase 3 done"`. Append ALL variants' `.xlsx` paths to `output` (excluding `process-logging/`).
 4. **qc-dashboard.md**: update the UC's `TC design stt` cell → `Chuyển MD sang XLSX done` (VI) / `MD → XLSX Conversion done` (EN). Skip if column missing.
 
 ### Step 5: Hand Back

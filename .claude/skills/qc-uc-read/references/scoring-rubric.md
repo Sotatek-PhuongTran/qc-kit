@@ -68,6 +68,7 @@ After scoring, check for **conflicts between artefacts**:
 - Does the API spec define fields not mentioned in requirements?
 - Are there UI elements in the design with no corresponding business rule?
 - Are labels/field names inconsistent across documents?
+- **Site-map cross-check (if `qc-site-map` exists):** does the UC cover every screen mapped to its feature in §8 Screen ↔ Feature mapping? Do UC's actors/roles match §7 Role/access by screen? Do UC's flows match §6 Navigation? Any mismatch → Warning + flag in Unified Gap & Question Report.
 
 List all conflicts found — they are automatic Warnings.
 

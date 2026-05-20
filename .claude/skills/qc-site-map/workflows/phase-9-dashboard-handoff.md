@@ -65,7 +65,8 @@ generated_at: <ISO-8601 datetime>
 
 ### Column definitions (Feature-level site map coverage)
 
-- **Feature ID** — canonical Feature/UC ID as known by `qc-site-map.md`. This is the value that goes into `qc-dashboard.md` column 2 `<ID label>`.
+- **Feature ID** — canonical Feature/Use case ID as known by `qc-site-map.md`. This is the value that goes into `qc-dashboard.md` column 2 `<ID label>`.
+- **Module** - Grouping context only — never the row identity.
 - **Folder alias(es)** — comma-separated list of folder-name IDs that map to this feature.
   - EMPTY (blank cell, e.g., `—`) when the folder on disk uses the same ID as `Feature ID`. This is the default for features defined directly by site-map sources.
   - NON-EMPTY only after Mode 3 has reconciled a folder whose on-disk name differs from the canonical ID. Example: `UC1_TrangChuDashboard` is a folder alias for canonical `UC-1`; in that case this cell holds `UC1_TrangChuDashboard` (the literal folder-name ID as it appears on disk).

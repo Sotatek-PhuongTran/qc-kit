@@ -8,7 +8,7 @@ Goal: create a screen-first QC site map that helps downstream QC Agents understa
 
 Do not use this file to replace `project-context-master.md`, specs, wireframes, API docs, feature lists, or `qc-dashboard.md`.
 
----
+--- 
 
 ## 1. Core principles
 
@@ -65,7 +65,7 @@ Do not make the output feature-first. Feature list is owned by project context a
 When official sitemap or screen list is missing, derive cautiously from:
 
 - module names in `project-context-master.md`;
-- feature list;
+- feature list/use case list;
 - SRS/spec file names and headings;
 - wireframe file names;
 - user flow documents;
@@ -114,7 +114,8 @@ Capture high-level access and action rights by role. Do not include field-level 
 
 ### Section 8 - Screen-feature mapping
 
-Map screens to feature/spec IDs when possible. Add feature-level coverage summary for dashboard handoff.
+Every screen with Confirmed/Derived status MUST be mapped to a Feature/UC ID. If not mappable, mark screen as Need confirm and list under unmapped — never fall back to module-level mapping.
+Add feature-level/use-case-level coverage summary for dashboard handoff.
 
 ### Section 9 - Data/API/integration/state touchpoints
 
@@ -136,11 +137,11 @@ Assess whether the site map is usable by downstream QC Agents. Use `Ready`, `Par
 
 ## 6. Dashboard handoff rules
 
-`qc-dashboard.md` tracks feature/spec workflow status, not screen-level rows.
+`qc-dashboard.md` tracks feature/use-case, spec workflow status, not screen-level rows.
 
-When handing off to `qc-dashboard-sync`, aggregate by feature:
+When handing off to `qc-dashboard-sync`, aggregate by feature/use case:
 
-- Feature ID and name.
+- Feature ID or use case ID and name.
 - Mapped screens.
 - Site map status: `Mapped`, `Partial`, `Missing`, `Conflict`, `Need confirm`.
 - Role/access/navigation gaps affecting the feature.
@@ -195,4 +196,4 @@ Before finalizing, ensure:
 - [ ] Navigation flow is included if found.
 - [ ] Regression/impact anchors are included.
 - [ ] Gaps/conflicts/assumptions are explicit.
-- [ ] Dashboard handoff is aggregated by feature.
+- [ ] Dashboard handoff is aggregated by feature or use case, not module or screen.

@@ -17,7 +17,7 @@ Map screens to features, roles, touchpoints, and regression anchors.
 For dashboard handoff, aggregate by feature:
 
 | Feature ID | Feature name | Mapped screens | Site map status | Gap / Note |
-|---|---|---|---|---|
+| ---------- | ------------ | -------------- | --------------- | ---------- |
 
 Site map status values:
 
@@ -29,8 +29,9 @@ Site map status values:
 
 ## Rules
 
-- Do not create dashboard rows per screen.
-- Do not create feature IDs unless confirmed by project source. Use existing feature IDs from project context or source docs.
+- Do not create dashboard rows per screen or module.
+- Smallest mapping unit is Feature/UC. Module is grouping context only — never a mapping target.
+- Do not create feature IDs or user-case IDs unless confirmed by project source. Use existing feature IDs or use-case ID from project context or source docs.
 - If screen cannot map to a feature, list it under unmapped screens.
 - If feature has no screen mapping, mark `Missing` or `Partial`.
 

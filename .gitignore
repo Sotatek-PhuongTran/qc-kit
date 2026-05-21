@@ -1,2 +1,3 @@
 # Junction mirror of .claude — không track để tránh duplicate
 /.agent/
+/ guideline/

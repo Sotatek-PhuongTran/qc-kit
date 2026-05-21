@@ -100,8 +100,8 @@
 
 | Object / Component | System States | Interaction Matrix | Object Behavior (Data/State Change Context) |
 |--------------------|---------------|--------------------|---------------------------------------------|
-| *(e.g., Save Button)* | *(e.g., Disabled by default until all mandatory fields are filled.)* | *(e.g., Click: Triggers validation & submit. Hover: Shows tooltip.)* | *(e.g., Becomes disabled and shows a spinner while the API request is processing.)* |
-| *(e.g., Type Dropdown)* | *(e.g., Enabled. Default value: 'Standard'.)* | *(e.g., Click: Expands list.)* | *(e.g., When changed to 'Custom', the 'Additional Details' text area becomes visible.)* |
+| *(e.g., Save Button)* | *(e.g., Disabled by default until all mandatory fields are filled.)* | *(e.g., Primary input (tap on mobile / click on web/desktop): triggers validation & submit. Secondary: tooltip on hover (web/desktop) or long-press (mobile).)* | *(e.g., Becomes disabled and shows a spinner while the API request is processing.)* |
+| *(e.g., Type Dropdown)* | *(e.g., Enabled. Default value: 'Standard'.)* | *(e.g., Primary input: expands list.)* | *(e.g., When changed to 'Custom', the 'Additional Details' text area becomes visible.)* |
 *(Add rows as needed)*
 
 ---
@@ -165,8 +165,9 @@
 | Category | Requirement | Source / Reference |
 |----------|-------------|-------------------|
 | *(Performance)* | *(e.g., Search results must load within 2 seconds.)* | *(e.g., SLA doc)* |
-| *(Security)* | *(e.g., CSRF protection is enforced.)* | *(e.g., Security policy)* |
-| *(Browser Compatibility)* | *(e.g., Chrome, Edge, Safari latest versions.)* | |
+| *(Security)* | *(e.g., Authentication tokens stored in platform-appropriate secure storage; sensitive data masked in transit and at rest.)* | *(e.g., Security policy)* |
+| *(Compatibility)* | *(Platform-dependent — fill per `project-context-master` §1 Product Platform Type. Web: browser matrix (e.g., Chrome/Edge/Safari latest-2). Mobile native: min OS versions (iOS X+, Android Y+) + device matrix. Desktop native: OS targets (Windows 10/11, macOS last-3, Linux distro).)* | |
+| *(Accessibility)* | *(e.g., WCAG AA color contrast; screen-reader labels — VoiceOver/TalkBack on mobile, NVDA/JAWS on Windows desktop, semantic HTML on web.)* | |
 *(Add categories as needed)*
 
 ---

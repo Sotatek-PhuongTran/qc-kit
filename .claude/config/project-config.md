@@ -11,8 +11,8 @@ Tệp này đóng vai trò là biểu mẫu cấu hình cho dự án thực tế
 
 ## 1. Project Overview
 
-> **Project name:** Multi vendor platform
-> **Description:** a platform for multi vendor
+> **Project name:** [Cung cấp tên dự án]
+> **Description:** [Cung cấp mô tả ngắn về dự án]
 > **Domain:** [E-commerce / Finance / Healthcare / etc.]
 
 ---

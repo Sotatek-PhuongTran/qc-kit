@@ -12,7 +12,9 @@
       "Edit(/.claude/skills/qc-context-master-02/**)",
       "Edit(/.claude/skills/qc-dashboard-sync/**)",
       "Edit(/.claude/skills/qc-site-map/**)",
-      "Bash(git config *)"
+      "Bash(git config *)",
+      "Bash(git check-ignore *)",
+      "Bash(git rm *)"
     ],
     "additionalDirectories": [
       "c:\\Users\\Admin\\Desktop\\qc-kit\\.claude\\skills\\qc-uc-read\\process-logging\\UC1",

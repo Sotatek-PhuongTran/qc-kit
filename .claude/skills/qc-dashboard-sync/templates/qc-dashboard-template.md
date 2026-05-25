@@ -9,12 +9,16 @@
 > - `qc-func-tc-design` quản lý cột: `TC design stt`.
 > - `qc-site-map` là nguồn duy nhất quyết định feature list + In scope? (qua handoff `site-map-handoff.md` và Mode 3 reconcile của orphans).
 > - `qc-context-master` produce project context (KHÔNG tự ghi vào dashboard).
-> - Cột `Execute stt` hiện đang pending (chưa có skill quản lý — để trống).
+>
+> **Cột optional (skill tự inject khi chạy lần đầu, không có sẵn trong template):**
+> - `UI extract stt` — owner: `qc-ui-extract`. Khi skill này chạy mà không thấy cột → tự insert ngay TRƯỚC `Execute stt` (hoặc cuối nếu chưa có `Execute stt`).
+> - `Execute stt` — owner: future `qc-execute` skill (chưa có). Skill nào tạo trước thì tự inject ở cuối hàng.
+> - `qc-dashboard-sync` accept dashboard có 10/11/12 cột; preserve các cột optional verbatim, KHÔNG tự thêm/xoá chúng.
 >
 > **DO NOT delete rows.** Feature/UC ra khỏi scope vẫn giữ row, user có thể edit `In scope?` về `No` thủ công nếu cần.
 
-| Site | {{ID_LABEL}} | Folder ID | Module | Feature/Use case name | In scope? | Files stt | UC review stt | Scenario design stt | TC design stt | Execute stt |
-| :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- |
+| Site | {{ID_LABEL}} | Folder ID | Module | Feature/Use case name | In scope? | Files stt | UC review stt | Scenario design stt | TC design stt |
+| :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- |
 
 ---
 
@@ -29,15 +33,20 @@
 - **Module:** Module / nhóm chức năng.
 - **Feature/Use case name:** Tên human-readable (do site-map cung cấp; bottom-up để trống chờ user / Mode 3 cập nhật).
 - **In scope?:** `Yes` (in scope) / `No` (out of scope) / `Need confirm` (chưa reconcile bởi site-map Mode 3 — sẽ tự cập nhật sau khi Mode 3 chạy). `qc-dashboard-sync` KHÔNG tự đổi giá trị này; user có thể edit thủ công bất cứ lúc nào.
-- **Files stt:** Trạng thái tồn tại của 6 loại file artifact cho UC. Format trong cell: 6 dòng nối bằng `<br>`, theo thứ tự cố định:
+- **Files stt:** Chỉ liệt kê các loại file artifact đã TÌM THẤY trên disk cho UC. Loại file Missing KHÔNG được ghi vào cell. Format trong cell: mỗi loại tìm thấy là 1 dòng `<Type>: V<N>`, các dòng nối bằng `<br>`, theo thứ tự cố định (skip loại nào không có):
   ```
-  Specs: V<N> | Missing
-  WF: V<N> | Missing
-  Audited: V<N> | Missing
-  Scenario: V<N> | Missing
-  TC md: V<N> | Missing
-  TC xlsx: V<N> | Missing
+  Specs: V<N>
+  WF: V<N>
+  Audited: V<N>
+  Scenario: V<N>
+  TC md: V<N>
+  TC xlsx: V<N>
   ```
+  Ví dụ rendered:
+  - Có một số file: `Specs: V2<br>WF: V1<br>Scenario: V1<br>TC md: V2`
+  - Đã scan nhưng không tìm thấy file nào: literal `No files yet`
+  - Chưa từng scan (row mới chưa được sync): cell để trống.
+
   Mỗi item tham chiếu folder qua path-registry logical name, lookup folder bằng giá trị `Folder ID` của row:
   - `Specs` ← `requirement-files/<Folder ID>/` (file `.md/.docx/.pdf`, không kể image, không kể `_extracted_`)
   - `WF` ← `requirement-files/<Folder ID>/` (file image: `.png/.jpg/.fig/.svg/...`)
@@ -61,4 +70,8 @@
   - `<phase friendly name> done` — vừa hoàn thành phase, chưa sang phase tiếp.
   - `v<N> generated` — workflow `generate-test-cases` chạy xong.
   - `v<N> updated` — workflow `update-test-cases` chạy xong.
-- **Execute stt:** Pending (chưa có skill quản lý — placeholder).
+
+### Cột optional (chỉ xuất hiện khi skill tương ứng đã chạy ít nhất 1 lần)
+
+- **UI extract stt** (owner: `qc-ui-extract`): format `v<N> (audited v<M>)`; nếu nhiều page → `v<min> (audited v<M>) [Np]`. Tự được inject vào dashboard khi `qc-ui-extract` chạy lần đầu.
+- **Execute stt** (owner: future `qc-execute` skill): placeholder cho test execution status. Chưa có skill nào inject.

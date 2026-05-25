@@ -128,10 +128,16 @@ For each page in `progress.md` (in order):
 
 1. Verify every page has `status = done`.
 2. **Update `qc-dashboard.md`** column `UI extract stt` for the UC's row:
-   - Locate row by Use Case ID.
+   - Locate row by **Folder ID** (column 3). Fall back to `<ID label>` (column 2) only if no Folder ID match.
    - Cell value: `v<min-N> (audited v<M>)`. If `total_pages > 1`, append ` [<total_pages>p]`. Examples: `v1 (audited v3)` for single page; `v2 (audited v3) [2p]` for two pages min-version v2.
    - **Stale handling**: NOT this skill's job to mark stale. Stale is computed lazily by readers (compare cell `audited v<M>` against the actual highest audited v).
-   - If column `UI extract stt` is missing from the dashboard (legacy dashboards), warn ONCE in the user output and skip the write — do NOT inject the column.
+   - **Auto-inject the column when missing** (this skill is the sole owner of `UI extract stt`):
+     - If the dashboard header does NOT contain `UI extract stt` → INSERT it.
+     - Insertion position: immediately AFTER `TC design stt`, but BEFORE `Execute stt` if `Execute stt` is present.
+     - For every existing data row, insert a blank cell at the same position (preserves all other cell values).
+     - Append a one-line note to the user output: `Da auto-inject cot 'UI extract stt' vao qc-dashboard.md (truoc <Execute stt | cuoi bang>) — <N> row hien co duoc fill blank.`
+     - Then write this UC's value into the new cell.
+   - This injection is safe because: (a) `qc-ui-extract` is the sole owner of this column, (b) `qc-dashboard-sync` accepts variable column counts (10/11/12) per its schema spec and preserves optional columns verbatim, (c) no other skill writes to or expects a fixed position for `Execute stt` (it is itself optional).
 3. **Worklog final entry** — close the run with `status = "Completed"`, `output = <list of generated ui-elements files>`.
 4. **Cleanup checkpoint**: delete `progress.md` (and any leftover `.partial.md`) on success. On failure, leave them intact for next-run resume.
 5. **Print summary**:

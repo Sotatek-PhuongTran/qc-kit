@@ -15,7 +15,32 @@
       "Bash(git config *)",
       "Bash(git check-ignore *)",
       "Bash(git rm *)",
-      "Bash(awk -F'|' '/^\\\\|/ {print NF-1}' /Users/sotatek/Desktop/qc-kit/docs/qc-lead/qc-dashboard.md)"
+      "Bash(awk -F'|' '/^\\\\|/ {print NF-1}' /Users/sotatek/Desktop/qc-kit/docs/qc-lead/qc-dashboard.md)",
+      "Bash(git -C /Users/sotatek/Desktop/sotacare rev-parse --abbrev-ref HEAD)",
+      "Bash(git -C /Users/sotatek/Desktop/sotacare rev-parse --short HEAD)",
+      "Bash(mkdir -p /Users/sotatek/Desktop/sotacare/docs/qc/uc-smoke/UC-PATIENT-005 && ls /Users/sotatek/Desktop/sotacare/docs/qc/uc-smoke/UC-PATIENT-005/)",
+      "Bash(mkdir -p /Users/sotatek/Desktop/sotacare/.claude/skills/qc-context-master/process-logging && ls /Users/sotatek/Desktop/sotacare/.claude/skills/qc-context-master/process-logging)",
+      "Bash(rm -f /Users/sotatek/Desktop/sotacare/docs/qc-lead/project-context-master.md /Users/sotatek/Desktop/sotacare/docs/qc-lead/qc-site-map.md /Users/sotatek/Desktop/sotacare/docs/qc-lead/qc-dashboard.md /Users/sotatek/Desktop/sotacare/.claude/skills/qc-dashboard-sync/inbox/site-map-handoff.md)",
+      "Bash(rm -rf /Users/sotatek/Desktop/sotacare/.claude/skills/qc-context-master/process-logging/*)",
+      "Bash(rm -f /Users/sotatek/Desktop/sotacare/docs/qc-lead/project-context-master.md /Users/sotatek/Desktop/sotacare/docs/qc-lead/qc-site-map.md /Users/sotatek/Desktop/sotacare/docs/qc-lead/qc-dashboard.md /Users/sotatek/Desktop/sotacare/.claude/skills/qc-dashboard-sync/inbox/site-map-handoff.md && echo \"Output files removed\" && ls /Users/sotatek/Desktop/sotacare/docs/qc-lead/ && echo \"---inbox---\" && ls /Users/sotatek/Desktop/sotacare/.claude/skills/qc-dashboard-sync/inbox/ 2>/dev/null && echo \"---process-logging---\" && ls -la /Users/sotatek/Desktop/sotacare/.claude/skills/qc-context-master/process-logging/)",
+      "Bash(git -C /Users/sotatek/Desktop/sotacare config user.name)",
+      "Bash(git -C /Users/sotatek/Desktop/sotacare config user.email)",
+      "Bash(python3)",
+      "Bash(mkdir -p /Users/sotatek/Desktop/sotacare/.claude/skills/qc-site-map/process-logging)",
+      "Bash(mkdir -p /Users/sotatek/Desktop/sotacare/.claude/skills/qc-uc-read/process-logging/UC-ORGUSER-002 && echo '{\"run_id\":\"run-20260527-161816-85330568sotatekphuongtran\",\"device\":\"sotateks-MacBook-Pro-2.local\",\"git_user_name\":\"PhuongTran\",\"git_user_email\":\"85330568+Sotatek-PhuongTran@users.noreply.github.com\",\"branch\":\"main\",\"commit\":\"9388609\",\"skill\":\"qc-uc-read\",\"status\":\"Running \\(Phase 1\\)\",\"input\":[\"docs/03-modules/MOD-ORG-ORGUSER/UC-ORGUSER-002.md\",\"docs/03-modules/MOD-ORG-ORGUSER/frd.md\",\"docs/03-modules/common-rules.md\",\"docs/qc-lead/project-context-master.md\",\"docs/qc-lead/qc-site-map.md\",\"docs/qc-lead/qc-dashboard.md\"],\"output\":[],\"issue\":null,\"start\":\"2026-05-27T16:18:16+07:00\",\"end\":null,\"duration_min\":null}' >> /Users/sotatek/Desktop/sotacare/docs/qc-lead/agent-work-log.local/worklog_sotateks-MacBook-Pro-2.local.jsonl && echo \"Worklog appended\")",
+      "Bash(mkdir -p /Users/sotatek/Desktop/sotacare/.claude/skills/qc-uc-read/process-logging/UC-ORGUSER-001 && echo \"OK\")",
+      "Bash(python3 -)",
+      "Bash(rm -rf /Users/sotatek/Desktop/sotacare/.claude/skills/qc-uc-read/process-logging/UC-ORGUSER-002/ && echo \"Process-logging cleaned\" && ls /Users/sotatek/Desktop/sotacare/.claude/skills/qc-uc-read/process-logging/ 2>/dev/null)",
+      "Bash(python3 -c 'import json, sys *)",
+      "Bash(rm -rf /Users/sotatek/Desktop/sotacare/.claude/skills/qc-uc-read/process-logging/UC-ORGUSER-001 && echo \"cleaned\"; ls /Users/sotatek/Desktop/sotacare/.claude/skills/qc-uc-read/process-logging/ 2>&1)",
+      "Bash(mkdir -p /Users/sotatek/Desktop/sotacare/docs/qc/scenarios/UC-ORGUSER-002)",
+      "Bash(mkdir -p /Users/sotatek/Desktop/sotacare/docs/qc/testcases/UC-ORGUSER-002 /Users/sotatek/Desktop/sotacare/.claude/skills/qc-func-tc-design/process-logging/UC-ORGUSER-002)",
+      "Bash(rm -rf /Users/sotatek/Desktop/sotacare/.claude/skills/qc-uc-read/process-logging/UC-ORGUSER-001/ && echo \"Cleanup done.\")",
+      "Bash(cp /Users/sotatek/Desktop/sotacare/.claude/skills/qc-func-tc-design/process-logging/UC-ORGUSER-002/02_designed_tcs_web-responsive.md /Users/sotatek/Desktop/sotacare/docs/qc/testcases/UC-ORGUSER-002/UC-ORGUSER-002_reset-password-forgot_testcases_web-responsive_v1.md && wc -l /Users/sotatek/Desktop/sotacare/docs/qc/testcases/UC-ORGUSER-002/UC-ORGUSER-002_reset-password-forgot_testcases_web-responsive_v1.md && grep -c \"^| TC_\" /Users/sotatek/Desktop/sotacare/docs/qc/testcases/UC-ORGUSER-002/UC-ORGUSER-002_reset-password-forgot_testcases_web-responsive_v1.md)",
+      "Bash(python3 -c \"import openpyxl; print\\('openpyxl', openpyxl.__version__\\)\")",
+      "Bash(python3 .claude/skills/qc-func-tc-design/scripts/md_to_xlsx.py --input-glob \"docs/qc/testcases/UC-ORGUSER-002/UC-ORGUSER-002_*_web-responsive_*.md\" --uc-id UC-ORGUSER-002)",
+      "Bash(rm -rf /Users/sotatek/Desktop/sotacare/.claude/skills/qc-func-tc-design/process-logging/UC-ORGUSER-002 && echo \"process-logging UC-ORGUSER-002 cleaned\")",
+      "Bash(mkdir -p /Users/sotatek/Desktop/sotacare/.claude/skills/qc-uc-read/process-logging/UC-ORGUSER-001)"
     ],
     "additionalDirectories": [
       "c:\\Users\\Admin\\Desktop\\qc-kit\\.claude\\skills\\qc-uc-read\\process-logging\\UC1",
@@ -23,7 +48,16 @@
       "c:\\Users\\Admin\\Desktop\\qc-kit\\.claude\\skills\\qc-uc-read\\process-logging\\UC45-51",
       "c:\\Users\\Admin\\Desktop\\qc-kit\\.claude\\skills\\qc-func-tc-design\\references",
       "c:\\Users\\Admin\\Desktop\\qc-kit\\.claude\\skills\\qc-dashboard-sync\\inbox",
-      "c:\\Users\\Admin\\Desktop\\qc-kit\\docs\\qc-lead"
+      "c:\\Users\\Admin\\Desktop\\qc-kit\\docs\\qc-lead",
+      "/Users/sotatek/Desktop/sotacare/docs/qc/uc-smoke",
+      "/Users/sotatek/Desktop/sotacare/.claude/skills/qc-context-master",
+      "/Users/sotatek/Desktop/sotacare/.claude/skills/qc-dashboard-sync/inbox",
+      "/Users/sotatek/Desktop/sotacare/.claude/skills/qc-site-map",
+      "/Users/sotatek/Desktop/sotacare/.claude/skills/qc-uc-read/process-logging",
+      "/Users/sotatek/Desktop/sotacare/.claude/skills/qc-uc-read/process-logging/UC-ORGUSER-002",
+      "/Users/sotatek/Desktop/sotacare/.claude/skills/qc-uc-read/process-logging/UC-ORGUSER-001",
+      "/Users/sotatek/Desktop/sotacare/.claude/skills/qc-func-tc-design/process-logging",
+      "/Users/sotatek/Desktop/sotacare/.claude/skills/qc-func-tc-design/process-logging/UC-ORGUSER-002"
     ]
   }
 }

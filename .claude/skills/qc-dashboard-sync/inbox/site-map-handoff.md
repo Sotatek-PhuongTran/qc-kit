@@ -2,85 +2,114 @@
 source_skill: qc-site-map
 handoff_type: site-map-feature-coverage
 mode: initialization
-generated_at: 2026-05-15T00:00:00+07:00
+generated_at: 2026-05-27T12:58:00+07:00
 ---
 
 # Site Map Handoff for Dashboard
-
-Site map vừa được tạo lần đầu (`docs/qc-lead/qc-site-map.md`). Handoff này chỉ chứa thông tin cấp **feature/UC** để `qc-dashboard-sync` cross-check/cập nhật note nếu cần. **Không** đề xuất ghi đè vào cột `Files stt`, `UC review stt`, `Scenario design stt`, `TC design stt`, `Execute stt`.
 
 ## Feature-level site map coverage
 
 | Feature ID | Feature name | Site / Portal | Module | Mapped screen(s) | Folder alias(es) | In scope? | Site map status | Notes |
 |---|---|---|---|---|---|---|---|---|
-| UC1 | Trang chủ Dashboard | Mobile | B. Trang chủ & Điều hướng | SCR-020, 021, 022, 023 | — | Yes | Mapped | Sidebar (SCR-022) = Confirmed; còn lại Derived |
-| UC2 | Tra cứu KCN/KKT/TMTD/PTQ/Mô hình (UC2-UC31) | Mobile | D. Tra cứu KCN/KKT | SCR-040..047 | — | Yes | Partial | SCR-047 (tab Hạ tầng/Nhà đầu tư) chờ BA — AI-UC-02 |
-| UC40 | Tra cứu quỹ đất KCN | Mobile | D. Tra cứu KCN/KKT | SCR-048, 049 | — | Yes | Mapped | NV-06 trạng thái; KT-04 không export |
-| UC42-44 | Quản lý đặt lịch | Mobile | C. Hồ sơ & Dịch vụ | SCR-030, 031 | — | Yes | Mapped | NV-01/02 no tạo/huỷ; SCR-031 detail Need confirm |
-| UC45-51 | Quản lý hồ sơ | Mobile | C. Hồ sơ & Dịch vụ | SCR-032, 033 | — | Yes | Mapped | UX-05 search + tab; KT-06 PDF in-app |
-| UC52 | Kho tài liệu cá nhân | Mobile | C. Hồ sơ & Dịch vụ | SCR-034, 035 | — | Yes | Mapped | NV-04 read-only; KT-07 |
-| UC53_63-65 | Phản ánh kiến nghị | Mobile | C. Hồ sơ & Dịch vụ | SCR-036, 037, 038 | — | Yes | Mapped | UX-06 state; UX-07 auto-fill |
-| UC54 | Báo cáo đã nộp | Mobile | C. Hồ sơ & Dịch vụ | SCR-039 | — | Yes | Mapped | NV-05 |
-| UC55 | Tin tức / Chuyên trang đầu tư | Mobile | E. Tin tức / Hỗ trợ | SCR-064, 065, 066 | — | Yes | Partial | SCR-066 form đăng ký tư vấn — AI-UC55-01 chờ KH |
-| UC56-57_66_68 | Tin tức (UC56-57, UC66, UC68) | Mobile | E. Tin tức / Hỗ trợ | SCR-060, 061, 062 | — | Yes | Mapped | KT-09 WebView |
-| UC58 | Tin tức UC58 | Mobile | E. Tin tức / Hỗ trợ | SCR-060/061/062 (gom hub) | — | Need confirm | Need confirm | Q-013: gom row chưa khớp 1-1 |
-| UC59 | Tin tức UC59 | Mobile | E. Tin tức / Hỗ trợ | SCR-060/061/062 (gom hub) | — | Need confirm | Need confirm | Q-013 |
-| UC60-61 | Tin tức UC60-61 | Mobile | E. Tin tức / Hỗ trợ | SCR-060, 061, 062 | — | Yes | Mapped | |
-| UC62 | Tin tức UC62 | Mobile | E. Tin tức / Hỗ trợ | SCR-060/061/062 (gom hub) | — | Need confirm | Need confirm | Q-013 |
-| UC67 | Tin tức UC67 | Mobile | E. Tin tức / Hỗ trợ | SCR-060/061/062 (gom hub) | — | Need confirm | Need confirm | Q-013 |
-| UC69 | Văn bản pháp luật | Mobile | E. Tin tức / Hỗ trợ | SCR-067, 068 | — | Yes | Mapped | KT-09 |
-| UC71-82 | Hướng dẫn & FAQ | Mobile | E. Tin tức / Hỗ trợ | SCR-075 | — | Yes | Mapped | UX-11 multi-expand |
-| UC73 | Tra cứu TTHC | Mobile | E. Tin tức / Hỗ trợ | SCR-069, 070 | — | Need confirm | **Conflict** | UC73 vs UC70 Removed (Q-014) — cần BA + QC Lead xác nhận |
-| UC83-86 | Điều khoản / Chính sách / Liên hệ / Giới thiệu | Mobile | E. Tin tức / Hỗ trợ | SCR-076, 077, 078, 079 | — | Yes | Mapped | KT-12/13 Liên hệ external; NV-10 Giới thiệu chờ BA |
-| UC87 | Xúc tiến UC87 | Mobile | E. Tin tức / Hỗ trợ | SCR-071/072/073 (gom hub) | — | Need confirm | Need confirm | Q-013 |
-| UC88 | Xúc tiến UC88 | Mobile | E. Tin tức / Hỗ trợ | SCR-071/072/073 (gom hub) | — | Need confirm | Need confirm | Q-013 |
-| UC89 | Xúc tiến UC89 | Mobile | E. Tin tức / Hỗ trợ | SCR-071/072/073 (gom hub) | — | Need confirm | Need confirm | Q-013 |
-| UC90 | Xúc tiến UC90 | Mobile | E. Tin tức / Hỗ trợ | SCR-071, 072, 073 | — | Yes | Mapped | KT-15 lazy 20 |
-| UC91 | Xúc tiến UC91 | Mobile | E. Tin tức / Hỗ trợ | SCR-071/072/073 (gom hub) | — | Need confirm | Need confirm | Q-013 |
-| UC92 | Xúc tiến UC92 (login required) | Mobile | E. Tin tức / Hỗ trợ | SCR-074 | — | Yes | Mapped | PQ-07 exception — high regression |
-| UC93 | Xúc tiến UC93 | Mobile | E. Tin tức / Hỗ trợ | SCR-071/072/073 (gom hub) | — | Need confirm | Need confirm | Q-013 |
-| UC94 | Xúc tiến UC94 | Mobile | E. Tin tức / Hỗ trợ | SCR-071/072/073 (gom hub) | — | Need confirm | Need confirm | Q-013 |
-| UC95 | Xúc tiến UC95 | Mobile | E. Tin tức / Hỗ trợ | SCR-071/072/073 (gom hub) | — | Need confirm | Need confirm | Q-013 |
-| UC249 | Cấu hình & QL TK | Mobile | A. Xác thực & QL TK | SCR-010, 011, 013 | — | Yes | Mapped | BS-07 invalidation; UX-12 no Avatar |
-| UC250-254 | Đăng ký / Quên MK / Cập nhật DN | Mobile | A. Xác thực & QL TK | SCR-004..009, 012 | — | Yes | Mapped | BS-09/10/11; UX-13/14 |
-| UC256 | Đăng nhập Mobile | Mobile | A. Xác thực & QL TK | SCR-001, 002, 003 | — | Yes | Mapped | BS-01 VNeID dependency |
-| UC257 | Đăng xuất Mobile | Mobile | A. Xác thực & QL TK | SCR-014 | — | Yes | Mapped | BS-05 |
-| UC258_UC259 | Thông báo hệ thống | Mobile | F. Thông báo | SCR-080, 081, 082 | — | Yes | Mapped | NV-09 chờ BA; KT-16/17/18 |
+| UC-USER-001 | Đăng nhập Admin Portal | POR-ADMIN | MOD-ADMIN-USER | SCR-ADM-AUTH-001 | — | Yes | Mapped | Derived |
+| UC-USER-002 | Đặt lại mật khẩu Admin | POR-ADMIN | MOD-ADMIN-USER | SCR-ADM-AUTH-002, SCR-ADM-AUTH-003 | — | Yes | Mapped | Derived |
+| UC-USER-003 | Đổi mật khẩu Admin | POR-ADMIN | MOD-ADMIN-USER | SCR-ADM-USER-CHGPWD | — | Yes | Mapped | Derived |
+| UC-USER-004 | Cập nhật profile cá nhân Admin | POR-ADMIN | MOD-ADMIN-USER | SCR-ADM-USER-PROFILE | — | Yes | Mapped | Derived |
+| UC-USER-005 | Đăng xuất Admin Portal | POR-ADMIN | MOD-ADMIN-USER | (usermenu) | — | Yes | Mapped | CR-002 — derived |
+| UC-TENANT-001 | Tạo tenant tổ chức | POR-ADMIN | MOD-ADMIN-TENANT | SCR-ADM-TENANT-CREATE | — | Yes | Mapped | Derived; FRD draft 5 OQ |
+| UC-TENANT-002 | Xem danh sách tenant | POR-ADMIN | MOD-ADMIN-TENANT | SCR-ADM-TENANT-LIST | — | Yes | Mapped | Derived |
+| UC-TENANT-003 | Xem và cập nhật tenant | POR-ADMIN | MOD-ADMIN-TENANT | SCR-ADM-TENANT-DETAIL | — | Yes | Mapped | Derived |
+| UC-TENANT-004 | Ngưng hoạt động tenant | POR-ADMIN | MOD-ADMIN-TENANT | SCR-ADM-TENANT-DEACTIVATE | — | Yes | Mapped | Derived |
+| UC-TENANT-005 | Khôi phục tenant đã ngưng | POR-ADMIN | MOD-ADMIN-TENANT | SCR-ADM-TENANT-RESTORE | — | Yes | Mapped | CR-001 — derived |
+| UC-ORGADMIN-001 | Cấp tài khoản admin tổ chức | POR-ADMIN | MOD-ADMIN-ORGADMIN | SCR-ADM-ORGADMIN-CREATE | — | Yes | Mapped | Derived |
+| UC-ORGADMIN-002 | Đặt lại mật khẩu admin tổ chức | POR-ADMIN | MOD-ADMIN-ORGADMIN | SCR-ADM-ORGADMIN-RESETPWD | — | Yes | Mapped | Derived |
+| UC-ORGADMIN-003 | Ngưng hoạt động tài khoản admin tổ chức | POR-ADMIN | MOD-ADMIN-ORGADMIN | SCR-ADM-ORGADMIN-DEACTIVATE | — | Yes | Mapped | Derived |
+| UC-DEVICEPOOL-001 | Import thiết bị Wonlex vào kho | POR-ADMIN | MOD-ADMIN-DEVICEPOOL | SCR-ADM-POOL-IMPORT | — | Yes | Mapped | Derived |
+| UC-DEVICEPOOL-002 | Xem danh sách thiết bị kho | POR-ADMIN | MOD-ADMIN-DEVICEPOOL | SCR-ADM-POOL-LIST | — | Yes | Mapped | Derived |
+| UC-DEVICEPOOL-003 | Gán thiết bị cho tổ chức | POR-ADMIN | MOD-ADMIN-DEVICEPOOL | SCR-ADM-POOL-ASSIGN | — | Yes | Mapped | Derived |
+| UC-DEVICEPOOL-004 | Thu hồi thiết bị về kho | POR-ADMIN | MOD-ADMIN-DEVICEPOOL | SCR-ADM-POOL-WITHDRAW | — | Yes | Mapped | Derived |
+| UC-DEVICEPOOL-005 | Đánh dấu thiết bị faulty | POR-ADMIN | MOD-ADMIN-DEVICEPOOL | SCR-ADM-POOL-FAULTY | — | Yes | Mapped | Derived |
+| UC-ORGUSER-001 | Đăng nhập Org Portal | POR-ORG | MOD-ORG-ORGUSER | SCR-ORG-A1 | — | Yes | Mapped | Confirmed — đã audit v3 + scenarios v1 + testcases v1 |
+| UC-ORGUSER-002 | Đặt lại mật khẩu Org | POR-ORG | MOD-ORG-ORGUSER | SCR-ORG-A2, SCR-ORG-A3 | — | Yes | Mapped | Confirmed |
+| UC-ORGUSER-003 | Đổi mật khẩu Org | POR-ORG | MOD-ORG-ORGUSER | SCR-ORG-A5 | — | Yes | Mapped | Confirmed |
+| UC-ORGUSER-004 | Cập nhật profile Org | POR-ORG | MOD-ORG-ORGUSER | SCR-ORG-A4 | — | Yes | Mapped | Confirmed |
+| UC-ORGUSER-005 | Đăng xuất Org Portal | POR-ORG | MOD-ORG-ORGUSER | (usermenu Org) | — | Yes | Mapped | CR-002 — confirmed (shell.jsx) |
+| UC-PATIENT-001 | Tạo hồ sơ bệnh nhân | POR-ORG | MOD-ORG-PATIENT | SCR-ORG-P2 | — | Yes | Mapped | Confirmed — FRD in-review |
+| UC-PATIENT-002 | Xem danh sách bệnh nhân | POR-ORG | MOD-ORG-PATIENT | SCR-ORG-P1 | — | Yes | Mapped | Confirmed |
+| UC-PATIENT-003 | Xem chi tiết bệnh nhân | POR-ORG | MOD-ORG-PATIENT | SCR-ORG-P3 | — | Yes | Mapped | Confirmed |
+| UC-PATIENT-004 | Cập nhật bệnh nhân (gồm SOS — CR-004) | POR-ORG | MOD-ORG-PATIENT | SCR-ORG-P4, SCR-ORG-P7 | — | Yes | Mapped | Confirmed — có smoke v1 (cần điều chỉnh) |
+| UC-PATIENT-005 | Ngưng theo dõi (archive) bệnh nhân | POR-ORG | MOD-ORG-PATIENT | SCR-ORG-P5 | — | Yes | Mapped | Confirmed — có smoke v1 (cần điều chỉnh) |
+| UC-PATIENT-006 | Khôi phục bệnh nhân đã archive | POR-ORG | MOD-ORG-PATIENT | SCR-ORG-P6 | — | Yes | Mapped | CR-003 — confirmed |
+| UC-DEVICE-001 | Gán thiết bị Wonlex cho bệnh nhân | POR-ORG | MOD-ORG-DEVICE | SCR-ORG-DEVICE-ASSIGN | — | Yes | Mapped | Derived; trigger SOS auto-sync (CR-004) |
+| UC-DEVICE-002 | Thu hồi thiết bị từ bệnh nhân | POR-ORG | MOD-ORG-DEVICE | SCR-ORG-DEVICE-WITHDRAW | — | Yes | Mapped | Derived |
+| UC-DEVICE-003 | Xem danh sách thiết bị tổ chức | POR-ORG | MOD-ORG-DEVICE | SCR-ORG-DEVICE-LIST | — | Yes | Mapped | Derived |
+| UC-CAREGIVER-001 | Tạo tài khoản caregiver | POR-ORG | MOD-ORG-CAREGIVER | SCR-ORG-CG-CREATE | — | Yes | Mapped | Derived |
+| UC-CAREGIVER-002 | Xem danh sách caregiver | POR-ORG | MOD-ORG-CAREGIVER | SCR-ORG-CG-LIST | — | Yes | Mapped | Derived |
+| UC-CAREGIVER-003 | Gỡ caregiver khỏi bệnh nhân | POR-ORG | MOD-ORG-CAREGIVER | SCR-ORG-CG-REMOVE | — | Yes | Mapped | Derived |
+| UC-CAREGIVER-004 | Ngưng hoạt động tài khoản caregiver | POR-ORG | MOD-ORG-CAREGIVER | SCR-ORG-CG-DEACTIVATE | — | Yes | Mapped | Derived |
+| UC-CAREGIVER-005 | Đặt lại mật khẩu caregiver | POR-ORG | MOD-ORG-CAREGIVER | SCR-ORG-CG-RESETPWD | — | Yes | Mapped | Derived |
+| UC-DASHBOARD-001 | Dashboard theo dõi đa-bệnh-nhân | POR-ORG | MOD-ORG-DASHBOARD | SCR-ORG-DASH | — | Yes | Mapped | Derived |
+| UC-DASHBOARD-002 | Xem chi tiết telemetry bệnh nhân | POR-ORG | MOD-ORG-DASHBOARD | SCR-ORG-DASH-DETAIL | — | Yes | Mapped | Derived |
+| UC-DASHBOARD-003 | Filter/search bệnh nhân | POR-ORG | MOD-ORG-DASHBOARD | SCR-ORG-DASH-FILTER | — | Yes | Mapped | Derived |
+| UC-ORGALARM-001 | Nhận in-app notification cảnh báo (Org) | POR-ORG | MOD-ORG-ALARM | SCR-ORG-ALARM-LIVE | — | Yes | Mapped | Derived |
+| UC-ORGALARM-002 | Xem danh sách cảnh báo đang hoạt động (Org) | POR-ORG | MOD-ORG-ALARM | SCR-ORG-ALARM-LIST | — | Yes | Mapped | Derived |
+| UC-ORGALARM-003 | Acknowledge cảnh báo (Org) | POR-ORG | MOD-ORG-ALARM | SCR-ORG-ALARM-ACK | — | Yes | Mapped | Derived |
+| UC-ORGALARM-004 | Đánh dấu hoàn tất xử lý cảnh báo (Org) | POR-ORG | MOD-ORG-ALARM | SCR-ORG-ALARM-RESOLVE | — | Yes | Mapped | Derived |
+| UC-ORGALARM-005 | Xem lịch sử cảnh báo (Org) | POR-ORG | MOD-ORG-ALARM | SCR-ORG-ALARM-HISTORY | — | Yes | Mapped | Derived |
+| UC-DEVCMD-001 | Cấu hình chu kỳ upload | POR-ORG | MOD-ORG-DEVCMD | SCR-ORG-CMD-CONFIG | — | Yes | Mapped | Derived — shared form |
+| UC-DEVCMD-003 | Cấu hình múi giờ ZONE | POR-ORG | MOD-ORG-DEVCMD | SCR-ORG-CMD-CONFIG | — | Yes | Mapped | Derived |
+| UC-DEVCMD-004 | Cấu hình ngôn ngữ LANG | POR-ORG | MOD-ORG-DEVCMD | SCR-ORG-CMD-CONFIG | — | Yes | Mapped | Derived |
+| UC-DEVCMD-005 | Cấu hình geofence + LS + BTWARNSET | POR-ORG | MOD-ORG-DEVCMD | SCR-ORG-CMD-CONFIG | — | Yes | Mapped | Derived |
+| UC-DEVCMD-006 | Yêu cầu định vị tức thời (Org) | POR-ORG | MOD-ORG-DEVCMD | SCR-ORG-CMD-LOCATE | — | Yes | Mapped | Derived |
+| UC-DEVCMD-007 | Gửi lệnh RESET/POWEROFF/FACTORY | POR-ORG | MOD-ORG-DEVCMD | SCR-ORG-CMD-OPS | — | Yes | Mapped | Derived — Org-side ONLY |
+| UC-DEVCMD-008 | Xem lịch sử lệnh thiết bị (Org) | POR-ORG | MOD-ORG-DEVCMD | SCR-ORG-CMD-HISTORY | — | Yes | Mapped | Derived |
+| UC-CAREUSER-001 | Đăng nhập Caregiver Portal | POR-CARE | MOD-CARE-CAREUSER | SCR-CARE-AUTH-001 | — | Need confirm | Need confirm | First-time flow chi tiết chưa rõ (Open Q-011 / GAP-003) |
+| UC-CAREUSER-002 | Đặt lại mật khẩu Caregiver | POR-CARE | MOD-CARE-CAREUSER | SCR-CARE-AUTH-002, SCR-CARE-AUTH-003 | — | Yes | Mapped | Derived |
+| UC-CAREUSER-003 | Đổi mật khẩu Caregiver | POR-CARE | MOD-CARE-CAREUSER | SCR-CARE-CHGPWD | — | Yes | Mapped | Derived |
+| UC-CAREUSER-004 | Cập nhật profile Caregiver | POR-CARE | MOD-CARE-CAREUSER | SCR-CARE-PROFILE | — | Yes | Mapped | Derived |
+| UC-CAREUSER-005 | Đăng xuất Caregiver Portal | POR-CARE | MOD-CARE-CAREUSER | (usermenu Care) | — | Yes | Mapped | CR-002 — derived |
+| UC-CAREPATIENT-001 | Xem danh sách bệnh nhân phụ trách | POR-CARE | MOD-CARE-CAREPATIENT | SCR-CARE-PT-LIST | — | Yes | Mapped | Derived |
+| UC-CAREPATIENT-002 | Xem chi tiết telemetry bệnh nhân | POR-CARE | MOD-CARE-CAREPATIENT | SCR-CARE-PT-DETAIL | — | Yes | Mapped | Derived |
+| UC-CAREPATIENT-003 | Yêu cầu định vị tức thời (Caregiver) | POR-CARE | MOD-CARE-CAREPATIENT | SCR-CARE-PT-LOCATE | — | Yes | Mapped | Derived — owner + co-care write |
+| UC-CAREPATIENT-004 | Cập nhật trường phi-PII bệnh nhân (CR-004) | POR-CARE | MOD-CARE-CAREPATIENT | SCR-CARE-PT-EDIT | — | Yes | Mapped | CR-004 — derived |
+| UC-COCARE-001 | Mời co-caregiver | POR-CARE | MOD-CARE-COCARE | SCR-CARE-CO-INVITE | — | Yes | Mapped | Derived |
+| UC-COCARE-002 | Xem danh sách co-caregiver | POR-CARE | MOD-CARE-COCARE | SCR-CARE-CO-LIST | — | Yes | Mapped | Derived |
+| UC-COCARE-003 | Đổi mức quyền co-caregiver | POR-CARE | MOD-CARE-COCARE | SCR-CARE-CO-CHANGE | — | Yes | Mapped | Derived |
+| UC-COCARE-004 | Gỡ co-caregiver | POR-CARE | MOD-CARE-COCARE | SCR-CARE-CO-REMOVE | — | Yes | Mapped | Derived |
+| UC-CAREALARM-001 | Nhận in-app notification cảnh báo (Caregiver) | POR-CARE | MOD-CARE-CAREALARM | SCR-CARE-ALARM-LIVE | — | Yes | Mapped | Derived |
+| UC-CAREALARM-002 | Xem danh sách cảnh báo (Caregiver) | POR-CARE | MOD-CARE-CAREALARM | SCR-CARE-ALARM-LIST | — | Yes | Mapped | Derived |
+| UC-CAREALARM-003 | Acknowledge cảnh báo (Caregiver) | POR-CARE | MOD-CARE-CAREALARM | SCR-CARE-ALARM-ACK | — | Yes | Mapped | Derived — owner + co-care write |
+| UC-CAREALARM-004 | Xem lịch sử cảnh báo (Caregiver) | POR-CARE | MOD-CARE-CAREALARM | SCR-CARE-ALARM-HISTORY | — | Yes | Mapped | Derived |
+| UC-CAREDEVCMD-001 | Cấu hình chu kỳ upload (Caregiver) | POR-CARE | MOD-CARE-CAREDEVCMD | SCR-CARE-CMD-CONFIG | — | Yes | Mapped | Derived |
+| UC-CAREDEVCMD-003 | Cấu hình múi giờ (Caregiver) | POR-CARE | MOD-CARE-CAREDEVCMD | SCR-CARE-CMD-CONFIG | — | Yes | Mapped | Derived |
+| UC-CAREDEVCMD-004 | Cấu hình ngôn ngữ (Caregiver) | POR-CARE | MOD-CARE-CAREDEVCMD | SCR-CARE-CMD-CONFIG | — | Yes | Mapped | Derived |
+| UC-CAREDEVCMD-005 | Cấu hình geofence + LS + BTWARNSET (Caregiver) | POR-CARE | MOD-CARE-CAREDEVCMD | SCR-CARE-CMD-CONFIG | — | Yes | Mapped | Derived |
+| UC-CAREDEVCMD-006 | Xem lịch sử lệnh thiết bị (Caregiver) | POR-CARE | MOD-CARE-CAREDEVCMD | SCR-CARE-CMD-HISTORY | — | Yes | Mapped | Derived |
 
 ## Feature-level gaps
 
 | Feature ID | Feature name | Gap | Impact to QC | Owner | Priority |
 |---|---|---|---|---|---|
-| UC2 | Chi tiết KCN — tab Hạ tầng/Nhà đầu tư | Tab structure + KT-03 (bảng/biểu đồ) chưa rõ | Không design được scenario chi tiết tab | BA | High |
-| UC55 | Đăng ký tư vấn đầu tư | Form spec / màn đích chưa có | FLOW-CONSULT không design được | KH (qua BA) | High |
-| UC73 | Tra cứu TTHC | **Conflict** UC73 vs UC70 Removed | Có thể tạo/bỏ sót màn TTHC | BA + QC Lead | High |
-| UC58 / UC59 / UC62 / UC67 | Tin tức UC riêng | Gom hub không có evidence riêng | Coverage tracking sai số | QC Lead + BA | Medium |
-| UC87 / UC88 / UC89 / UC91 / UC93 / UC94 / UC95 | Xúc tiến UC riêng | Gom hub không có evidence riêng | Coverage tracking sai số | QC Lead + BA | Medium |
-| UC83-86 (UC86) | Giới thiệu | NV-10 tĩnh/CMS chưa rõ | Test offline vs CMS-driven khác nhau | BA | Low |
-| UC258_UC259 | Thông báo | NV-09 loại thông báo + deep-link routing | Cold-start mapping cho push chưa có | BA | Medium |
-| (cross) | Auth + Token lifecycle | BS-07 đổi MK → bắt buộc logout — regression critical | High regression risk | Tech Lead + QC | High |
+| UC-CAREUSER-001 | Đăng nhập Caregiver Portal | First-time login flow chi tiết chưa rõ — backbone note "xem §9 Open Q" nhưng §9 không có Q tương ứng | Block test UC-CAREUSER-001 + UC-COCARE-001 accept invitation flow | BA | Medium |
+| UC-PATIENT-005 | Archive bệnh nhân | Behaviour khi bệnh nhân đang có thiết bị gán: block hay archive cùng? | Edge case test UC-PATIENT-005 | BA | Medium |
+| UC-PATIENT-006 | Restore bệnh nhân | Restore có auto-gán lại caregiver/thiết bị đã thu hồi không? | Edge case test UC-PATIENT-006 | BA | Medium |
+| UC-PATIENT-004 | Cập nhật bệnh nhân (gồm SOS — CR-004) | SOS auto-sync state machine chưa rõ (pending/failed/in-sync) | Test FLOW-009 thiếu state assertion | BA + Tech Lead | Medium |
+| UC-CAREPATIENT-004 | Cập nhật phi-PII bệnh nhân (CR-004) | Như trên (chia sẻ FLOW-009) | Như trên | BA + Tech Lead | Medium |
+| UC-DEVICE-001 | Gán thiết bị Wonlex | Khi gán mới thiết bị có SOS đã set sẵn trên hồ sơ: trigger auto-sync ngay khi nào? | Edge case test FLOW-009 | BA + Tech Lead | Medium |
+| UC-COCARE-001 | Mời co-caregiver | Lifecycle "lời mời" có thời hạn expire không? | Edge case TC invitation | BA | Low |
+| UC-DEVCMD-001..008, UC-CAREDEVCMD-001..006 | Lệnh thiết bị | State timeout (response không về sau X giây) | Edge case TC pipeline command | Tech Lead | Low |
+| UC-ORGALARM-001..005, UC-CAREALARM-001..004 | Alarm | Auto-resolve/auto-expire? | State machine alarm | BA | Low |
 
 ## Unmapped screens
 
 | Screen ID | Screen / Page | Why unmapped | Suggested action |
 |---|---|---|---|
-| SCR-050 | Quản lý cho thuê đất | UC41 chưa có row dashboard (AI-UC-01 chờ BA) | Khi BA hoàn tất UC41 → bổ sung row dashboard `Mobile / UC41 / D / Cho thuê đất KCN / Need confirm`. **KHÔNG** tự thêm row UC41 ngay vì BA chưa cấp content. |
-| SCR-090 | Toast messages | Cross-cutting, AI-UX-01 chưa thiết kế | Khi UI/UX team có design → review tích hợp; không tạo row dashboard riêng |
-| SCR-091 | Empty — Search NULL | AI-UX-02 chưa thiết kế | Same |
-| SCR-092 | Empty — List rỗng | AI-UX-03 chưa thiết kế | Same |
-| SCR-093 | Error — Network/500/404/Timeout | AI-UX-04 chưa thiết kế | Same |
+| SCR-ORG-A6 | Email template preview | Không có UC chính thức — chỉ là tool preview trong design prototype | BA + QC Lead xác nhận có phải tool nội bộ hay là feature riêng cần spec |
 
 ## Dashboard update recommendation
 
-`qc-dashboard-sync` **không cần thay đổi cấu trúc dashboard** (cột `Files stt`, `UC review stt`, `Scenario design stt`, `TC design stt`, `Execute stt` không ảnh hưởng bởi site map). Đây chỉ là handoff thông tin cấp feature để cross-check.
-
 | Feature ID | Recommended dashboard note/status | Reason |
 |---|---|---|
-| UC73 | Cân nhắc đánh `Conflict` hoặc giữ `Need confirm` cho tới khi BA + QC Lead resolve UC73 vs UC70 | Site map: Conflict |
-| UC55 | Giữ `Yes` nhưng note "SCR-066 chờ KH (AI-UC55-01)" | Site map: Partial |
-| UC2 | Giữ `Yes` nhưng note "SCR-047 chờ BA (AI-UC-02)" | Site map: Partial |
-| UC58/59/62/67 | Giữ `Need confirm` (đã đúng) | Site map: Need confirm |
-| UC87/88/89/91/93/94/95 | Giữ `Need confirm` (đã đúng) | Site map: Need confirm |
-| UC41 (chưa có row) | **KHÔNG** auto-add. Đợi BA cấp content UC41 (AI-UC-01) | Site map: Unmapped — pending |
-
-**Lưu ý cho QC Lead:** Sau khi BA cung cấp lại folder `docs/BA/<UC-ID>/` (Q-015) — `qc-dashboard-sync` chạy lại sẽ tự cập nhật cột `Files stt` (hiện đang stale toàn bộ `Missing`).
+| (Mọi UC trừ UC-CAREUSER-001) | Site map: Mapped | Đã có ít nhất 1 screen mapped + In scope? = Yes |
+| UC-CAREUSER-001 | Site map: Need confirm | First-time login flow chi tiết chưa rõ — Open Q-011 |
+| (Toàn bộ POR-ADMIN + POR-CARE) | Site map: Mapped (Derived) | Chưa có wireframe — dashboard nên track "Wireframe" cell separately nếu có cột này |

@@ -46,52 +46,36 @@ The protocol is referenced by every phase file — do NOT duplicate its rules he
 
 ### Phase 0 — Routing + Resume Detection + Dashboard Precheck
 
-> No user-facing output during the silent-audit substep, EXCEPT the dashboard precheck warning if Case A or B applies.
+> No user-facing output during the silent-audit substep, EXCEPT the dashboard precheck warning if Case A applies.
 
 1. **Identify the UC-ID** from the user's prompt or from the requirement file name. This is treated as the on-disk Folder ID; the dashboard precheck below may resolve it to a different canonical ID if a Mode 3 alias mapping exists.
 
-2. **Determine `mode`:** check the UC-ID folder for the existence of `uc-review-report` file.
-   - **If the file exists** → check the `question-backlog` file.
-     - If the open questions are all answered → `mode = re-audit`.
-     - If the open questions are NOT all answered → STOP and ask the user to answer the open questions first, then `mode = re-audit`.
-   - **If the file does not exist** → `mode = first-audit`.
-
-3. **Resume detection** (per `workflows/checkpoint-protocol.md` §4):
+2. **Resume detection** (per `workflows/checkpoint-protocol.md` §4):
    - Check `.claude/skills/qc-uc-read/process-logging/<UC-ID>/progress.md`.
-   - **Found** → ask the user `Continue from Phase <next>?` or `Restart fresh?`. Branch accordingly. If user picks Continue and the stored `mode` differs from the freshly-determined `mode`, warn the user and prefer the stored mode unless they explicitly Restart.
+   - **Found** → ask the user `Continue from Phase <next>?` or `Restart fresh?`. Branch accordingly. If user picks Continue, prefer the stored mode and skip the Determine mode section, unless they explicitly Restart.
    - **Not found** → fresh run.
 
-4. **Dashboard precheck (Case A / B / C per `qc-dashboard-sync` SKILL.md "Per-UC skill precheck contract"):** runs BEFORE generating `run_id` so a user `site-map first` answer does not pollute the worklog.
+3. **Determine `mode`:** check the UC-ID folder for the existence of `uc-review-report` file.
+   - **If the file exists** → `mode = re-audit`.
+   - **If the file does not exist** → `mode = first-audit`.
+
+4. **Dashboard precheck (Case A per `qc-dashboard-sync` SKILL.md "Per-UC skill precheck contract"):** runs BEFORE generating `run_id` so a user `site-map first` answer does not pollute the worklog.
    - Resolve `qc-dashboard.md`. Parse `featureIndex` (by column 2 `<ID label>`) + `folderIDIndex` (by column 3 `Folder ID`).
    - **Case A — UC NOT in dashboard:**
 
      ```text
-     ⚠️ UC `<UC-ID>` chua co trong qc-dashboard.md va se duoc them moi (Folder ID = <UC-ID>, In scope? = Need confirm).
-     Day la dau hieu UC nay chua duoc reconcile voi site-map.
+     ⚠️ UC `<UC-ID>` chưa có trong qc-dashboard.md và sẽ được thêm mới (Folder ID = <UC-ID>, In scope? = Need confirm).
+     Đây là dấu hiệu UC này chưa được phát hiện hoặc matching với site-map.
 
-     Ban muon:
-     1. `site-map first` — Dung lai. Chay /qc-site-map (chon Mode 3) truoc de reconcile orphans, roi quay lai chay review.
-     2. `continue` — Tiep tuc. Bottom-up se add row + ghi vao dashboard-orphans.md; ban co the chay /qc-site-map Mode 3 sau de reconcile.
+     Bạn muốn:
+     1. `site-map first` — Dừng lại. Chạy /qc-site-map (Mode 3) trước, rồi quay lại chạy review.
+     2. `continue` — Tiếp tục. Bottom-up sẽ add row vào dashbord đồng thời ghi vào dashboard-orphans.md; bạn có thể chạy /qc-site-map sau để update.
      ```
 
-     - `site-map first` → STOP. Print `Da dung. Vui long chay /qc-site-map (chon Mode 3) roi chay lai /qc-uc-read.`
+     - `site-map first` → STOP. Print `Đã dừng. Vui lòng chạy /qc-site-map (Mode 3) rồi chạy lại /qc-uc-read.`
      - `continue` → invoke `qc-dashboard-sync` bottom-up with `uc_id=<UC-ID>` via the Skill tool. Wait for it to return.
 
-   - **Case B — UC in dashboard BUT still listed in `dashboard-orphans.md`:**
-
-     ```text
-     ⚠️ UC `<UC-ID>` da co trong qc-dashboard.md nhung VAN dang nam trong dashboard-orphans.md (qc-site-map Mode 3 chua reconcile).
-     Ket qua review co the bi rename/realign khi Mode 3 chay sau.
-
-     Ban muon:
-     1. `site-map first` — Dung lai. Chay /qc-site-map (chon Mode 3) truoc de reconcile, roi quay lai chay review.
-     2. `continue` — Tiep tuc. Output se duoc tracking duoi Folder ID hien tai; co the can rename sau khi Mode 3 chay.
-     ```
-
-     - `site-map first` → STOP.
-     - `continue` → proceed (no bottom-up trigger).
-
-   - **Case C** — proceed silently.
+   - **Case B — UC in dashboard:** proceed silently.
 
 5. Generate a new `run_id` per the worklog protocol.
 
@@ -105,17 +89,15 @@ Dispatch to the appropriate workflow folder based on `mode`:
 
 | Phase | File                                                            | Friendly Name                                |
 | ----- | --------------------------------------------------------------- | -------------------------------------------- |
-| 1     | `workflows/first-audit/1-synthesize-understanding.md`           | Synthesizing Requirement Understanding       |
-| 2     | `workflows/first-audit/2-score-and-identify-gaps.md`            | Scoring & Identifying Gaps                    |
-| 3     | `workflows/first-audit/3-generate-review-report.md`             | Generating Review Report                      |
+| 1     | `workflows/first-audit/1-synthesize-understanding.md`           | Đọc hiểu và phân tích yêu cầu       |
+| 2     | `workflows/first-audit/2-score-and-identify-gaps.md`            | Xác định Gaps, mâu thuẫn và đánh giá điểm theo scoring-rubric |
+| 3     | `workflows/first-audit/3-generate-review-report.md`             | Viết báo cáo                      |
 
 #### Re-Audit
 
 | Phase | File                                                            | Friendly Name                                |
 | ----- | --------------------------------------------------------------- | -------------------------------------------- |
-| 1     | `workflows/re-audit/1-apply-ba-answers.md`                      | Applying BA Answers                           |
-| 2     | `workflows/re-audit/2-recalculate-and-update-backlog.md`        | Recalculating Score & Updating Backlog        |
-| 3     | `workflows/re-audit/3-generate-updated-report.md`               | Generating Updated Report v[N+1]              |
+| 1     | `workflows/re-audit/re-audit.md`                      | Phân tích thông tin mới, câu trả lời, áp dụng thay đổi                  |
 
 Each phase file is self-contained: it includes its own Start status update, work steps, end-of-phase checkpoint write, and hand-off pointer to the next phase. After Phase 3 finishes, cleanup runs per `checkpoint-protocol.md` §6.
 

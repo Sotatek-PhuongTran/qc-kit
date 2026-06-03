@@ -43,42 +43,33 @@ Once the design workflow is determined, execute the skill in the following order
 ### Step A — Phase 0: Routing + Resume Detection + Dashboard Precheck
 
 1. **Identify the UC-ID** from the user invocation or filename. This is the on-disk Folder ID. If `qc-site-map` Mode 3 later reconciles it to a different canonical Feature ID, the dashboard row will be renamed; this skill always works against the original folder.
+
 2. **Identify the workflow** (`generate` or `update`) — ask if not stated. For `update`, verify that `func-test-cases` for the `<UC-ID>` exists (or is provided by the user). If it does NOT exist, ask the user to provide the test cases directory before proceeding.
+
 3. **Resume detection** (per Checkpoint & Resume Protocol §4): check `.claude/skills/qc-func-tc-design/process-logging/<UC-ID>/progress.md`. If found, prompt **Continue from Phase N** vs **Restart** and branch accordingly.
-4. **Dashboard precheck (Case A / B / C per `qc-dashboard-sync` SKILL.md "Per-UC skill precheck contract"):** run this BEFORE generating `run_id` or appending the worklog row so a user `site-map first` answer does not pollute the log.
+
+4. **Dashboard precheck (Case A / B per `qc-dashboard-sync` SKILL.md "Per-UC skill precheck contract"):** run this BEFORE generating `run_id` or appending the worklog row so a user `site-map first` answer does not pollute the log.
    - Resolve `qc-dashboard.md`. Parse `featureIndex` (by column 2 `<ID label>`) + `folderIDIndex` (by column 3 `Folder ID`).
    - **Case A — UC NOT in dashboard:** emit the two-choice Vietnamese warning:
 
      ```text
-     ⚠️ UC `<UC-ID>` chua co trong qc-dashboard.md va se duoc them moi (Folder ID = <UC-ID>, In scope? = Need confirm).
-     Day la dau hieu UC nay chua duoc reconcile voi site-map.
+     ⚠️ UC `<UC-ID>` chưa có trong qc-dashboard.md và sẽ được thêm mới (Folder ID = <UC-ID>, In scope? = Need confirm).
+     Đây là dấu hiệu UC này chưa được đồng bộ bởi site-map.
 
-     Ban muon:
-     1. `site-map first` — Dung lai. Chay /qc-site-map (chon Mode 3) truoc de reconcile orphans, roi quay lai chay /qc-func-tc-design.
-     2. `continue` — Tiep tuc. Bottom-up se add row + ghi vao dashboard-orphans.md; ban co the chay /qc-site-map Mode 3 sau de reconcile.
+     Bạn muốn:
+     1. `site-map first` — Dừng lại. Chạy /qc-site-map (Mode 3) trước, rồi quay lại chạy qc-func-tc-design.
+     2. `continue` — Tiếp tục. Bottom-up sẽ add row vào dashbord đồng thời ghi vào dashboard-orphans.md; bạn có thể chạy /qc-site-map sau để update.
      ```
 
-     - User `site-map first` → STOP. Print: `Da dung. Vui long chay /qc-site-map (chon Mode 3) roi chay lai /qc-func-tc-design.`
+     - User `site-map first` → STOP. Print: `Đã dừng. Vui lòng chạy /qc-site-map rồi chạy lại /qc-func-tc-design.`
      - User `continue` → invoke `qc-dashboard-sync` bottom-up via the Skill tool with `uc_id=<UC-ID>`. Wait for it to return.
 
-   - **Case B — UC IS in dashboard BUT its Folder ID is still in `.claude/skills/qc-site-map/inbox/dashboard-orphans.md`:** emit the adapted warning:
-
-     ```text
-     ⚠️ UC `<UC-ID>` da co trong qc-dashboard.md nhung VAN dang nam trong dashboard-orphans.md (qc-site-map Mode 3 chua reconcile).
-     Ket qua test cases co the bi rename/realign khi Mode 3 chay sau.
-
-     Ban muon:
-     1. `site-map first` — Dung lai. Chay /qc-site-map (chon Mode 3) truoc de reconcile, roi quay lai chay /qc-func-tc-design.
-     2. `continue` — Tiep tuc. Output se duoc tracking duoi Folder ID hien tai; co the can rename sau khi Mode 3 chay.
-     ```
-
-     - User `site-map first` → STOP.
-     - User `continue` → proceed normally (no bottom-up trigger needed).
-
-   - **Case C — UC IS in dashboard AND not in orphan inbox:** no warning, no prompt. Proceed.
+   - **Case B — UC in dashboard:** proceed silently.
 
 5. **Generate `run_id`** per the worklog protocol.
+
 6. **Append** a new entry to the device's worklog JSONL with `status = "Running (Phase 1)"`, `input`/`output` empty, `start = now`.
+
 7. **Initialize `progress.md`** (fresh run only — skip if resuming): create `.claude/skills/qc-func-tc-design/process-logging/<UC-ID>/progress.md` with `last_phase_done: ` (empty), `next_phase: 1`, plus run_id / uc_id / workflow / started_at / updated_at. This is the FIRST file written for the run; the folder is created lazily here.
 
 ### Step B — Run Phases 1 → 2 → 3
@@ -338,6 +329,7 @@ Read the `path-registry.md` file to find the below file locations:
 **Required by BOTH workflows (read first, before any drafting):**
 - `project-context-master` — read §1 "Product Platform Type" to determine which `references/design-technical/design-technical-<variant>.md` rubric(s) to load. If the field is missing or blank, STOP and ask the user to populate it (the field is mandatory because the rubric drives test design coverage).
 - `qc-site-map` (optional) — if present, read §6 Navigation (TC Pre-/Post-condition), §7 Role/access (permission TCs), §8 Screen ↔ Feature mapping (TC scope per screen touched by the feature), §9 Data/API/Integration/State touchpoints (integration + state transition TCs), §10 Regression anchors (risk-based TC prioritization). If missing, skip site-map-derived TCs and warn once.
+- `.claude/skills/qc-uc-read/references/qc-writting-rules.md`
 
 For **generate-test-cases** workflow:
 - `uc-review-report` - read the latest version

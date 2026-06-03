@@ -18,10 +18,10 @@ All checkpoint files live in `.claude/skills/qc-uc-read/process-logging/<UC-ID>/
 | `progress.md`               | All phases            | State machine — current run metadata + last completed phase                                   |
 | `01_synthesis.md`           | First audit Phase 1   | 5 synthesis sections + Section 4 inventory with `Delta = 0` coverage verified                 |
 | `02_scoring.md`             | First audit Phase 2   | Scoring table (10 KA) + cross-artefact conflicts + blocker list                               |
-| `01_applied-answers.md`     | Re-audit Phase 1      | Updated synthesis sections after BA answers integrated + image re-scan delta verified         |
-| `02_recalculated.md`        | Re-audit Phase 2      | Updated scoring table + backlog status changes (resolved / new open questions)                |
 
 Phase 3 in both workflows writes the **real deliverable** (`uc-review-report v[N].md`) to the output folder — this IS the final checkpoint. No separate `03_*.md` file needed.
+
+Re-audit runs as a **single uninterrupted flow** with no intermediate checkpoint files. The output `uc-review-report v[N+1].md` IS the checkpoint. If re-audit is interrupted before completion, the next run restarts from Step 0.
 
 ### `progress.md` format
 
@@ -82,9 +82,7 @@ Use these names verbatim in both the worklog entry's `status` field and `qc-dash
 | first-audit   | 1     | Synthesizing Requirement Understanding    | Tổng hợp hiểu biết requirement                           |
 | first-audit   | 2     | Scoring & Identifying Gaps                | Chấm điểm & xác định gap                                  |
 | first-audit   | 3     | Generating Review Report                  | Tạo báo cáo review                                       |
-| re-audit      | 1     | Applying BA Answers                       | Áp dụng câu trả lời BA                                    |
-| re-audit      | 2     | Recalculating Score & Updating Backlog    | Tính lại điểm & cập nhật backlog                          |
-| re-audit      | 3     | Generating Updated Report v[N+1]          | Tạo báo cáo cập nhật v[N+1]                              |
+| re-audit      | —     | Re-auditing                               | Phân tích & cập nhật báo cáo                             |
 
 ---
 
@@ -126,8 +124,8 @@ When resuming, load these files INTO MEMORY before executing the next phase:
 | ------------- | ----------------- | -------------------------------------------------------------------- |
 | first-audit   | 2                 | `01_synthesis.md`                                                    |
 | first-audit   | 3                 | `01_synthesis.md`, `02_scoring.md`                                   |
-| re-audit      | 2                 | `01_applied-answers.md` + previous `uc-review-report v[N].md`        |
-| re-audit      | 3                 | `01_applied-answers.md`, `02_recalculated.md` + previous `uc-review-report v[N].md` |
+
+> **Re-audit has no intermediate checkpoints.** If `progress.md` shows `mode: re-audit` with `last_phase_done: 0`, offer only **Restart** — there is no partial state to resume from.
 
 Also re-resolve all `path-registry` logical names — paths may have changed since the last run.
 

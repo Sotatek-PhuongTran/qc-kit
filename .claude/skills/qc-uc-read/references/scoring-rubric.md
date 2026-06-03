@@ -1,114 +1,152 @@
 # UC Readiness Scoring Rubric
 
-> Shared rubric referenced by both `first-audit` and `re-audit` workflows. Update this file ONCE to change scoring rules everywhere.
+> Shared rubric for `qc-uc-read` first-audit and re-audit workflows.
+>
+> This simplified rubric scores only the content quality of Phase 1 synthesis sections F.1-F.4 and one additional area for UC documentation issues.
+>
+> Acceptance Criteria candidates are not scored.
 
-## Status Markers
+---
 
-Mark each knowledge area as:
+## 1. Core policy
 
-- ✅ **Clear** — explicitly stated and unambiguous (full marks)
-- ⚠️ **Partial** — present but vague, incomplete, or only inferred (half marks)
-- ❌ **Missing** — absent from all provided artefacts (zero marks)
+Score only the feature / use case currently under review.
 
-Additional status markers used throughout the report:
+Do not penalize broad product, process, design-system, or architecture issues unless they directly affect this UC's behavior, UI interaction, data rules, validation, state transition, integration, or Agent / tester understanding.
 
-- ✅ **Complete** — explicitly stated and unambiguous
-- ⚡ **Partial** — present but vague, incomplete, or only inferred (half marks)
-- ⚠️ **Missing** — absent from all provided artefacts (zero marks)
-- *(inferred)* — the reviewer inferred information rather than finding it explicitly; these are candidates for confirmation before test design begins
+Phase 2 must build an Issue Register first. The scoring table is a short summary of the Issue Register, not a long report.
 
-## Knowledge Areas Checklist
+---
 
-Score the **combined artefact set** against these knowledge areas. A tester needs all of these to design complete test cases.
+## 2. Acceptance Criteria policy
 
-| #   | Knowledge Area                            | Max Pts | Critical? | What to look for                                                                                                                                                                                                                                                                                                                                                                                                       |
-| --- | ----------------------------------------- | ------- | --------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| 1   | Feature Identity (title, ID, context)     | 5       | Yes       | Is it clear what this feature is and where it fits in the system?                                                                                                                                                                                                                                                                                                                                                  |
-| 2   | Objective & Scope                         | 5       | Yes       | Why does this feature exist? What is in/out of scope?                                                                                                                                                                                                                                                                                                                                                                |
-| 3   | Actors & User Roles                       | 10      | Yes       | Who triggers the feature? What roles/permissions are involved?                                                                                                                                                                                                                                                                                                                                                       |
-| 4   | Preconditions & Postconditions            | 10      | Yes       | What must be true before? What is the system state after success?                                                                                                                                                                                                                                                                                                                                                    |
-| 5   | UI Object Inventory & Mapping             | 15      | Yes       | Every atomic UI element listed as its own row with label/type/required/default/placeholder/enum values. **Auto-cap rules:** if any row collapses ≥ 2 atomic elements (e.g., "9 API fields", "(4 values)"), max score = 8/15. If any design image has < 80% of its visible elements enumerated, max score = 5/15. If any design image is referenced but no element from it appears in Section 4, max score = 0/15. |
-| 6   | Object Attributes & Behavior Definition   | 20      | Yes       | Determine the state and response of each UI object based on specific system conditions. **1-to-1 rule:** every row in Section 4 must have ≥ 1 corresponding row here. If < 80% of Section-4 rows are covered, max score = 10/20.                                                                                                                                                                                |
-| 7   | Functional Logic & Workflow Decomposition | 20      | Yes       | Analyze in detail the business processes of each function available on the feature screen. Duplicate the block below for each major sub-function (e.g., View List, Create Record).                                                                                                                                                                                                                                |
-| 8   | Functional Integration Analysis           | 20      | Yes       | Analyze and evaluate the linkages and influences between the cataloged functions, acting as an integration check between functions.                                                                                                                                                                                                                                                                                |
-| 9   | Acceptance Criteria                       | 20      | Yes       | Measurable, verifiable pass/fail statements.                                                                                                                                                                                                                                                                                                                                                                          |
-| 10  | Non-functional Requirements               | 5       | No        | Performance, security, compatibility, accessibility.                                                                                                                                                                                                                                                                                                                                                                  |
+Acceptance Criteria candidates are **not** a scoring area.
 
-**Total: 130 points → Normalise to 100 for the final score.**
+Phase 1 may still synthesize AC candidates to help the user confirm Agent understanding.
 
-## Normalization Formula
+Phase 2 may review AC candidates only as a non-scored confirmation aid:
 
-`Final Score = round((Raw Score / 130) × 100, 1)`
+- Are they traceable to source evidence or Phase 1 synthesis?
+- Are they within the reviewed UC scope?
+- Are they observable and pass/fail testable?
+- Do they need user confirmation?
 
-> Example: Raw score 88 / 130 → Final Score = round((88 / 130) × 100, 1) = **67.7 / 100**
-> Example: Raw score 95 / 130 → Final Score = round((95 / 130) × 100, 1) = **73.1 / 100**
+If an AC candidate is unsupported, too broad, or outside scope, record it as a UC documentation / synthesis quality issue only when it affects Agent understanding.
 
-## Auto-fail Rule
+---
 
-If any Critical knowledge area scores 0, verdict = NOT READY regardless of total score.
+## 3. Status markers
 
-- **Critical areas** (rows marked "Yes"): Areas #1–#9. If ANY of these score 0, the verdict is automatically NOT READY regardless of total score.
-- **Non-critical areas** (rows marked "No"): Area #10. Scoring 0 here reduces the total but does not trigger auto-fail.
-
-## Readiness Thresholds
-
-| Score   | Verdict                       | Meaning                                                              |
-| ------- | ----------------------------- | -------------------------------------------------------------------- |
-| 90–100  | ✅ **READY**                  | QA can begin test design immediately                                 |
-| 70–89   | ⚠️ **CONDITIONALLY READY**   | QA can start on clear areas; flagged items must be fixed in parallel |
-| 0–69    | ❌ **NOT READY**             | Too many gaps; do not begin test design                              |
-
-**Auto-fail:** Any Critical knowledge area scoring 0 → ❌ NOT READY regardless of total.
-
-## Cross-Artefact Conflict Check
-
-After scoring, check for **conflicts between artefacts**:
-
-- Does the UC doc describe a flow that contradicts the wireframe?
-- Does the API spec define fields not mentioned in requirements?
-- Are there UI elements in the design with no corresponding business rule?
-- Are labels/field names inconsistent across documents?
-- **Site-map cross-check (if `qc-site-map` exists):** does the UC cover every screen mapped to its feature in §8 Screen ↔ Feature mapping? Do UC's actors/roles match §7 Role/access by screen? Do UC's flows match §6 Navigation? Any mismatch → Warning + flag in Unified Gap & Question Report.
-
-List all conflicts found — they are automatic Warnings.
-
-## Blocked Artefact Protocol
-
-If a referenced artefact (wireframe, API spec, supporting doc) is **unavailable or inaccessible**:
-
-- Mark the dependent knowledge area(s) as `[BLOCKED: artefact name not accessible]`
-- Score those areas as 0
-- Since blocked artefacts almost always affect Critical knowledge areas (#1–#9), surface each blocked area as a 🔴 **Blocker** in the report under the "Blockers" section
-- Do NOT infer or assume content from unavailable artefacts
-
-## Common Gap Patterns
-
-| Gap Pattern                                  | Impact on Test Design                         |
-| -------------------------------------------- | --------------------------------------------- |
-| No preconditions stated                      | Tester can't set up test data correctly       |
-| Vague actor ("the user")                     | Can't determine which role/permission to test |
-| Missing field validation rules               | Can't write boundary value or negative tests  |
-| No error messages specified                  | Can't verify error handling behaviour         |
-| Acceptance criteria use "should" / "can"     | Not verifiable; can't define pass/fail        |
-| Error UI state not described                 | Can't verify UI error behaviour               |
-| API error codes not listed                   | Can't verify API error handling               |
-| Design shows fields not in requirements      | Ambiguous scope and validation rules          |
-| Flows reference other features without links | Can't trace test dependencies                 |
-
-## Platform-Aware Gap Detection
-
-Before scoring, read `project-context-master.md` §1 → "Product Platform Type". The platform variant(s) declared there sharpen what counts as ⚠️ Partial / ❌ Missing inside the existing Knowledge Areas — they do NOT add a new KA, do NOT change the 130-pt total, and do NOT change the normalization formula. They only refine the auditor's eye.
-
-When auditing **KA #6 Object Attributes**, **KA #7 Functional Logic**, **KA #8 Functional Integration**, and **KA #10 NFR**, apply this expectation table:
-
-| Platform variant | UC SHOULD address (else flag the relevant KA's row as Partial/Missing with evidence note "Platform-specific gap: <topic>") |
+| Status | Meaning |
 |---|---|
-| `web-responsive` | Browser compatibility matrix; behavior at each declared breakpoint (desktop / tablet / mobile viewport); responsive reflow + mobile-viewport tap targets; URL deep-link / back-forward / refresh state preservation. |
-| `web-static` | Min screen resolution + browser matrix; keyboard shortcuts (if back-office); print view (if reports); bulk operations + grid pagination/sorting/filter rules. |
-| `mobile-native` | App lifecycle (background → foreground; killed → relaunch; form-draft persistence); OS permissions used (Location/Camera/Notifications/Photo/Biometric) + rationale text + deny-recovery flow; hardware back button (Android) / swipe-back-edge (iOS); push notification + deep-link target (cold/warm/killed); offline behavior + cache invalidation; biometric auth + fallback; safe-area insets; accessibility (VoiceOver/TalkBack labels, Dynamic Type). |
-| `mobile-hybrid` | All `mobile-native` items above PLUS: WebView ↔ native bridge methods used; WebView lifecycle vs native shell; cookie / token sync between WebView and native HTTP; in-app browser fallback for external URLs. |
-| `desktop-native` | Window management (resize / min size / multi-monitor / DPI scaling); OS file dialogs (open/save with extension filter, drag-and-drop from OS); keyboard shortcuts per OS conventions; system tray + OS notifications; auto-update flow; installer/uninstaller behavior; concurrent edit (multi-window or multi-instance) policy. |
+| ✅ Clear | Complete, consistent, traceable, and unambiguous enough for Agent / tester understanding. |
+| ⚠️ Partial | Present but incomplete, vague, inconsistent, partly inferred, or only partially traceable. |
+| ❌ Missing | Absent from accessible artefacts. |
+| 🚫 Blocked | Required or referenced artefact is unavailable or inaccessible, so the area cannot be verified. |
 
-If multiple variants apply (multi-platform project), apply the union of expectations for the variants relevant to the screen the UC describes. If a UC explicitly states "this screen is X-platform-only" then apply only that variant's expectations.
+---
 
-> **Surfacing rule:** Platform-specific gaps appear inline in the affected KA's evidence column (not as a separate KA section), with the prefix `Platform-specific gap (<variant>):` so they are easy to spot. Phase 3 MUST lift each marked gap into a row of the **Unified Gap & Question Report** table (the canonical Q-table appended to the audit's Audit Summary section, with Q-IDs Q1, Q2, …). The `qc-qna` auto-trigger after `qc-uc-read` reads from THAT table — NOT from template §10.1 (which is the BA's UC-local Open Questions section, a different artefact). No change to `qc-qna` is required.
+## 4. Severity levels
+
+| Severity | Meaning |
+|---|---|
+| Blocker | Prevents reliable understanding of a critical feature behavior, or a required artefact is inaccessible. |
+| Major | Creates meaningful ambiguity, conflict, missing logic, or traceability risk for test design. |
+| Minor | Local issue that should be fixed but does not block understanding of the main behavior. |
+| Note | Confirmation item or out-of-scope observation. Usually no score impact. |
+
+---
+
+## 5. Issue types
+
+Use only these issue types unless this rubric is updated.
+
+| Issue type | Use when |
+|---|---|
+| `MISSING_INFO` | Required functional information is absent from Phase 1 synthesis or source evidence. |
+| `UNCLEAR_INFO` | Information exists but is vague, incomplete, or not specific enough for test design. |
+| `CROSS_SOURCE_CONFLICT` | Phase 1 evidence shows contradiction between UC, design, prototype, API, common rule/message, site-map, or project context. |
+| `INTERNAL_INCONSISTENCY` | Terms, labels, statuses, rules, or flow behavior are inconsistent within the same source or synthesis section. |
+| `AMBIGUOUS_WORDING` | Source wording is too broad or subjective, such as "valid", "appropriate", "quickly", "as needed", without a concrete rule. |
+| `DESIGN_DETAIL_LEAK` | UC text specifies visual design details such as color, pixel, layout, spacing, font, or exact placement without functional/test relevance. |
+| `SOLUTION_DETAIL_LEAK` | UC text over-specifies implementation details not needed to understand business behavior. |
+| `UNTRACEABLE_SYNTHESIS` | Phase 1 synthesis states behavior or rules without source trace or inferred marker. |
+| `SYNTHESIS_SOURCE_MISMATCH` | Targeted verification shows Phase 1 synthesis does not match the original source. |
+| `BLOCKED_EVIDENCE` | A required source or evidence section is marked missing, blocked, or inaccessible. |
+| `AC_CONFIRMATION_NEEDED` | §F.5 AC candidate is useful but requires BA/QC Lead confirmation. This is not scored directly. |
+| `OUT_OF_SCOPE` | The issue is not directly relevant to the reviewed use case. Do not include in scoring. |
+
+---
+
+## 6. Scoring areas
+
+Total score: **100 points**.
+
+No normalization is required.
+
+| # | Scoring Area | Related Phase 1 section | Max | Critical? | What to evaluate |
+|---:|---|---|---:|---|---|
+| 1 | UI Object Inventory & Source Mapping | F.1 | 20 | Yes | UI elements are listed atomically and mapped to UC / design / prototype evidence. Labels, types, required markers, defaults, placeholders, enum values, table columns, actions, statuses, messages, empty / loading / disabled states are clear. |
+| 2 | Object Attributes, Behavior, Rules, Validations & Messages | F.2 | 25 | Yes | Each UI / data object has states, interactions, system responses, dependencies, validations, business rules, and resolved error / success messages where applicable. |
+| 3 | Functional Logic & Workflow Decomposition | F.3 | 25 | Yes | Each major function has clear happy path, alternative path, exception path, trigger, input, output, actor / permission behavior, and system feedback. |
+| 4 | Functional Integration & Data Consistency | F.4 | 15 | Yes | Cross-function, cross-screen, cross-component, and data synchronization effects are clear after view / create / update / delete / filter / search / export or related actions. |
+| 5 | UC Documentation Quality Issues | Source UC + all cross-artefact checks | 15 | Yes | UC is clear, consistent, scoped, and reviewable. Penalize ambiguity, internal inconsistency, source conflict, design-detail leak, solution-detail leak, untraceable synthesis, and wording that prevents Agent / tester understanding. |
+
+---
+
+## 7. Score guide
+
+Use the score guide below for each area.
+
+| Score band | Meaning |
+|---|---|
+| 90-100% of max | Clear: only minor or no issues. |
+| 60-89% of max | Partial: usable, but has missing details, ambiguity, or unresolved questions. |
+| 1-59% of max | Weak: significant missing logic, conflicts, or unclear behavior. |
+| 0 | Missing or blocked. Cannot be reliably reviewed. |
+
+---
+
+## 8. Auto-cap rules
+
+Apply these caps after identifying issues.
+
+| Condition | Cap |
+|---|---|
+| Any required / referenced artefact is inaccessible and the affected area cannot be verified. | Affected area = 0 and status = Blocked. |
+| A blocker prevents understanding of a critical function. | Affected area max 40% of its max score. Final verdict = Not Ready. |
+| F.1 groups multiple atomic UI elements into one row, or omits many visible elements from provided design / prototype evidence. | Area 1 max 12/20. If design is referenced but no UI evidence is usable, Area 1 = 0. |
+| F.2 does not cover at least 80% of F.1 elements. | Area 2 max 15/25. |
+| F.3 covers happy path only and omits important alternative / exception paths. | Area 3 max 18/25. |
+| F.4 is generic and does not identify concrete data or function impacts. | Area 4 max 7/15. |
+| UC has unresolved contradiction across sources that changes expected behavior. | Area 5 max 8/15 and affected content area max 70% of max. |
+| UC has repeated ambiguous wording for rules / validation / states. | Area 5 max 8/15 and affected content area max 80% of max. |
+| UC describes non-functional visual design details as requirements without business meaning. | Area 5 max 10/15. |
+| Phase 1 adds behavior not traceable to source and does not mark it as inferred. | Area 5 max 9/15. |
+| No formal AC section exists in UC. | No score impact. |
+
+---
+
+## 9. Blocked artefact handling
+
+Do not treat a missing optional artefact as a blocker.
+
+A blocker exists only when an artefact is required by the workflow or referenced by the UC / project context / path registry, but is unavailable or inaccessible.
+
+When blocked:
+
+1. Record `BLOCKED_ARTEFACT` in the Issue Register.
+2. Set the dependent scoring area to 0 only if the area cannot be verified without that artefact.
+3. Do not infer missing content from unavailable artefacts.
+
+---
+
+## 10. Final verdict
+
+| Score | Verdict | Meaning |
+|---:|---|---|
+| 90-100 | Ready | Agent / tester can proceed with high confidence. |
+| 70-89 | Conditionally Ready | Usable for clear areas; issues must be fixed or confirmed in parallel. |
+| 0-69 | Not Ready | Too many gaps, conflicts, or unclear requirements. Do not proceed without clarification. |
+
+Auto-fail: if any critical scoring area is 0, or any Blocker remains unresolved, verdict = Not Ready regardless of total score.

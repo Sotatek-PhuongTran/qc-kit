@@ -333,5 +333,4 @@ After writing the new report, sync only Section 10.1 changes:
 Per `workflows/checkpoint-protocol.md` §5 and §6:
 
 1. **Worklog**: rewrite last entry → `status = "Done"`, `end = now`, `duration_min = computed`. Add `uc-review-report v[N+1].md` to `output`. If Step 10 updated the question-backlog, also add it to `output`.
-2. **qc-dashboard.md**: update the UC's `UC review stt` cell → `<Verdict> v[N+1] (Score <X>/100)` (e.g., `Conditionally Ready v2 (Score 78/100)`). Skip if column missing.
-3. **Cleanup**: delete the entire `.claude/skills/qc-uc-read/process-logging/<UC-ID>/` folder. Cleanup only happens on successful completion.
+2. **Cleanup**: delete the entire `.claude/skills/qc-uc-read/process-logging/<UC-ID>/` folder. Cleanup only happens on successful completion.

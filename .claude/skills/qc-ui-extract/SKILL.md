@@ -13,8 +13,6 @@ Read `path-registry.md` to resolve every logical name below:
 
 - `uc-review-report` — **highest `v<N>` of the audited file** for the target UC-ID. HARD REQUIREMENT. If verdict = `Not Ready` the skill still runs but emits a warning that the element list will be drafty (may change after BA answers).
 - `project-context-master` — optional. Used only when audited §4 references a page name that needs cross-check with site map.
-- `qc-dashboard` — for precheck (Case A/B/C) and for writing column `UI extract stt`.
-- `.claude/skills/qc-site-map/inbox/dashboard-orphans.md` — for Case B precheck.
 - `.claude/rules/global-rules.md`, `.claude/rules/naming-convention.md` — language, naming, header rules.
 
 Important: always pick the highest `v<N>` audited file by scanning the UC folder, NOT by date.
@@ -24,13 +22,12 @@ Important: always pick the highest `v<N>` audited file by scanning the UC folder
 Read `path-registry.md` to resolve:
 
 - `ui-elements` — one file per page, lean fields only. Path: `docs/QC/ui-elements/<UC-ID>/<UC-ID>_<page-name>_ui-elements_<YYYYMMDD>_v<N>.md`.
-- `qc-dashboard` column `UI extract stt` — format `v<N> (audited v<M>)`. If multiple pages exist for one UC, store the **minimum** version across pages (so the row reflects the least-recently-updated page) and append count: `v<min> (audited v<M>) [Np pages]`.
 
 Versioning rules:
 
 - If no prior `ui-elements` file for this page → `v1`.
 - If prior file exists AND maps to same audited `v<M>` → no-op unless user explicitly requested re-extract; if re-extract, bump to `v<N+1>`.
-- If prior file exists AND audited has bumped (new `v<M+1>` or higher) → bump to `v<N+1>`, update mapping. Mark previous version as superseded only in dashboard; do NOT delete or edit the previous file.
+- If prior file exists AND audited has bumped (new `v<M+1>` or higher) → bump to `v<N+1>`, update mapping.
 - NEVER overwrite. NEVER edit a prior version in place.
 
 ## Checkpoint & Resume
@@ -65,7 +62,7 @@ Within a page, batch when `elements_total > 30`: process in chunks of 20, append
 
 ## Workflow
 
-### Phase 0 — Routing + Resume + Dashboard Precheck
+### Phase 0 — Routing + Resume
 
 1. **Identify UC-ID** from the user's prompt or filename.
 2. **Locate highest-version audited file** under `docs/QC/uc-read/<UC-ID>/`. If none → STOP with `❌ Không tìm thấy audited file cho <UC-ID>. Hãy chạy /qc-uc-read trước.`.
@@ -76,11 +73,7 @@ Within a page, batch when `elements_total > 30`: process in chunks of 20, append
    - **Found AND `audited_version` matches current highest v** → ask `Continue from page <next-in-progress>?` or `Restart fresh?`.
    - **Found AND `audited_version` is stale** (audited has bumped since last run) → warn `Audited has bumped from <old> → <new>. Restart recommended.`; default = Restart.
    - **Not found** → fresh run.
-5. **Dashboard precheck** — follow the Case A/B/C contract per `qc-dashboard-sync` SKILL.md (same pattern as `qc-uc-read` Phase 0 step 4). Resolve `qc-dashboard.md` by UC-ID, branch on:
-   - **Case A** (UC not in dashboard) → offer `site-map first` / `continue`. On `continue`, invoke `qc-dashboard-sync` bottom-up.
-   - **Case B** (UC in dashboard BUT in dashboard-orphans.md) → offer `site-map first` / `continue`.
-   - **Case C** → proceed silently.
-6. **Generate `run_id`** and append a worklog JSONL entry (`status = "Running (Phase 1)"`) per `docs/qc-lead/agent-work-log.local/README.md`.
+5. **Generate `run_id`** and append a worklog JSONL entry (`status = "Running (Phase 1)"`) per `docs/qc-lead/agent-work-log.local/README.md`.
 
 ### Phase 1 — Page Boundary Detection
 
@@ -124,30 +117,18 @@ For each page in `progress.md` (in order):
 4. **Finalize page**: when all rows for the page are extracted, write the final `<UC-ID>_<page-name>_ui-elements_<YYYYMMDD>_v<N>.md` using the template below. Delete the `.partial.md`. Set page `status = done`, record `output` filename.
 5. **Append a worklog phase-boundary entry** at the end of each page (`status = "Running (Phase 2 — page <N>/<total> done)"`).
 
-### Phase 3 — Finalize + Dashboard + Cleanup
+### Phase 3 — Finalize + Cleanup
 
 1. Verify every page has `status = done`.
-2. **Update `qc-dashboard.md`** column `UI extract stt` for the UC's row:
-   - Locate row by **Folder ID** (column 3). Fall back to `<ID label>` (column 2) only if no Folder ID match.
-   - Cell value: `v<min-N> (audited v<M>)`. If `total_pages > 1`, append ` [<total_pages>p]`. Examples: `v1 (audited v3)` for single page; `v2 (audited v3) [2p]` for two pages min-version v2.
-   - **Stale handling**: NOT this skill's job to mark stale. Stale is computed lazily by readers (compare cell `audited v<M>` against the actual highest audited v).
-   - **Auto-inject the column when missing** (this skill is the sole owner of `UI extract stt`):
-     - If the dashboard header does NOT contain `UI extract stt` → INSERT it.
-     - Insertion position: immediately AFTER `TC design stt`, but BEFORE `Execute stt` if `Execute stt` is present.
-     - For every existing data row, insert a blank cell at the same position (preserves all other cell values).
-     - Append a one-line note to the user output: `Da auto-inject cot 'UI extract stt' vao qc-dashboard.md (truoc <Execute stt | cuoi bang>) — <N> row hien co duoc fill blank.`
-     - Then write this UC's value into the new cell.
-   - This injection is safe because: (a) `qc-ui-extract` is the sole owner of this column, (b) `qc-dashboard-sync` accepts variable column counts (10/11/12) per its schema spec and preserves optional columns verbatim, (c) no other skill writes to or expects a fixed position for `Execute stt` (it is itself optional).
-3. **Worklog final entry** — close the run with `status = "Completed"`, `output = <list of generated ui-elements files>`.
-4. **Cleanup checkpoint**: delete `progress.md` (and any leftover `.partial.md`) on success. On failure, leave them intact for next-run resume.
-5. **Print summary**:
+2. **Worklog final entry** — close the run with `status = "Completed"`, `output = <list of generated ui-elements files>`.
+3. **Cleanup checkpoint**: delete `progress.md` (and any leftover `.partial.md`) on success. On failure, leave them intact for next-run resume.
+4. **Print summary**:
 
    ```
    ✅ qc-ui-extract done — <UC-ID>
    Audited source: <filename> (v<M>)
    Pages: <N>
      - <page-name>: v<N> · <count> elements · <output-path>
-   Dashboard UI extract stt: v<min> (audited v<M>) [<N>p]
    Next: chạy /page-inspection <page-name> <URL> để gán locator thật.
    ```
 
@@ -200,7 +181,7 @@ Total elements: <count>
 - **Locator is always TBD.** This skill produces a name list. Resolving real locators against the DOM is `page-inspection`'s job — even if a stable testid is mentioned in audited §4 Description, do not promote it to the Locator column here. (Optional improvement: append it to a `Notes` cell if added later, but never to `Locator`.)
 - **Multi-language labels**: preserve original. Do not translate inside the table.
 - **`visibility-only` rows still get a locator request.** Even when audited marks design as pending, page-inspection still needs to locate the element to assert visibility. Keep the row.
-- **Stale detection is read-time, not write-time.** Do not modify older `ui-elements` files when audited bumps. Just update the dashboard cell on the next extract run.
+- **Stale detection is read-time, not write-time.** Do not modify older `ui-elements` files when audited bumps.
 
 ## Interaction with other skills
 
@@ -212,6 +193,5 @@ Total elements: <count>
 ## Boundaries
 
 - Read-only on audited files. Never modify the source UC review report.
-- Never write to columns other than `UI extract stt` in qc-dashboard.
 - Never call `page-inspection` directly. Suggest it in the final summary; the user invokes it explicitly with a real URL.
 - If audited §4 is empty or malformed → STOP with a clear error message; do not fabricate elements.

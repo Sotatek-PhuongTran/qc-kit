@@ -1,6 +1,6 @@
 # First Audit · Phase 2 — Score & Identify Gaps
 
-> **Friendly name (for worklog & dashboard):** `Scoring & Identifying Gaps` (EN) / `Chấm điểm & xác định gap` (VI).
+> **Friendly name (for worklog):** `Scoring & Identifying Gaps` (EN) / `Chấm điểm & xác định gap` (VI).
 >
 > **Input checkpoint:** `.claude/skills/qc-uc-read/process-logging/<UC-ID>/01_synthesis.md`
 >
@@ -31,7 +31,6 @@ Do not raise broad product, process, design-system, or architecture issues unles
 Per `workflows/checkpoint-protocol.md` section 2:
 
 1. Worklog: rewrite last entry -> `status = "Running (Phase 2)"`.
-2. `qc-dashboard.md`: update the UC's `UC review stt` cell -> `Running - Scoring & Identifying Gaps`. Skip if the column is missing.
 
 If this run resumes directly at Phase 2, first load `01_synthesis.md` into memory per `checkpoint-protocol.md` section 4 Resume load table
 
@@ -230,4 +229,3 @@ Per `workflows/checkpoint-protocol.md` §5:
 1. Verify `02_scoring.md` contains §A (Issue Register), §B (AC Candidate Review), §C (Scoring Table), and final score/verdict. If any section is missing, do not proceed.
 2. Update `progress.md` → `last_phase_done: 2`, `next_phase: 3`, `updated_at: <now>`.
 3. Worklog: rewrite last entry → `status = "Phase 2 done"`. Append `02_scoring.md` to `output`.
-4. qc-dashboard.md: update `UC review stt` → `Chấm điểm & xác định gap done` (skip if column missing).

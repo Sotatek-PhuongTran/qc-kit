@@ -1,6 +1,6 @@
 # First Audit · Phase 1 — Synthesize Requirement Understanding
 
-> **Friendly name (for worklog & dashboard):** `Synthesizing Requirement Understanding` (EN) / `Tổng hợp hiểu biết requirement` (VI).
+> **Friendly name (for worklog):** `Synthesizing Requirement Understanding` (EN) / `Tổng hợp hiểu biết requirement` (VI).
 >
 > **Inputs:** UC document(s), design images, supporting artefacts (API spec, BPMN, etc.), common reference files.
 >
@@ -13,7 +13,6 @@
 Per `workflows/checkpoint-protocol.md` §2 (write-before-work rule):
 
 1. **Worklog**: rewrite last entry → `status = "Running (Phase 1)"`. Append input file names to `input` (excluding `process-logging/`).
-2. **qc-dashboard.md**: update the UC's `UC review stt` cell → `Running — Synthesizing Requirement Understanding` (use the input UC's language — see protocol §3 phase friendly names table). Skip if column missing (graceful degradation).
 
 ---
 
@@ -442,12 +441,11 @@ Each AC row should be self-contained per `qc-writting-rules.md` C2 and include t
 
 ## Checkpoint write — End of Phase 1
 
-Per `workflows/checkpoint-protocol.md` §5:
+Per `workflows/checkpoint-protocol.md` §4:
 
 1. Verify `01_synthesis.md` contains §A through §F. If §F is missing, Step 2 did not complete — do not proceed.
 2. Update `progress.md` → `last_phase_done: 1`, `next_phase: 2`, `updated_at: <now>`.
 3. Worklog: rewrite last entry → `status = "Phase 1 done"`.
-4. qc-dashboard.md: update `UC review stt` → `Synthesizing Requirement Understanding done` (skip if column missing).
 
 ---
 

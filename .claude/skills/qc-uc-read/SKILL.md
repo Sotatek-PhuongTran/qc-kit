@@ -10,10 +10,11 @@ Read the `path-registry.md` file to find the below file's location:
 
 - `.claude/skills/qc-uc-read/references/input-files-format.md` — for file format description of the input files
 - `project-context-master`
-- `qc-site-map` (optional) — if present, read §5/§6/§7/§8 for screen-coverage cross-check and reverse traceability (see Phase 1 Step 1 + scoring-rubric Cross-Artefact Conflict Check). If missing, skip cross-check and warn once.
+- `qc-site-map`
 - `requirement-common-files` — read first; resolve any code/ID reference (error codes, business rule IDs, common function names) appearing in the UC to its exact text from these files and inline that text into the audit output (see Common Reference Resolution rule in the phase files).
 - `requirement-files`
 - `question-backlog`
+- `.claude/skills/qc-uc-read/references/qc-writting-rules.md`
 - Important: Check the input directory for existing versions, read the highest version of the files.
 
 ## Output Contract
@@ -30,7 +31,6 @@ This skill writes **per-phase checkpoint files** to `.claude/skills/qc-uc-read/p
 
 - `process-logging/<UC-ID>/` directory layout and `progress.md` format
 - Worklog update protocol — defers to `docs/qc-lead/agent-work-log.local/README.md` (write-before-work rule)
-- `qc-dashboard.md` `UC review stt` column update protocol (with graceful degradation if column missing)
 - Resume detection at Phase 0
 - Cleanup at the end of Phase 3
 
@@ -44,11 +44,11 @@ The protocol is referenced by every phase file — do NOT duplicate its rules he
 
 ## Workflow
 
-### Phase 0 — Routing + Resume Detection + Dashboard Precheck
+### Phase 0 — Routing + Resume Detection
 
-> No user-facing output during the silent-audit substep, EXCEPT the dashboard precheck warning if Case A applies.
+> No user-facing output during the silent-audit substep
 
-1. **Identify the UC-ID** from the user's prompt or from the requirement file name. This is treated as the on-disk Folder ID; the dashboard precheck below may resolve it to a different canonical ID if a Mode 3 alias mapping exists.
+1. **Identify the UC-ID** from the user's prompt or from the requirement file name. This is treated as the on-disk Folder ID.
 
 2. **Resume detection** (per `workflows/checkpoint-protocol.md` §4):
    - Check `.claude/skills/qc-uc-read/process-logging/<UC-ID>/progress.md`.
@@ -59,27 +59,9 @@ The protocol is referenced by every phase file — do NOT duplicate its rules he
    - **If the file exists** → `mode = re-audit`.
    - **If the file does not exist** → `mode = first-audit`.
 
-4. **Dashboard precheck (Case A per `qc-dashboard-sync` SKILL.md "Per-UC skill precheck contract"):** runs BEFORE generating `run_id` so a user `site-map first` answer does not pollute the worklog.
-   - Resolve `qc-dashboard.md`. Parse `featureIndex` (by column 2 `<ID label>`) + `folderIDIndex` (by column 3 `Folder ID`).
-   - **Case A — UC NOT in dashboard:**
+4. Generate a new `run_id` per the worklog protocol.
 
-     ```text
-     ⚠️ UC `<UC-ID>` chưa có trong qc-dashboard.md và sẽ được thêm mới (Folder ID = <UC-ID>, In scope? = Need confirm).
-     Đây là dấu hiệu UC này chưa được phát hiện hoặc matching với site-map.
-
-     Bạn muốn:
-     1. `site-map first` — Dừng lại. Chạy /qc-site-map (Mode 3) trước, rồi quay lại chạy review.
-     2. `continue` — Tiếp tục. Bottom-up sẽ add row vào dashbord đồng thời ghi vào dashboard-orphans.md; bạn có thể chạy /qc-site-map sau để update.
-     ```
-
-     - `site-map first` → STOP. Print `Đã dừng. Vui lòng chạy /qc-site-map (Mode 3) rồi chạy lại /qc-uc-read.`
-     - `continue` → invoke `qc-dashboard-sync` bottom-up with `uc_id=<UC-ID>` via the Skill tool. Wait for it to return.
-
-   - **Case B — UC in dashboard:** proceed silently.
-
-5. Generate a new `run_id` per the worklog protocol.
-
-6. **Append a new entry** to the device's worklog JSONL with `status = "Running (Phase 1)"`, `input`/`output` empty, `start = now`. (For resume, follow the resume protocol in §4.)
+5. **Append a new entry** to the device's worklog JSONL with `status = "Running (Phase 1)"`, `input`/`output` empty, `start = now`. (For resume, follow the resume protocol in §4.)
 
 ### Phase 1 — 3 (per workflow)
 
@@ -99,7 +81,7 @@ Dispatch to the appropriate workflow folder based on `mode`:
 | ----- | --------------------------------------------------------------- | -------------------------------------------- |
 | 1     | `workflows/re-audit/re-audit.md`                      | Phân tích thông tin mới, câu trả lời, áp dụng thay đổi                  |
 
-Each phase file is self-contained: it includes its own Start status update, work steps, end-of-phase checkpoint write, and hand-off pointer to the next phase. After Phase 3 finishes, cleanup runs per `checkpoint-protocol.md` §6.
+Each phase file is self-contained: it includes its own Start status update, work steps, end-of-phase checkpoint write, and hand-off pointer to the next phase. After Phase 3 finishes, cleanup runs per `checkpoint-protocol.md` §5.
 
 ## Purpose
 You operate by **YAGNI**, **KISS**, and **DRY**. Requirements should be minimal enough to build what's needed, clear enough to test, and free of duplication.

@@ -23,7 +23,6 @@ Resolve via `path-registry.md`:
 - `qc-site-map` (optional) — if present, read §6 Navigation (pre/post-condition + E2E paths), §7 Role/access (permission scenarios), §8 Screen ↔ Feature mapping (screens touched by this UC's feature → coverage matrix), §9 Data/API/Integration/State touchpoints (integration + state edge cases), §10 Regression anchors (risk emphasis). If missing, skip site-map-derived scenarios and warn once.
 - `uc-review-report` — latest version of the audited UC document for `<UC-ID>`.
 - `requirement-common-files` — for verbatim business rules, error codes/messages, and common functions referenced by the UC.
-- `qc-dashboard` — precheck only (auto-trigger `qc-dashboard-sync` if the UC row is missing).
 
 ## Output Contract
 
@@ -32,47 +31,13 @@ Resolve via `path-registry.md`:
   [UC-ID]_[feature-name]_scenarios_[YYYYMMDD]_v[N].md
   ```
 - **`worklog-per-device`** — log every phase boundary per the protocol at `docs/qc-lead/agent-work-log.local/README.md`. Do NOT touch the master `agent-work-log`.
-- **`qc-dashboard.md`** `Scenario design stt` cell (column 9) — owned by this skill. Graceful degradation: if the column does not exist, skip the dashboard update and warn once.
 
 ## Workflow (single file, 3 phases)
 
 ### Phase 0 — Setup
 
-1. **Identify `<UC-ID>`** from the user invocation or the audited filename. If unclear, ASK the user — do NOT guess. This `<UC-ID>` is treated as the on-disk Folder ID; the dashboard precheck below will resolve it to a canonical ID if an alias mapping exists.
+1. **Identify `<UC-ID>`** from the user invocation or the audited filename. If unclear, ASK the user — do NOT guess.
 2. **Worklog:** append new entry to the device's JSONL with `status = "Running (Phase 1)"`, `input = [<uc-review-report path>]`, `start = now` (per the protocol).
-3. **qc-dashboard precheck (Case A / B / C per `qc-dashboard-sync` SKILL.md "Per-UC skill precheck contract"):**
-   - Resolve `qc-dashboard.md`. Parse `featureIndex` (by column 2 `<ID label>`) + `folderIDIndex` (by column 3 `Folder ID`).
-   - **Case A — UC NOT in dashboard** (neither `<UC-ID>` matches any column 2 nor any column 3 value): emit the two-choice Vietnamese warning below and wait for user input.
-
-     ```text
-     ⚠️ UC `<UC-ID>` chua co trong qc-dashboard.md va se duoc them moi (Folder ID = <UC-ID>, In scope? = Need confirm).
-     Day la dau hieu UC nay chua duoc reconcile voi site-map.
-
-     Ban muon:
-     1. `site-map first` — Dung lai. Chay /qc-site-map (chon Mode 3) truoc de reconcile orphans, roi quay lai chay /qc-func-scenario-design.
-     2. `continue` — Tiep tuc. Bottom-up se add row + ghi vao dashboard-orphans.md; ban co the chay /qc-site-map Mode 3 sau de reconcile.
-     ```
-
-     - User answers `site-map first` → STOP. Print: `Da dung. Vui long chay /qc-site-map (chon Mode 3) roi chay lai /qc-func-scenario-design.`
-     - User answers `continue` → invoke `qc-dashboard-sync` bottom-up via the Skill tool with `uc_id=<UC-ID>`. Wait for it to return. Set the canonical UC-ID to the value returned by bottom-up (which equals `<UC-ID>` until Mode 3 reconciles).
-
-   - **Case B — UC IS in dashboard BUT its Folder ID is still listed in `.claude/skills/qc-site-map/inbox/dashboard-orphans.md`** (parse that file and look up the row's Folder ID): emit the adapted two-choice warning.
-
-     ```text
-     ⚠️ UC `<UC-ID>` da co trong qc-dashboard.md nhung VAN dang nam trong dashboard-orphans.md (qc-site-map Mode 3 chua reconcile).
-     Ket qua test scenario co the bi rename/realign khi Mode 3 chay sau.
-
-     Ban muon:
-     1. `site-map first` — Dung lai. Chay /qc-site-map (chon Mode 3) truoc de reconcile, roi quay lai chay /qc-func-scenario-design.
-     2. `continue` — Tiep tuc. Output se duoc tracking duoi Folder ID hien tai; co the can rename sau khi Mode 3 chay.
-     ```
-
-     - User answers `site-map first` → STOP.
-     - User answers `continue` → proceed (no bottom-up trigger needed — row already exists). Resolve the row's canonical UC-ID (column 2) for downstream lookups.
-
-   - **Case C — UC IS in dashboard AND not in orphan inbox**: proceed normally, no warning, no prompt.
-
-4. **Dashboard status:** update `Scenario design stt` cell → `Running — Analysis & Coverage Matrix` (skip if column missing).
 
 ### Phase 1 — Analysis & Coverage Matrix
 
@@ -96,7 +61,6 @@ Read fully before writing anything.
    - `out-of-scope` — performance / load / security beyond functional auth; surface in §Out-of-Scope Flags
 5. If the audited report's Verdict is `NOT READY`, STOP and ask the user whether to proceed (scenarios from a Not-Ready UC will inherit known gaps). Do NOT silently continue.
 6. **Worklog:** rewrite last entry → `status = "Phase 1 done"`.
-7. **Dashboard status:** `Scenario design stt` cell → `Running — Scenario Drafting` (skip if column missing).
 
 > If a UC ID or function name is not explicitly stated in the document, infer from the feature name and note your inference clearly in the output (e.g., *"UC ID inferred as UC-001 from title 'User Login Feature'."*).
 
@@ -115,8 +79,7 @@ Quality checks before writing the file (§"Quality Checks Before Finalizing"). W
 ### Phase 3 — Finalize
 
 1. **Worklog:** rewrite last entry → `status = "Done"`, `end = now`, `duration_min = computed`, `output = [<scenarios file path>]`.
-2. **Dashboard status:** `Scenario design stt` cell → `v<N> generated` (skip if column missing).
-3. **Chat report** (no separate summary file):
+2. **Chat report** (no separate summary file):
 
    ```
    ## ✅ Test Scenario Design Complete
@@ -266,6 +229,5 @@ When a scenario area is **blocked** by a known audited gap (⚠️ Missing or �
 - This skill ONLY covers Functional / Integration / UI / E2E / Acceptance. Performance / load / security beyond functional auth are out of scope — flag, do not generate.
 - Do NOT edit input files (`uc-review-report`, common files, project-context-master).
 - Every scenario MUST trace to a UC via `TS_[UC-ID]_NNN` — no orphan scenarios.
-- qc-dashboard precheck is MANDATORY before Phase 1 begins (so the dashboard always reflects on-disk reality).
 - Output language follows source-input language per `global-rules.md` (Vietnamese audited UC → Vietnamese scenarios; English audited UC → English scenarios).
 - This skill produces ONE file per UC (or per UC group when the audited report bundles them). It does NOT shard scenarios across multiple files.

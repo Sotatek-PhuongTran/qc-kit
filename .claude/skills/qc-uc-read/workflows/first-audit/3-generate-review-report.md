@@ -1,6 +1,6 @@
 # First Audit · Phase 3 — Generate Review Report
 
-> **Friendly name (for worklog & dashboard):** `Generating Review Report` (EN) / `Tạo báo cáo review` (VI).
+> **Friendly name (for worklog):** `Generating Review Report` (EN) / `Tạo báo cáo review` (VI).
 >
 > **Inputs:** `process-logging/<UC-ID>/01_synthesis.md` + `02_scoring.md` (Phase 1 & 2 outputs) + `UC_readiness_review_template_v3.md`
 >
@@ -13,7 +13,6 @@
 Per `workflows/checkpoint-protocol.md` §2:
 
 1. **Worklog**: rewrite last entry → `status = "Running (Phase 3)"`.
-2. **qc-dashboard.md**: update the UC's `UC review stt` cell → `Running — Generating Review Report` (skip if column missing).
 
 If this run is a **resume from Phase 3**: first load `01_synthesis.md` and `02_scoring.md` into memory per `checkpoint-protocol.md` §4 Resume load table.
 
@@ -165,8 +164,7 @@ This auto-trigger is the documented kit flow: first-audit always produces fresh 
 Per `workflows/checkpoint-protocol.md` §5 and §6:
 
 1. **Worklog**: rewrite last entry → `status = "Done"`, `end = now`, `duration_min = computed`. Add the output file name to `output`. If `qc-qna` wrote to `question-backlog`, also add it to `output`.
-2. **qc-dashboard.md**: update the UC's `UC review stt` cell → `<Verdict> v[N] (Score <X>/100)` (e.g., `Conditionally Ready v1 (Score 73.1/100)`). Skip if column missing.
-3. **Cleanup**: delete the entire `.claude/skills/qc-uc-read/process-logging/<UC-ID>/` folder. Cleanup only happens on successful completion.
+2. **Cleanup**: delete the entire `.claude/skills/qc-uc-read/process-logging/<UC-ID>/` folder. Cleanup only happens on successful completion.
 
 ---
 

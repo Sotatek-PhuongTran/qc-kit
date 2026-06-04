@@ -204,35 +204,40 @@ Before finalizing, rewrite sentences that are:
 
 Apply this section only when the requested output language is **Vietnamese**.
 
-### Quy định VI1 — Viết tiếng Việt tự nhiên
+### Rule VI0 — Preserve Vietnamese diacritics
+All Vietnamese text written in any output file/report/plan... MUST be written in Vietnamese with diacritics. It MUST NOT be removed, standardized, or converted to ASCII.
+- ✅ Correct: `"Đăng nhập hệ thống bằng tài khoản NĐT"`, `"Kiểm tra màn hình khởi tạo"`, `"Truy cập menu Báo cáo định kỳ 6 tháng ĐTRNN"`
+- ❌ Wrong: `"Dang nhap he thong bang tai khoan NDT"`, `"Kiem tra man hinh khoi tao"`, `"Truy cap menu Bao cao dinh ky 6 thang DTRNN"`
 
-Viết như tài liệu nghiệp vụ cho BA/QC/Tester, không viết như bản dịch từng chữ từ tiếng Anh.
+### Rule VI1 — Write in Natural Vietnamese
 
-Không nên viết:
+Write as a business document for BAs/QCs/Testers, not a word-for-word translation from English.
+
+Do not write:
 
 > Hệ thống hiện thực hoá trạng thái người dùng trong ngữ cảnh tổ chức.
 
-Nên viết:
+Write:
 
 > Hệ thống cần xác định rõ trạng thái tài khoản của người dùng trong từng tổ chức để BA và Tester biết khi nào người dùng được phép đăng nhập, bị chặn, hoặc cần xử lý ngoại lệ.
 
-### Quy định VI2 — Hạn chế pha Việt-Anh
+### Rule VI2 — Restrictions on Mixing Vietnamese and English
 
-Không dùng nửa Việt nửa Anh nếu thuật ngữ tiếng Anh không phải official product term.
+Do not use a mix of Vietnamese and English if the English term is not an official product term.
 
-Không nên viết:
+Do not write:
 
 > UC này trigger downstream flow để resolve org context.
 
-Nên viết:
+Write:
 
 > UC này kích hoạt luồng xử lý tiếp theo để xác định tổ chức mà người dùng đang thao tác.
 
-Nếu thuật ngữ tiếng Anh là official term, có thể giữ nguyên nhưng phải giải thích ở lần đầu.
+If the English term is an official term, it can be kept as is, but an explanation must be provided the first time.
 
-### Quy định VI3 — Tránh cụm mơ hồ
+### Rule VI3 — Avoid Ambiguous Phrases
 
-Không dùng các cụm mơ hồ hoặc nghe như dịch máy:
+Do not use ambiguous phrases or phrases that sound like machine translations:
 
 - “UC cổng”
 - “UC xuôi dòng”
@@ -244,74 +249,29 @@ Không dùng các cụm mơ hồ hoặc nghe như dịch máy:
 - “context binding”
 - “rule mapping bị hở”
 
-Hãy thay bằng mô tả rõ về điều kiện, hành vi hệ thống, kết quả, và hệ quả kiểm thử.
+Replace them with clear descriptions of the conditions, system behavior, results, and consequences of the test.
 
-### Quy định VI4 — Giải thích thuật ngữ kỹ thuật bằng tiếng Việt
+### Regulation VI4 — Explanation of Technical Terms in Vietnamese
 
-Giải thích thuật ngữ kỹ thuật ở lần đầu xuất hiện.
+Explanation of Technical Terms.
 
-Không nên viết:
+Do not write:
 
 > Q10: chưa chốt WCAG 2.1 AA hay AAA.
 
-Nên viết:
+Write:
 
 > Mức độ tuân thủ tiêu chuẩn tiếp cận web (WCAG — Web Content Accessibility Guidelines) chưa được chốt: tài liệu chưa nói hệ thống cần đạt mức AA, là mức phổ biến cho phần mềm doanh nghiệp, hay mức AAA, là mức cao hơn và thường có nhiều ràng buộc hơn về tương phản, ngôn ngữ, và điều hướng. (Mã tham chiếu: câu hỏi `Q10`.)
 
-### Quy định VI5 — Viết ý nghĩa trước, mã tham chiếu sau
+### Rule VI5 — Write the meaning first, then the reference code
 
-Không mở đầu câu bằng mã nếu đó không phải cột code-only.
+Do not begin a sentence with a code unless it is a code-only column.
+Do not use quotations, source code, or links in place of explanations.
 
-Không nên viết:
+Do not write:
 
 > `FOQ-ORGUSER-005 (Q1 High)` còn open: bcrypt cost? argon2id? scrypt? KMS provider?
 
-Nên viết:
+Write:
 
 > Thuật toán băm mật khẩu khi lưu vào cơ sở dữ liệu chưa được chốt: tài liệu chưa nói dùng bcrypt với cost factor bao nhiêu, argon2id, hay scrypt; nhà cung cấp KMS dùng để mã hoá audit log lúc nghỉ cũng chưa được xác định. (Mã tham chiếu: `FOQ-ORGUSER-005` trong `FRD §10`; câu hỏi audit `Q1`, priority High.)
-
-### Quy định VI6 — Citation đứng sau câu hoàn chỉnh
-
-Không dùng citation, mã nguồn, hoặc anchor thay cho phần giải thích.
-
-Không nên viết:
-
-> Theo `FRD §6`, `BR-USER-001`.
-
-Nên viết:
-
-> Quy tắc vô hiệu hoá tài khoản chưa đủ rõ để thiết kế test case vì tài liệu chưa nói người dùng bị chặn đăng nhập ngay lập tức hay chỉ bị chặn sau phiên hiện tại. (Mã tham chiếu: `BR-USER-001` trong `FRD §6`.)
-
-### Quy định VI7 — Ô bảng tiếng Việt phải tự hiểu được
-
-Với ô bảng mô tả vấn đề, câu hỏi, phát hiện, khuyến nghị, hoặc hệ quả, dùng công thức:
-
-`nội dung dễ hiểu + hệ quả nghiệp vụ/kiểm thử ngắn + (Mã tham chiếu: ...)`
-
-Cột `ID`, `Ref`, `Code`, hoặc `Source` có thể chỉ chứa mã. Cột diễn giải phải viết đủ nghĩa.
-
-### Quy định VI8 — Không liệt kê ID trần trong phần tóm tắt
-
-Không nên viết:
-
-> 3 vấn đề High cần fix: `Q1`, `Q2`, `Q13`.
-
-Nên viết:
-
-> 3 vấn đề High cần fix:
->
-> - Password hashing chưa chốt (`Q1`)
-> - Cross-UC toast handoff contract chưa được document (`Q2`)
-> - UC và prototype đang bất đồng về việc xoá mật khẩu sau validation error (`Q13`)
-
-### Quy định VI9 — Rà lại câu tiếng Việt trước khi finalize
-
-Trước khi finalize, sửa các câu:
-
-- nghe như dịch máy
-- quá trừu tượng
-- quá nhiều mã nhưng thiếu ý nghĩa nghiệp vụ
-- pha Việt-Anh không cần thiết
-- thiếu chủ thể hoặc điều kiện
-- không rõ hệ thống làm gì
-- không rõ hệ quả nghiệp vụ hoặc hệ quả kiểm thử

@@ -1,29 +1,6 @@
-## Update Test Cases (Design Update Workflow)
+## Update Trigger Types
 
-> **Scope:** This workflow produces ONLY the updated test case `.md` file. It is fully independent from the `.xlsx` artifact — no script invocation, no xlsx step.
->
-> **Purpose:** Update-test-cases after one or more changes occur, without rerunning the full generate-test-cases flow unless necessary.
-> 1. **Requirement change:** The audited UC Readiness Report has been updated (new version). Test cases need to be aligned with the changed requirements.
-> 2. **New variant:** The user request test cases for another variant.
-> 3. **User feedback:** The user provides explicit feedback about gaps, errors, or missing coverage in the existing test cases.
->
-> **Checkpoint references:** all phase-boundary write/update steps follow `workflows/checkpoint-protocol.md` §4. Do NOT duplicate those rules here.
-
----
-
-## Phase 1 — Impact Analysis & Re-Design
-
-### Status update — Start of Phase 1
-
-Per `workflows/checkpoint-protocol.md` §2 (write-before-work rule):
-
-1. **Worklog**: rewrite last entry → `status = "Running (Phase 1)"`. Append input file names to `input` (excluding `process-logging/`).
-
-### Step 1: Input Analysis (MANDATORY)
-
-#### 1.1 — Type detect
-
-Parse the user's invocation to determine **what triggered this update**:
+This workflow supports the following update trigger types. Resolve the trigger type during Step 1 and record it in the pending approval report.
 
 | Trigger Type | When it applies | Main behavior |
 |---|---|---|
@@ -32,17 +9,28 @@ Parse the user's invocation to determine **what triggered this update**:
 | `ADD_VARIANT` | The user asks to write test cases for an additional platform variant that does not have a current TC `.md` baseline. | Draft a full new TC set for the requested variant using the latest approved audited UC, common technical, and that variant's technical rubric. Existing variant TC files are reference-only unless also impacted by another trigger. |
 | `MIXED` | More than one trigger applies in the same run, e.g. audited UC changed and user also asks to add `mobile-native`. | Produce one consolidated report covering both changed existing variants and newly added variants. Apply only approved actions. |
 
-**Variant expansion rule:** When the trigger type is `ADD_VARIANT`, the newly requested variant(s) may not have existing TC files yet. This is valid because those variants are being created for the first time. However, any existing variant that is also being updated in the same run MUST still have its current TC markdown file available as the update baseline.
+**Variant expansion rule:** `ADD_VARIANT` is not treated as a missing baseline error. A missing current TC file is valid only for the newly requested target variant(s). All existing variants still require their current TC baseline if they are in update scope.
+
 **Explicit user request rule:** if the user explicitly names a target variant (for example, "write mobile-native test cases too"), include that variant in scope even if it is not yet present in the current TC baseline. If it is absent from `project-context-master.md` → Product Platform Type, record this discrepancy in the report and proceed as a user-requested variant override unless the target variant is unsupported.
 
-If the trigger type is ambiguous, ask the user:
-> _"Bạn muốn cập nhật test cases vì: (A) Tài liệu đặc tả đã thay đổi và đã có audited version mới, (B) Tôi có feedback về test cases hiện tại, (C) Viết test cases cho Platform type khác, hay (D) Mix - có nhiều mục thay đổi"_
->
-> If the user choose B, ask the user about the feedback content and the test cases that need updating.
-> If the user choose C, ask the user about the new variant.
-> If the user choose D, ask the user about all of the changed.
 
-#### 1.2 — Read all required input files
+---
+
+## Phase 2 — Update Test Cases
+
+### Status update — Start of Phase 2
+
+Per `workflows/checkpoint-protocol.md` §2 (write-before-work rule):
+
+1. **Worklog**: rewrite last entry → `status = "Running (Phase 2: Update Test Cases)"`. Append input file names to `input` (excluding `process-logging/` and `progress-logging/`).
+2. Do NOT modify deliverable test case files yet.
+3. Do NOT convert to `.xlsx` in this phase.
+
+---
+
+### Step 1: Input Analysis (MANDATORY)
+
+#### 1.1 Read all required input files
 
 Read the following files before performing any analysis:
 
@@ -58,8 +46,10 @@ Read optional files if present:
 
 - Old `func-test-scenarios` used by the current TC version.
 - New / updated `func-test-scenarios`.
+- Prior update report revisions in `progress-logging/` if the user is revising a pending report.
+- Any supporting attachments explicitly referenced by the user.
 
-#### 1.3 Resolve Platform Variants (MANDATORY)
+#### 1.2 Resolve Platform Variants (MANDATORY)
 
 1. Read `project-context-master.md` §1 → **Product Platform Type**.
 2. Parse the value(s). One or more of: `web-responsive`, `web-static`, `mobile-native`, `mobile-hybrid`, `desktop-native`.
@@ -79,7 +69,7 @@ Read optional files if present:
 9. For EACH applicable variant, load `qc-func-tc-design/references/design-technical/<variant>-technical.md` end-to-end. Hold common + variant rubrics in working memory.
 10. Record the resolved variant list and the per-variant scope reason (`UPDATE_EXISTING` or `ADD_VARIANT`) as a working note.
 
-#### 1.4 Identify update baseline
+#### 1.3 Identify update baseline
 
 For EACH variant V, identify:
 
@@ -95,7 +85,7 @@ For EACH variant V, identify:
 
 > **Source-of-truth rule:** the current `.md` test case file is the baseline source of truth. Existing `.xlsx` files are NOT used as the editing source. For `ADD_VARIANT`, there is no same-variant TC baseline; use the latest approved audited UC as the source of truth and use existing other-variant TC files only as writing-style / coverage references, not as authoritative behavior.
 
-#### 1.5 Resolve update trigger type (MANDATORY)
+#### 1.4 Resolve update trigger type (MANDATORY)
 
 Resolve one of the trigger types defined at the top of this workflow:
 
@@ -114,7 +104,23 @@ Record for each variant:
 
 ---
 
-### Step 2: Impact Analysis
+### Step 2: Analyze Changes & Feedback (MANDATORY)
+
+This step produces the update plan candidates. Do NOT write final test case files in this step.
+
+#### 2.0 Trigger-aware analysis rules
+
+Apply the analysis path based on the resolved trigger type:
+
+| Trigger Type | Analysis behavior |
+|---|---|
+| `REQUIREMENT_DELTA` | Perform full old-vs-new audited delta analysis, then map impacts to existing TCs. |
+| `USER_FEEDBACK_ONLY` | Skip requirement delta only if the old/new audited sources are confirmed unchanged; analyze feedback against existing TCs. |
+| `ADD_VARIANT` | Do not classify the missing same-variant TC file as an error. Drafting impact is `ADD_VARIANT`: a complete new TC set is needed for the requested variant. Use latest audited UC + scenarios + common technical + requested variant technical. |
+| `MIXED` | Run all applicable analysis paths and keep actions separated per variant in the report. |
+
+For `ADD_VARIANT`, existing TC files from other variants may be used to preserve terminology, screen ordering, AC coverage style, and TC writing style, but variant-specific behavior MUST come from the target variant's technical rubric.
+
 #### 2.1 Requirement delta analysis
 
 Compare old audited UC vs new audited UC by meaning, not only by text diff.
@@ -195,7 +201,7 @@ Create ONE consolidated approval report covering ALL variants in scope. The repo
 Write the pending approval report to:
 
 ```text
-.claude/skills/qc-func-tc-design/process-logging/<UC-ID>/pending_update_report.md
+.claude/skills/qc-func-tc-design/progress-logging/<UC-ID>/pending_update_report.md
 ```
 
 Rules:
@@ -291,7 +297,6 @@ User có thể phản hồi theo một trong các cách sau:
 
 - `Duyệt report` hoặc `Approve update report` để áp dụng đúng theo report này.
 - Gửi thêm feedback nếu cần chỉnh report trước khi áp dụng.
-- Cancel để dừng workflow, plan sẽ vẫn lưu ở folder process-logging để bạn có thể tiếp tục lại sau.
 ```
 
 #### 3.3 Report quality gate
@@ -317,20 +322,20 @@ Per `workflows/checkpoint-protocol.md` §4:
 2. Send the report to the user in chat and explicitly wait for approval or revision feedback.
 3. Update `progress.md` with an approval-pending block while preserving existing fields:
    - `workflow: update-test-cases`
-   - `next_phase: 1`
+   - `next_phase: Awaiting user approval for update report`
    - `updated_at: <now>`
-   - Add / replace a `## Phase 1 Approval Pending` block containing:
+   - Add / replace a `## Phase 2 Approval Pending` block containing:
      - `**Pending report path:** <absolute path to pending_update_report.md>`
      - `**Report revision:** R<n>`
      - `**Trigger type:** ...`
      - `**Variants in scope:** ...`
      - `**Current status:** Waiting for user approval`
      - Summary counts by impact status.
-4. **Worklog**: rewrite last entry → `status = "Waiting for user approval (Phase 1 update report)"`.
+4. **Worklog**: rewrite last entry → `status = "Waiting for user approval (Phase 2 update report)"`.
 5. Do NOT write final updated TC `.md` file(s).
 6. Do NOT write full updated TC scratch yet.
 7. Do NOT trigger `convert-md-to-xlsx.md`.
-8. Do NOT advance `last_phase_done`.
+8. Do NOT set `last_phase_done: 2`.
 
 At this point the update phase is intentionally paused.
 
@@ -342,7 +347,7 @@ The workflow resumes only when the user responds.
 
 #### 4.1 If the user provides feedback before approval
 
-1. Read the current `pending_update_report.md` from `process-logging/<UC-ID>/`.
+1. Read the current `pending_update_report.md` from `progress-logging/<UC-ID>/`.
 2. Interpret the new feedback as additional feedback input.
 3. Revise the report in working memory.
 4. Increment report revision: `R1` → `R2` → `R3` ...
@@ -369,14 +374,14 @@ Accept approval only when the user explicitly says to approve/apply the pending 
 
 After approval:
 
-1. Read the latest `pending_update_report.md` from `process-logging/<UC-ID>/`.
+1. Read the latest `pending_update_report.md` from `progress-logging/<UC-ID>/`.
 2. Treat that latest report revision as the approved update plan.
 3. Continue to Step 5.
 
 #### 4.3 If the user asks to cancel
 
 1. Do not modify deliverable TC files.
-2. Delete the temporary `pending_update_report.md` from `process-logging/<UC-ID>/`.
+2. Delete the temporary `pending_update_report.md` from `progress-logging/<UC-ID>/`.
 3. Update `progress.md` to remove the approval-pending block or mark it as cancelled.
 4. Rewrite worklog last entry → `status = "Cancelled by user before applying update"`.
 5. Stop.
@@ -387,7 +392,21 @@ After approval:
 
 After user approval, apply the approved update plan to the TC baseline.
 
-#### 5.1 Apply update actions per variant
+#### 5.1 Persist approved plan to durable process log
+
+Before changing deliverables, copy the approved report content into durable process logging:
+
+```text
+.claude/skills/qc-func-tc-design/process-logging/<UC-ID>/01_approved_update_plan.md
+```
+
+Rules:
+
+- This file is durable and MUST NOT be deleted during this workflow.
+- It preserves the approved plan after the temporary `progress-logging` report is removed.
+- If there are multiple approval rounds, persist only the final approved revision.
+
+#### 5.2 Apply update actions per variant
 
 For EACH platform variant V:
 
@@ -408,7 +427,7 @@ Apply all rules in:
 - `common-technical.md`
 - Variant-specific technical rubric for V
 
-#### 5.2 Update the Requirement Traceability Matrix
+#### 5.3 Update the Requirement Traceability Matrix
 
 For EACH variant V:
 
@@ -419,102 +438,223 @@ For EACH variant V:
 - Added ACs must be covered by existing or newly added active TCs.
 - If coverage is incomplete, fix the updated TC content before proceeding.
 
-#### 5.3: Persist Full updated TCs to Scratch (MANDATORY — atomic single Write)
+#### 5.4 Preserve final markdown structure
 
-This step is the **safety net for Phase 2 auto-recovery**. It locks down the in-memory design before the final md write begins, so that if the final md write is interrupted (multi-part flow, network blip, context flush, etc.), Phase 2's verification gate can detect the mismatch and auto-recover from this scratch — WITHOUT having to re-run the 6-phase drafting.
+The updated `.md` must preserve the converter-safe structure:
 
-1. **Compose the full scratch content** in working memory, using the SAME content format as the final deliverable md described in Step 6:
-   - The complete required prelude (`# Test Cases — [UC-ID] …`, totals, source filenames, RTM table, etc.).
-   - All screen sections (`## <Roman>. …`) with their GUI (`### <Roman>.1. …`) and FUNC (`### <Roman>.2. …`) subsections and test case tables.
-   - The same heading-level rules as Step 6 (only `#` / `####` in the prelude, `##` for screens, `###` for GUI/FUNC).
-2. **Write to scratch path(s)** — ALWAYS per-variant (no special case for single-variant projects): for EACH platform variant V, write that variant's full scratch content to `.claude/skills/qc-func-tc-design/process-logging/<UC-ID>/02_designed_tcs_<V>.md` in **ONE atomic Write call** containing the ENTIRE content for that variant.
-   - For a single-variant project, this means writing ONE file with the project's only variant in its name (e.g., `02_designed_tcs_web-responsive.md`). The "bare" name `02_designed_tcs.md` (without variant suffix) is NEVER used — Phase 2 always probes by variant.
-   - For a multi-variant project, write N atomic Write calls, one per variant.
-   - Do NOT use Edit / multiple appends to build a scratch incrementally — if a scratch's own Write is interrupted, Phase 2 cannot recover that variant. If a single variant's volume exceeds a Write's practical limit, that is the signal to fail loudly and ask the user — multi-part scratch per variant is NOT supported.
-3. Do NOT delete or modify any scratch file later in this skill run — they are durable sources of truth for Phase 1 and are only removed in `SKILL.md` → Step D cleanup at end-of-run.
+- Prelude uses only `#` and `####` heading levels.
+- Screen sections use only `##`.
+- GUI/FUNC sections use only `###`.
+- Do not introduce additional `##` or `###` headings outside screen and GUI/FUNC sections.
+- Keep test case table schema compatible with the converter.
+- Keep current language unless the user explicitly requests a language change.
 
-After this step completes, the update work of Phase 1 is **durably persisted for every variant**. Step 6 below is a re-materialization of the same content at the deliverable path; if Step 6 is interrupted for any variant, that variant's scratch is still on disk for Phase 2 auto-recovery.
-
-### Step 6: Write the .md File(s) (MANDATORY)
-
-For EACH platform variant V resolved in Step 1.3, re-materialize that variant's scratch content (`02_designed_tcs_<V>.md` from Step 5.3) to the **deliverable path** defined in `path-registry.md` for `func-test-cases-draft`. Each variant produces its own deliverable file(s); within a variant, use a single file or multi-part files (`*_part1.md`, `*_part2.md`, …) depending on volume. Each file (single or per-part) is an atomic single Write.
-
-**Deliverable file naming:** Insert a `_<variant>` segment between the `testcases` type and the version, per `rules/naming-convention.md`. Example for UC-101 with both web-responsive and mobile-native:
-- `UC-101_user-login_testcases_web-responsive_v1.md`
-- `UC-101_user-login_testcases_mobile-native_v1.md`
-
-For a single-variant project the same naming applies (just one variant in the name), e.g., `UC-101_user-login_testcases_web-responsive_v1.md`. The "no-variant" filename pattern is NOT used — every deliverable carries its variant in the name so Phase 2's per-variant flow can pair scratch ↔ final md unambiguously.
-
-**At the TOP of the md (or top of `part1` if multi-part), include the following required prelude:**
-**Versioning rule:**
-- `UPDATE_EXISTING` variants → bump version to `v[N+1]` of the baseline; keep the `Delta vs v[N]` line.
-- `ADD_VARIANT` variants → use `v1`; omit the `Delta vs v[N]` line and replace `Total test cases: Y (Delta ...)` with just `Total test cases: Y`.
+Recommended updated prelude:
 
 ```markdown
-# Test Cases — [UC-ID] [feature-name] [— <variant> if multi-platform] (v[N+1])
+# Test Cases — [UC-ID] [feature-name] [— <variant> if multi-platform]
 
-**Total test cases:** Y (Delta vs v[N]: +A new, ~U updated, -D deleted)
+**Total test cases:** X (GUI: Y, FUNC: Z)
 **Platform variant:** [web-responsive / web-static / mobile-native / mobile-hybrid / desktop-native]
-**Update trigger:** [REQUIREMENT_DELTA / USER_FEEDBACK_ONLY / ADD_VARIANT / MIXED]
-**Source UC:** [audited filename + version]
+**Update trigger type:** [REQUIREMENT_DELTA / USER_FEEDBACK_ONLY / ADD_VARIANT / MIXED]
+**Source UC (previous):** [old audited filename + version]
+**Source UC (updated):** [new audited filename + version]
 **Source scenarios (if any):** [scenarios filename + version]
+**Baseline test cases:** [previous TC filename + version]
+**Approved update plan:** [process-logging path]
 **Output language:** [VI / EN]
+
+#### Update Summary
+
+| Action | Count |
+|---|---:|
+| Kept | N |
+| Updated | N |
+| Added | N |
+| Retired | N |
+| Split | N |
+| Merged | N |
 
 #### Requirement Traceability Matrix
 
 | AC ID | Acceptance Criteria | Linked Test Cases | Status |
 |---|---|---|---|
-| AC-01 | …                   | TC_001, TC_002    | Covered |
-| …     | …                   | …                 | Covered [NEW] |
-| …     | …                   | …                 | Covered [UPDATE] |
-| …     | …                   | …                 | Removed |
+| AC-01 | … | TC_001, TC_002 | Covered |
 
 ---
 ```
 
-**Heading-level rules (MANDATORY — they govern what does and does not appear in the xlsx):**
-- The prelude MUST use only `#` (h1) and `####` (h4) heading levels — these are skipped by the converter, so the prelude does NOT leak into the xlsx.
-- Use `##` (h2) ONLY for screen headers (e.g., `## I. Màn hình: …` / `## I. Screen: …`).
-- Use `###` (h3) ONLY for GUI / FUNC section headers (e.g., `### I.1. …` / `### I.2. …`).
+---
 
-**Layout / Sorting / Encoding requirements (apply when (re)drafting the md — see `qc-func-tc-design/rules/testcase-instruction-rules.md` → "Sheet Layout & Section Headers"):**
-- Preserve the existing screen / GUI / FUNC section headers from the baseline TC file (for `UPDATE_EXISTING` variants).
-- Place new TCs **inside the correct section block** for their screen and type — GUI new cases below the matching `<RomanNumeral>.1.` header, FUNC new cases below `<RomanNumeral>.2.`. Do NOT append at the end of the md.
-- When the new audited UC adds a new screen, insert a new screen header block (next Roman numeral with its `.1` / `.2` sub-headers) at the appropriate position.
-- Sorting within a section: GUI before Functional. Within GUI: Screen Initialization → Item Interactions → Common UI cases → UI elements verify. Within FUNC: Happy path → Validation → Error/Exception.
-- Encoding (Rules 0a–0d): UTF-8 md, preserve dấu, no `unicodedata.normalize` / `unidecode` / Latin-1.
+### Step 5.5: Persist Updated TCs to Scratch (MANDATORY — atomic single Write)
 
-**Inline annotations on changed TCs in the body:**
-- `[NEW — AC-XX]` next to the title of newly added TCs.
-- `[UPDATED — Reason: AC-XX modified]` next to the title of modified TCs.
-- Do NOT include retired/deleted TCs in the md body — their removal is reflected in the Updated RTM (`Removed` status).
+This step is the safety net before final `.md` write. It locks down the approved updated TC content so Phase 3 can detect and recover from partial final writes.
 
-**Do NOT write a separate summary file.** The md (with its prelude) is the only design artifact this workflow produces. Anything noteworthy beyond the prelude (e.g., out-of-scope items, requirement gaps observed during drafting) will be reported on chat by the orchestrator (`SKILL.md` → Step C).
+1. Compose the full updated TC content in working memory, using the SAME content format as the final deliverable `.md`. For `ADD_VARIANT`, this is the complete new TC content for the requested variant.
+2. For EACH platform variant V, write the full updated / newly drafted content to:
+
+```text
+.claude/skills/qc-func-tc-design/process-logging/<UC-ID>/02_updated_tcs_<V>.md
+```
+
+Rules:
+
+- ALWAYS per-variant, even for single-variant projects.
+- The bare filename `02_updated_tcs.md` is NEVER used.
+- The scratch write must be ONE atomic Write containing the ENTIRE content for that variant.
+- Do NOT use Edit or append to build scratch incrementally.
+- Do NOT split scratch into multiple parts.
+- If a variant's scratch content is too large for one atomic Write, fail loudly and ask the user how to proceed.
+- Do NOT delete or modify this scratch file later in the workflow.
 
 ---
 
-### Checkpoint write — End of Phase 1
+### Step 6: Write Updated `.md` File(s) (MANDATORY)
 
-Per `workflows/checkpoint-protocol.md` §4.2 (end-of-phase). At this point, two artifacts already exist on disk: the scratch `02_designed_tcs_<V>.md` (Step 5.3) and the final updated deliverable `.md` v[N+1] for variant `<V>` (Step 6). The remaining work is to publish the `## Phase 1 Summary` block to progress.md (so Phase 2 can verify the final md), then update worklog.
+For EACH platform variant V, re-materialize `02_updated_tcs_<V>.md` to the deliverable path defined in `path-registry.md` for `func-test-cases-draft`.
 
-1. **Compute the Phase 1 summary** by counting TCs in the final v[N+1] md (which equals the scratch — both should match exactly at this moment):
-   - Total TCs (single integer) + GUI total + FUNC total (each on its own line in the summary, per `SKILL.md` §1 schema).
-   - **Delta vs v[N]**: `+<A> new, ~<U> updated, -<D> deleted` (counted from the inline annotations: `[NEW]` for new, `[UPDATED]` for modified; deleted count comes from RTM `Removed` rows). ASCII "Delta", not the Greek glyph.
-   - Per-screen breakdown: for each `## <Roman>.` screen, count TC rows in its `### <Roman>.1.` (GUI) and `### <Roman>.2.` (FUNC) tables.
-   - The output language detected in Phase 1.
-   - The platform variants being updated (`<V>`).
-   - The scratch path: absolute path to `02_designed_tcs_<V>.md`.
-   - The final v[N+1] md path(s) written in Step 6 (single file or multi-part list, absolute paths).
-2. **Append `## Phase 1 Summary` block to `progress.md`** using the exact schema from `SKILL.md` → §1 `progress.md` format. The block contains:
-   - A top-level **Variants in scope:** line listing all variants comma-separated.
-   - Exactly ONE `### Variant: <V>` sub-block per variant, populated from the fields computed above (totals, language, scratch path, final md paths, screen breakdown table, plus the `**Delta vs v[N]:**` line below the table).
-   - Atomic single Write that overwrites `progress.md` while preserving all existing fields (run_id, uc_id, workflow, started_at, last_phase_done, next_phase, updated_at, ## Notes). Do NOT touch `last_phase_done` here — it stays at its current value (set when Phase 1 started). Update `updated_at: <now>`.
-3. **Worklog**: rewrite last entry → `status = "Phase 1 done"`. Append the final v[N+1] `.md` path(s) to `output` (excluding `process-logging/`).
+#### 6.1 Deliverable naming
 
-> **Note:** `last_phase_done: 1` is NOT written here — it gets written at the START of Phase 2, only AFTER Phase 2's Step 0 verification gate passes. This is what guarantees a partial / mismatched updated md cannot be silently accepted as "Phase 1 done" on resume. See `convert-md-to-xlsx.md` → Step 0.
+Insert `_<variant>` between the `testcases` type and the version, following `rules/naming-convention.md`.
+
+Version rule:
+
+- Existing variant update: create the next version based on the baseline TC filename, e.g. `v1` → `v2`.
+- `ADD_VARIANT`: if there is no same-variant baseline TC file, create the first version for that variant, usually `v1`, unless the user explicitly requests version alignment with other variants.
+- Do NOT overwrite the baseline file unless the user explicitly requests overwrite.
+- Preserve the variant segment in the filename.
+
+Example:
+
+```text
+UC-101_user-login_testcases_web-responsive_v1.md  → baseline
+UC-101_user-login_testcases_web-responsive_v2.md  → updated output
+```
+
+For a multi-variant update:
+
+```text
+UC-101_user-login_testcases_web-responsive_v2.md
+UC-101_user-login_testcases_mobile-native_v2.md
+```
+
+For an `ADD_VARIANT` request where only `web-responsive` exists and the user asks to add `mobile-native`:
+
+```text
+UC-101_user-login_testcases_web-responsive_v1.md  → existing, unchanged unless also impacted
+UC-101_user-login_testcases_mobile-native_v1.md   → newly added variant output
+```
+
+#### 6.2 Write rules
+
+- Single-file output: write the full file in ONE atomic Write.
+- Multi-part output: write each part in ONE atomic Write, using `*_part1.md`, `*_part2.md`, ...
+- The top of `part1` must contain the full required prelude.
+- Multi-part files must still be recoverable from the per-variant scratch.
+- Do NOT write a separate summary file.
 
 ---
 
-## Hand-off to Phase 2
+### Step 7: Verification Gate (MANDATORY)
 
-Next file: `workflows/convert-md-to-xlsx.md`. The orchestrator (`SKILL.md` → Step B) auto-triggers it after Phase 1 finishes successfully.
+Before ending the phase, verify the updated markdown.
+
+For EACH variant V, verify:
+
+| Gate | Check |
+|---|---|
+| Scratch exists | `02_updated_tcs_<V>.md` exists and is non-empty. |
+| Final exists | Updated deliverable `.md` file(s) exist. |
+| Scratch ↔ final consistency | Final content equals scratch, or final multi-part concatenation equals scratch. |
+| Approved plan coverage | Every approved `UPDATE`, `ADD`, `RETIRE`, `SPLIT`, `MERGE` action was applied. |
+| No unapproved edits | No TC was changed outside the approved report unless required by formatting consistency. |
+| TC ID uniqueness | No duplicate active TC IDs. |
+| TC ID stability | Existing IDs preserved unless explicitly approved. |
+| Totals | Prelude totals match active TC rows. |
+| GUI/FUNC split | GUI/FUNC counts match section rows. |
+| RTM coverage | 100% of in-scope new audited ACs are covered. |
+| Removed behavior | Removed requirements are not still covered by active obsolete TCs. |
+| Feedback coverage | User feedback is applied or explicitly recorded as not applied. |
+| Heading schema | Prelude uses `#` and `####`; screens use `##`; GUI/FUNC use `###`. |
+| Table schema | TC tables remain converter-compatible. |
+| Variant correctness | No platform-specific TC is written into the wrong variant. |
+| ADD_VARIANT completeness | Every requested new variant has a full `.md`, scratch, prelude, RTM, and TC set using the target variant rubric. |
+
+If verification fails:
+
+1. Recover final `.md` from `02_updated_tcs_<V>.md` if the failure is a partial/mismatched final write.
+2. Re-run verification once.
+3. If verification still fails, STOP and report the exact failed gate(s). Do NOT trigger `.xlsx` conversion.
+
+Optional durable verification log:
+
+```text
+.claude/skills/qc-func-tc-design/process-logging/<UC-ID>/03_update_verification_<V>.md
+```
+
+---
+
+### Step 8: Cleanup Temporary Approval Report (MANDATORY after successful verification)
+
+After all variants pass Step 7:
+
+1. Delete the temporary pending approval report:
+
+```text
+.claude/skills/qc-func-tc-design/progress-logging/<UC-ID>/pending_update_report.md
+```
+
+2. Do NOT delete any durable files under `process-logging/`.
+3. Update `progress.md` to remove or close the `## Phase 2 Approval Pending` block.
+4. Record that the pending approval report was deleted after successful apply.
+
+> **Important:** Never delete the pending approval report before the approved update has been applied and verified. If the run is interrupted after approval but before verification, the report remains available for recovery.
+
+---
+
+### Checkpoint write — End of Phase 2
+
+This is the second checkpoint for the update phase.
+
+Per `workflows/checkpoint-protocol.md` §4.2 (end-of-phase):
+
+1. Compute the per-variant Phase 2 summary by counting TCs in EACH updated final `.md` file, which must match that variant's scratch.
+2. For each variant V, include:
+   - Total active TCs + GUI / FUNC split.
+   - Trigger type and per-variant scope reason (`UPDATE_EXISTING` / `ADD_VARIANT`).
+   - Update action counts: Kept / Updated / Added / Retired / Split / Merged / Full new variant set.
+   - Per-screen breakdown: GUI and FUNC row counts under each `## <Roman>.` screen.
+   - Output language.
+   - Baseline TC path(s).
+   - Updated final `.md` path(s).
+   - Scratch path: absolute path to `02_updated_tcs_<V>.md`.
+   - Approved plan path: absolute path to `01_approved_update_plan.md`.
+3. Append or replace a SINGLE `## Phase 2 Summary` block in `progress.md` using the exact schema from `SKILL.md` → §1 `progress.md` format. The block contains:
+   - `**Variants in scope:**` listing all variants comma-separated.
+   - ONE `### Variant: <V>` sub-block per variant, in the same order.
+   - `**Pending approval report:** Deleted after successful apply`.
+   - Summary counts and paths.
+4. Preserve existing fields (`run_id`, `uc_id`, `workflow`, `started_at`, `last_phase_done`, `next_phase`, `updated_at`, `## Notes`) unless the checkpoint protocol requires updates.
+5. Set `next_phase: convert-md-to-xlsx`.
+6. Update `updated_at: <now>`.
+7. **Worklog**: rewrite last entry → `status = "Phase 2 done"`. Append ALL variants' updated final `.md` path(s) to `output` (excluding `process-logging/` and `progress-logging/`).
+8. Do NOT trigger `.xlsx` conversion unless the orchestrator hands off to Phase 3.
+
+> **Note:** `last_phase_done: 2` is NOT written here if the existing checkpoint protocol defers phase completion marking to Phase 3 verification. It should only be written at the START of Phase 3 after `convert-md-to-xlsx.md` Step 0 verifies that every variant's updated scratch and final `.md` match. This prevents a partial / mismatched update from being silently accepted as complete on resume.
+
+---
+
+## Hand-off to Phase 3
+
+Next file: `workflows/convert-md-to-xlsx.md`.
+
+The orchestrator (`SKILL.md` → Step B) auto-triggers conversion ONLY after:
+
+1. The user has approved the update report.
+2. The approved plan has been applied.
+3. Updated per-variant scratch files exist.
+4. Updated / newly added final `.md` file(s) exist for every approved variant.
+5. Step 7 verification passes for all variants.
+6. The temporary pending approval report has been deleted from `progress-logging/`.
+
+Do NOT trigger Phase 3 while the update report is still pending user approval.

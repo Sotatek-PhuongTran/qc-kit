@@ -8,34 +8,30 @@ The output language of test cases is governed by `rules/global-rules.md`:
 
 The agent MUST detect the project's working language from the source UC document before applying any rule below, and MUST NOT mix languages within the same output file.
 
----
+--- 
 
 ### Language & Encoding (MANDATORY)
 
-> **Scope note:** Rules **0a–0d** apply **only when the output language is Vietnamese**. For English-output projects, only Rule 0c's "use the shared converter, do not write a new script" and Rule 0d's "self-verify before delivery (no `?` boxes / mojibake)" still apply — diacritic-preservation and the forbidden-transformation list are not relevant.
+> **Scope note:** 
+- If the output language is Vietnamese: apply rule 1, rule 2 and rule 3.
+- If the output language is English: apply rule 2 and rule 3.
 
-**Rule 0a — Preserve Vietnamese diacritics.** All Vietnamese text written into the test cases (Title, Pre-conditions, Steps, Expected Result, Function name, Sub-function) MUST preserve the original diacritics from the source UC document. Do NOT strip, normalize, or transliterate to ASCII.
-- ✅ Correct: `"Đăng nhập hệ thống bằng tài khoản NĐT"`, `"Kiểm tra màn hình khởi tạo"`, `"Truy cập menu Báo cáo định kỳ 6 tháng ĐTRNN"`
-- ❌ Wrong: `"Dang nhap he thong bang tai khoan NDT"`, `"Kiem tra man hinh khoi tao"`, `"Truy cap menu Bao cao dinh ky 6 thang DTRNN"`
-
-**Rule 0b — Forbidden transformations.** Do NOT use any of the following on Vietnamese strings before writing to the xlsx:
+**Rule 1 — Forbidden transformations.** Do NOT use any of the following on Vietnamese strings before writing to the xlsx:
 - `unicodedata.normalize('NFD', s).encode('ascii', 'ignore').decode()` — strips dấu
 - `unidecode(s)` / `text_unidecode(s)` — strips dấu
 - Manual replacement maps (`'à' → 'a'`, `'Đ' → 'D'`, …)
 - `.encode('latin-1', 'ignore')` / `.encode('cp1252', 'ignore')` — corrupts non-Latin-1 chars
 - Any transliteration library
 
-**Rule 0c — Use the shared converter; do NOT write a new script.** xlsx generation is performed by `qc-func-tc-design/scripts/md_to_xlsx.py`, invoked exclusively from `workflows/convert-md-to-xlsx.md` (auto-triggered by the skill — see `SKILL.md` → "Skill Execution Steps"). The agent invokes this script and does NOT write its own openpyxl populator. The script is UTF-8, opens md with `encoding='utf-8'`, writes Unicode literals, and self-verifies before exit. If you must extend the script, preserve these properties — never add `# -*- coding: cp1252 -*-`, never normalize/transliterate.
+**Rule 2 — Use the shared converter; do NOT write a new script.** xlsx generation is performed by `qc-func-tc-design/scripts/md_to_xlsx.py`, invoked exclusively from `workflows/convert-md-to-xlsx.md` (auto-triggered by the skill — see `SKILL.md` → "Skill Execution Steps"). The agent invokes this script and does NOT write its own openpyxl populator. The script is UTF-8, opens md with `encoding='utf-8'`, writes Unicode literals, and self-verifies before exit. If you must extend the script, preserve these properties — never add `# -*- coding: cp1252 -*-`, never normalize/transliterate.
 
-**Rule 0d — Self-verification before delivery.** After generating the xlsx, open it and spot-check at least 3 rows containing non-ASCII text. If any cell shows: ASCII-only Vietnamese (no dấu, VI projects only), `?` boxes, mojibake (e.g., `Ä\x90`, `Ã©`), or any character that doesn't match the source — STOP, debug the script, regenerate. Do NOT deliver a partially-stripped output.
+**Rule 3 — Self-verification before delivery.** After generating the xlsx, open it and spot-check at least 3 rows containing non-ASCII text. If any cell shows: ASCII-only Vietnamese (no dấu, VI projects only), `?` boxes, mojibake (e.g., `Ä\x90`, `Ã©`), or any character that doesn't match the source — STOP, debug the script, regenerate. Do NOT deliver a partially-stripped output.
 
 ### Sheet Layout & Section Headers (MANDATORY)
 
 **Columns** (matches the template `Test cases` sheet, row 1 — pin by column letter; the project uses one fixed template):
 
 `A=ID_TC | B=Test Title/Summary of test cases | C=Pre-conditions | D=Step | E=Expected Result | F=Priority`
-
-GUI and Functional test cases are written into the **same sheet** (the `Test cases` sheet), starting from row 2, separated by section header rows. The agent MUST insert these header rows in addition to the test case rows.
 
 **Within GUI section, sort in this order (4 buckets):**
 1. **Screen Initialization** — initial render, default state, empty / populated state of every object on the screen.

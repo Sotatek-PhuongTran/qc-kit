@@ -1,10 +1,10 @@
 # First Audit · Phase 1 — Synthesize Requirement Understanding
 
-> **Friendly name (for worklog & dashboard):** `Synthesizing Requirement Understanding` (EN) / `Tổng hợp hiểu biết requirement` (VI).
+> **Friendly name (for worklog):** `Synthesizing Requirement Understanding` (EN) / `Tổng hợp hiểu biết requirement` (VI).
 >
 > **Inputs:** UC document(s), design images, supporting artefacts (API spec, BPMN, etc.), common reference files.
 >
-> **Output checkpoint:** `process-logging/<UC-ID>/01_synthesis.md` — contains the 5 synthesis sections + Section 4 inventory with `Delta = 0` coverage verified.
+> **Output checkpoint:** `process-logging/<UC-ID>/01_synthesis.md` — §A–§E (raw evidence) written at Step 1.7, §F (synthesized 5 sub-sections) appended at Step 2.
 
 ---
 
@@ -13,86 +13,396 @@
 Per `workflows/checkpoint-protocol.md` §2 (write-before-work rule):
 
 1. **Worklog**: rewrite last entry → `status = "Running (Phase 1)"`. Append input file names to `input` (excluding `process-logging/`).
-2. **qc-dashboard.md**: update the UC's `UC review stt` cell → `Running — Synthesizing Requirement Understanding` (use the input UC's language — see protocol §3 phase friendly names table). Skip if column missing (graceful degradation).
 
 ---
 
-## Step 1: Read all artefacts
+## Step 1 — Read Artefacts and Build Review Context
 
-- Read the `project-config` file (resolved via `path-registry.md` → `docs/qc-lead/project-config.md`) — **§ 2. Project Context** section to understand the project context.
-- Read the common files first — Read `.claude/skills/qc-uc-read/references/input-files-format.md` to understand the input file's structure and to ensure that you understand all the common rules and the project context.
+Before scoring, rewriting, or judging anything, read all provided artefacts and build a lightweight review context.
 
-**Common Reference Resolution rule (MANDATORY):** When the source UC references a common-file entry by code/ID/name (e.g., `MSG_E001`, `BR_xxx`, the name of a common function), do NOT leave the bare code in the audit output. Open the corresponding common file, copy the **exact original text** (message wording, full rule statement, function description), and inline that text into the audit section that uses it (Section 6.1.B Business Rules, 6.1.C Error Codes / Toast Messages, Section 3 Preconditions if a common function is reused, etc.). Preserve the original code in parentheses for traceability — e.g., `"New user created successfully." (MSG_E001)`.
-This is so test cases written downstream from the audit file have the exact verbatim message/rule text in `Expected Result` without re-opening the common docs.
+The purpose of this step is to understand where the UC fits in the overall project and to collect supporting evidence for later reconstruction and Phase 2 cross-checks.
 
-- Then read each provided UC file or pasted content fully before scoring anything.
-- **Site-map cross-check (optional input):** if `qc-site-map` exists, read §5 Screen/Page inventory + §6 Navigation & screen flow + §7 Role/access by screen + §8 Screen ↔ Feature mapping. Hold in working memory: (a) screens mapped to the UC's feature in §8, (b) flows in §6 touching those screens, (c) roles in §7 with access. These feed Phase 2 KA #3/#4/#7 gap detection and the Cross-Artefact Conflict Check. If missing, skip and warn once.
-
-### Input-type routing
-
-| Input type           | Action                                                                                                          |
-| -------------------- | --------------------------------------------------------------------------------------------------------------- |
-| PDF provided         | Invoke the `pdf` skill to extract text, tables, images first. Do NOT use the Read tool directly on PDF files.   |
-| DOCX provided        | Invoke the `docx` skill to extract text, tables, images first. Do NOT use the Read tool directly on DOCX files. |
-| File path provided   | Read the file using the appropriate tools.                                                                      |
-| Image file provided  | Use the Read tool — it renders images inline; describe all visible UI elements, labels, states, and flows in detail. |
-| Pasted text provided | Treat as a document; parse directly from the prompt.                                                            |
-
-### Supported artefact types
-
-Accept any combination of:
-
-| Type                        | Examples                                           |
-| --------------------------- | -------------------------------------------------- |
-| Requirements / Use Case doc | UC spec, feature brief, BRD, user story            |
-| UI Design / Wireframe       | Figma export, mockup image, screen flow PDF        |
-| API Specification           | REST API doc, Swagger/OpenAPI, integration spec    |
-| Business Process doc        | Workflow diagram, BPMN, process description       |
-| Design document             | Technical design, system design, architecture note |
-| Other supporting docs       | Data dictionary, error code list, email templates  |
-
-All file formats are supported: plain text, Markdown, PDF, Word (.docx), images (PNG/JPG).
+Do **not** score, rewrite, or judge the UC in this step.
 
 ---
 
-## Step 2: Synthesise a Feature Understanding
+### 1.1 Route input files before reading
 
-After fully comprehending all provided documents and analyzing the design images (including any screen mockups embedded within the specification documents), proceed to synthesize the requirement content according to the following 5 sections:
+Before reading any artefact, determine the input type and use the correct extraction method.
 
-### 1. UI Object Inventory & Mapping
+| Input type              | Action                                                                                                          |
+| ----------------------- | --------------------------------------------------------------------------------------------------------------- |
+| PDF provided            | Invoke the `pdf` skill to extract text, tables, and images first. Do not read the PDF directly as plain text.   |
+| DOCX provided           | Invoke the `docx` skill to extract text, tables, and images first. Do not read the DOCX directly as plain text. |
+| File path provided      | Read the file using the appropriate tool based on file type.                                                    |
+| Image file provided     | Use visual reading and extract visible UI evidence.                                                             |
+| HTML prototype provided | Read prototype source and extract observable UI evidence.                                                       |
+| Pasted text provided    | Treat it as a document and parse directly from the prompt.                                                      |
 
-Extract and catalog all user interface components based on the Design Mockup and map them correspondingly to the Functional Specification document.
+Apply this routing rule to every file used in Step 1, including UC files, context files, site-map files, common files, and design artefacts.
 
-**Granularity rule (MANDATORY):** Every atomic UI element gets **its own row** in Section 4. Do NOT collapse multiple inputs/buttons/columns into one row (e.g., do NOT write "Phần I: 9 API fields" — list each field individually). Each row MUST capture:
+---
 
-- **Exact label** as shown on the screen (Vietnamese/English original — no paraphrase)
-- **Component type** (Text input / Number input / Dropdown / Date picker / Radio / Checkbox / Textarea / Button / Icon / Table column / Tab / Tooltip / Toast / Popup / etc.)
-- **Required flag** (`*` shown in design = Required; absence of `*` = Optional)
-- **Default value** (if pre-filled or hint shown)
-- **Placeholder text** (exact text inside the input)
-- **Enum values** (for Dropdown/Radio/Checkbox — list **all** options exactly as shown, no "(N values)" shorthand)
-- **Section / sub-section grouping** (e.g., "Phần I > Nhà đầu tư #1")
+### 1.2 Read project-level context
 
-Categorize after enumeration, not before:
+Read the `project-context-master` file, resolved via `path-registry.md`.
 
-- **Data Display Structure (Grid/List/Table):** For every table, list **every column** as a separate row (preserve multi-level header hierarchy). Identify pagination limit, default sorting, and Empty state text exactly as designed.
-- **Control System (Filters/Search Fields):** Each filter/search field is its own row. Capture initial state, full list of dropdown values, and input constraints.
-- **Navigation and Action Components (Buttons/Controls):** Each button/icon is its own row, including action icons inside table rows (Edit/Delete/View/Export/Print/etc.).
-- **Other components:** page title, subtitle, hint banner, breadcrumb, tooltip, badge, status chip, empty-state message, loading spinner — each as its own row.
+Use this file to understand the overall project context, including:
 
-**Self-check before finishing this step:** For each design image, count the visible atomic UI elements. The number of rows in Section 4 mapped to that image must be ≥ that count. Record the count delta in your working notes; if any element is collapsed/grouped, flag and re-expand.
+* product / business domain
+* target users and user groups
+* major modules or feature areas
+* key business goals
+* global assumptions, constraints, and terminology
 
-### 2. Object Attributes & Behavior Definition
+Keep only the information needed to understand the UC in the broader project picture.
+
+If the file is missing, skip it and warn the user once.
+
+---
+
+### 1.3 Read site-map / screen-flow context, if available
+
+Read the `qc-site-map` file, resolved via `path-registry.md`, to identify:
+
+* screens related to the UC’s feature
+* navigation flows touching those screens
+* roles allowed to access those screens
+* features mapped to those screens
+
+If the site-map file is missing, skip it and warn the user once.
+
+---
+
+### 1.4 Read common input-format rules
+
+Read:
+
+`.claude/skills/qc-uc-read/references/input-files-format.md`
+
+This file lists the structure of all BA input artefacts and — most importantly — the identifier prefixes used across the project (e.g., `COMMON-*`, `BR-*`, `RULE-*`, `BP-*`, `QA-*`, `MSG_*`, `ERR_*`). Use it for two purposes only:
+
+1. **Reference recognition.** Knowing the full prefix list lets Step 1.5 extract every referenced identifier in the UC without missing any prefix family.
+2. **Sub-agent A grounding.** Pass the relevant prefix list and common-file structure into Sub-agent A's prompt at 1.6 so it knows what to scan for and how each common file is organized.
+
+Do not score the UC after reading this file.
+
+---
+
+### 1.5 Read the detailed UC document
+
+Read each provided UC file or pasted UC content fully.
+
+At this step, only capture enough information to identify the review target and support later extraction, including:
+
+* UC ID and UC name
+* related feature / module
+* actors or roles mentioned
+* main sections available in the UC
+* referenced screens, rules, messages, APIs, data fields, or external artefacts
+
+Do not list, rewrite, or normalize all UC objects here.
+
+Detailed UC objects, flows, rules, messages, validations, and data fields will be reconstructed in later steps.
+
+---
+
+### 1.6 Parallel sub-agent fan-out
+
+Launch the following independent read-only sub-agents in parallel.
+
+Use a **single message with multiple `Agent` tool calls in the same `<function_calls>` block**.
+Do **not** await one sub-agent before invoking the next.
+
+These sub-agents have no data dependency on each other.
+
+Only after all launched sub-agents return, continue to Step 1.7.
+
+#### Sub-agent A — Resolve common rules and messages
+
+Run this sub-agent if `requirement-common-files` exists.
+
+If common files are missing, skip this sub-agent and warn the user once.
+
+Call the `Agent` tool with:
+
+* `subagent_type: "Explore"`
+* `description: "Resolve common rules and messages for <UC-ID>"`
+* `prompt`:
+
+```text
+You are a read-only lookup agent. Do not infer, rewrite, translate, or summarize. Extract only verbatim evidence.
+
+1. Read the detailed UC file at:
+   <absolute path to the requirement file for UC-ID>
+
+2. Extract every referenced identifier or named reference, including:
+   - error codes, for example E001, E123, ERR_*
+   - message IDs, for example MSG_*
+   - business rule IDs, for example BR-*, BR001, RULE_*
+   - notification names
+   - email / SMS / push template names
+   - validation message names
+   - Vietnamese or English message names written in quotation marks
+   - any common rule, common message, or shared configuration reference
+
+3. Search all files under:
+   <absolute path to requirement-common-files>
+
+4. When multiple versions of the same common file exist, use the latest file by version suffix, for example:
+   - error-codes_v3.md is newer than error-codes_v2.md
+   - business-rules_v10.md is newer than business-rules_v9.md
+
+5. For each UC mention, return a Markdown table in exactly this format:
+
+| UC mention | Common file | Section | Verbatim content |
+|---|---|---|---|
+| E001 | error-codes_v3.md | §2.1 | "Tài khoản không tồn tại" |
+
+6. If a mention cannot be found, write `NOT_FOUND` in the "Common file" column.
+
+7. Do not invent missing content.
+8. Do not translate.
+9. Do not explain.
+10. Keep the report under 400 lines. If the result is too long, prioritize mentions that appear in the UC’s main flow, alternate flows, validation rules, and exception flows.
+```
+
+---
+
+#### Sub-agent B — Extract UI evidence from HTML prototype
+
+Run this sub-agent if HTML prototype files are provided.
+
+Call the `Agent` tool with:
+
+* `subagent_type: "Explore"`
+* `description: "Extract UI evidence from prototype for <UC-ID>"`
+* `prompt`:
+
+```text
+You are a UI evidence extraction agent. Do not evaluate quality. Do not infer hidden requirements. Extract only observable UI evidence.
+
+1. Read the detailed UC file at:
+   <absolute path to the requirement file for UC-ID>
+
+2. Identify screens, dialogs, forms, and UI states mentioned by the UC.
+
+3. Inspect the HTML prototype files at:
+   <absolute path to prototype files>
+
+4. For each relevant screen or state, extract:
+   - screen/page name
+   - source file or route
+   - visible UI text
+   - buttons and actions
+   - input fields
+   - placeholder text
+   - tooltip or helper text
+   - inline validation messages
+   - error, warning, success, or notification messages
+   - empty, loading, disabled, readonly, or selected states
+   - modal / popup / confirmation dialog content
+   - navigation actions
+   - table columns, cards, badges, statuses, or displayed data
+
+5. Return the result as Markdown:
+
+## Prototype UI Evidence for <UC-ID>
+
+### Screen: <screen/page name>
+- Source: <file or route>
+- Related UC section(s): <section names if identifiable>
+
+| UI element type | Label / text | State | Notes |
+|---|---|---|---|
+
+## Prototype Coverage Notes
+
+| UC reference | Prototype evidence | Status |
+|---|---|---|
+| <UC screen/field/action> | <matching prototype source> | FOUND / NOT_FOUND / UNCLEAR |
+
+6. Do not judge whether FOUND or NOT_FOUND is a defect.
+7. Do not suggest improvements.
+8. Do not translate UI text.
+9. Do not invent states that are not present.
+10. Keep the report under 500 lines.
+```
+
+---
+
+#### Sub-agent C — Extract UI evidence from image designs
+
+Run this sub-agent if image design files are provided, such as PNG, JPG, JPEG, or screenshots.
+
+Call the `Agent` tool with:
+
+* `subagent_type: "Explore"`
+* `description: "Extract UI evidence from image designs for <UC-ID>"`
+* `prompt`:
+
+```text
+You are a UI evidence extraction agent. Analyze the provided design images visually. Do not evaluate quality. Do not infer hidden requirements. Extract only visible UI evidence.
+
+1. Read the detailed UC file at:
+   <absolute path to the requirement file for UC-ID>
+
+2. Identify screens, dialogs, forms, and UI states mentioned by the UC.
+
+3. Read the image design files at:
+   <absolute path to image design files>
+
+4. For each relevant image, extract:
+   - image file name
+   - screen/page name
+   - visible UI text
+   - buttons and actions
+   - input fields
+   - placeholder text
+   - tooltip or helper text
+   - inline validation messages
+   - error, warning, success, or notification messages
+   - empty, disabled, readonly, selected, or loading states
+   - modal / popup / confirmation dialog content
+   - navigation actions
+   - table columns, cards, badges, statuses, or displayed data
+   - visible flow indicators such as breadcrumbs, tabs, steppers, or arrows
+
+5. Return the result as Markdown:
+
+## Image UI Evidence for <UC-ID>
+
+### Image: <file name>
+- Related screen: <screen/page name>
+- Related UC section(s): <section names if identifiable>
+
+| UI element type | Visible text / label | State | Notes |
+|---|---|---|---|
+
+## Image Coverage Notes
+
+| UC reference | Image evidence | Status |
+|---|---|---|
+| <UC screen/field/action> | <matching image/file> | FOUND / NOT_FOUND / UNCLEAR |
+
+6. Do not judge whether FOUND or NOT_FOUND is a defect.
+7. Do not suggest improvements.
+8. Do not translate UI text.
+9. Do not invent invisible content.
+10. If text is unclear or unreadable, write `UNCLEAR_TEXT`.
+11. Keep the report under 500 lines.
+```
+
+---
+
+#### Design artefact handling rules
+
+* If both HTML prototype and image design files are provided, run both Sub-agent B and Sub-agent C in parallel.
+* If only HTML prototype is provided, run only Sub-agent B.
+* If only image design files are provided, run only Sub-agent C.
+* If no design or wireframe artefact is provided, skip design extraction and warn the user once.
+* Do not treat missing design artefacts as a blocker.
+
+---
+
+### 1.7 Write Step 1 output to the checkpoint file
+
+Write §A–§E directly to `.claude/skills/qc-uc-read/process-logging/<UC-ID>/01_synthesis.md`. **Always overwrite** if the file exists (first-audit is idempotent on re-run).
+
+Use this exact structure:
+
+````markdown
+# Phase 1 Synthesis — <UC-ID>
+
+## Working notes
+- UC-ID / name / input language
+- Source files with version
+- Blocked or missing artefacts (or `none`)
+- Generated at <ISO timestamp> by qc-uc-read · first-audit · Phase 1
+
+## §A. Project & site-map context
+- A.1 Project context (from Step 1.2) — scoped to this UC
+- A.2 Site-map context (from Step 1.3) — related screens, navigation, roles, mapped features
+
+## §B. UC identity & raw reference list (from Step 1.5)
+- UC ID / UC name
+- Input language
+- Source UC file(s)
+- Related feature / module
+- Artefacts detected for this UC: common files / API / BPMN / design / prototype / site-map
+- Notes for downstream extraction: none / <only routing notes>
+
+## §C. Resolved common rules & messages (Sub-agent A — verbatim table, includes NOT_FOUND rows)
+
+## §D. HTML prototype UI evidence (Sub-agent B — verbatim)
+
+## §E. Image design UI evidence (Sub-agent C — verbatim)
+````
+
+For any section whose source did not run or is missing, write `Not applicable — <reason>.` Do not omit the heading.
+
+Leave a trailing `---` after §E so Step 2 can append §F cleanly. Do not write §F here.
+
+---
+
+### 1.8 Step 1 guardrails
+
+During Step 1:
+
+* Do not score the UC.
+* Do not rewrite the UC.
+* Do not judge whether a gap or conflict is a defect.
+* Do not infer missing requirements.
+* Do not translate source content unless explicitly requested.
+* Do not invent common rules, messages, UI states, or design behavior.
+* Warn only once for each missing optional artefact type.
+* Use `synthesize`, not `synthesise`, for spelling consistency.
+
+---
+
+## Step 2: Synthesize a Feature Understanding
+
+Append §F to `01_synthesis.md` (file created in Step 1.7). Do not overwrite §A–§E. Do not create a new file.
+
+Follow `qc-writting-rules.md` (MANDATORY). Re-number Section 1–5 below as §F.1–§F.5 in the output.
+
+### §F.1 UI Element Extraction and Cataloging
+
+Extract and catalog all User Interface (UI) elements based on the design data extracted by Sub-agent B and Sub-agent C, and map them to their corresponding descriptions in the use case document.
+
+**Granularity Rules (MANDATORY):** Every single basic UI element MUST have its **own dedicated row**. DO NOT group multiple input fields, buttons, or columns into a single row (e.g., DO NOT write "Part I: 9 API fields" — you must list each field individually). Each row MUST contain:
+
+- **Exact Label:** Exactly as displayed on the screen (Verbatim in Vietnamese/English — do not paraphrase). If there is a discrepancy between the design and the document, prioritize the design label.
+- **Component Type:** (e.g., Text Input / Number Input / Dropdown Menu / Date Picker / Radio Button / Checkbox / Text Area / Button / Icon / Table Column / Tab / Tooltip / Alert / Popup / etc.)
+- **Mandatory Flag:** (`*` shown in design = Mandatory; no `*` = Optional)
+- **Default Value:** (If pre-filled or if a default suggestion is displayed)
+- **Placeholder Text:** (The exact background text inside the input field)
+- **Enumerated Values:** (For Dropdowns/Radio Buttons/Checkboxes — you must list **all** exact options as displayed; do not use abbreviations like "(N values)")
+- **Section / Sub-section Group:** (e.g., "Section I > Investor #1")
+- **Discrepancies / Missing Elements:** Note any inconsistencies, mismatches, or missing items between the use case document and the design (images, prototype).
+
+Categorize the elements *after* listing them individually, not before:
+
+- **Data Display Structures (Grid/List/Table):** For each table, list **every column** as a separate row (maintain multi-level header hierarchy if applicable). Identify pagination limits, default sorting, and the exact Empty State text as per the design.
+- **Control Systems (Filters/Search Fields):** Each filter/search field MUST be a separate row. Record its initial state, the complete list of dropdown values, and any input constraints.
+- **Navigation and Action Elements (Buttons/Controls):** Each button/icon MUST be a separate row, including inline action icons within table rows (Edit/Delete/View/Export/Print/etc.).
+- **Other Elements:** Page titles, subtitles, suggestion banners, breadcrumbs, tooltips, badges, status chips, empty state messages, loading indicators — each element MUST be a separate row.
+
+**Self-Verification before completing this step:** For each design image or prototype provided, count the total number of visible UI elements. The number of rows generated in this section that are mapped to that image MUST be greater than or equal to your visual count. Log any numerical discrepancies in your working notes; if any elements were collapsed or grouped in your output, immediately flag them and expand them into individual rows.
+
+### §F.2 Definition of Object Attributes and Behaviors
 
 Determine the state and response of each UI object based on specific system conditions.
 
-**1-to-1 mapping rule (MANDATORY):** Section 5 MUST contain **at least one row for every row in Section 4**. The set of "Object / Component" names in Section 5 must equal or be a superset of the names in Section 4. If a UI element has no special behavior, still list it with `System States = "Enabled (no special behavior)"` and `Behavior = "N/A"` — do NOT omit it. Never group multiple Section-4 components into a single Section-5 row (e.g., do NOT write "SĐT, Email" as one row — split into two).
+**1-to-1 Mapping Rule (MANDATORY):** §F.2 MUST contain **at least one row for every UI element listed in §F.1**. If a UI element has no special behavior, it MUST still be listed with `System State = "Enabled (no special behavior)"` and `Behavior = "N/A"` — DO NOT skip it. Never group multiple elements into a single row (e.g., DO NOT write "Phone, Email" as one row — split them into two separate rows).
 
-- **System States:** Define the default state of the object (Enabled, Disabled, Hidden, Read-only) based on variables such as: account privileges (Permissions), input data conditions, or the current data state of the system.
-- **Interaction Matrix:** Specify the possible interaction actions and the corresponding system responses for each object. Use platform-appropriate vocabulary based on `project-context-master.md` §1 Product Platform Type — web/desktop: Click, Hover, Drag & Drop, Right-click, keyboard shortcuts; mobile native: Tap, Long-press, Swipe, Pull-to-refresh, Pinch-zoom, Hardware back (Android), Swipe-back-edge (iOS).
-- **Object Behavior:** Define how the object reacts when there is a data change or a state change in related objects.
+**Content Extraction Rule (MANDATORY):** The content of rule codes, validation messages, or error alerts mentioned in the document MUST be replaced with the specific, detailed content already reported by Sub-agent A. If Sub-agent A returns `NOT_FOUND`: keep the original code as written in the UC, append `(NOT_FOUND in common files)`, and do not invent content.
 
-### 3. Functional Logic & Workflow Decomposition
+- **System State:** Define the default state of the object (Enabled, Disabled, Hidden, Read-Only) based on variables such as: account privileges (Permissions), input data conditions, or the current data state of the system.
+- **Interaction Matrix:** Define the possible interactive actions and their corresponding system responses for each object. Use vocabulary strictly from the use case specification document, such as: Click, Hover, Drag and Drop, Right-click, Keyboard shortcuts. For native mobile apps, use: Tap, Long Press, Swipe, Pull to Refresh, Pinch to Zoom, Hardware Back (Android), Edge Swipe Back (iOS).
+- **Object Behavior:** Define exactly how the object reacts to data changes or state changes in other related UI objects.
+
+### §F.3 Functional Logic & Workflow Decomposition
 
 Analyze in detail the business processes of each function available on the feature screen, such as view list, filter, search, create, view detail, edit, delete, export, etc.
 
@@ -103,52 +413,45 @@ Analyze in detail the business processes of each function available on the featu
 - **Business Rules & Validations:** Synthesize the business rules regarding format constraints, value ranges, and mandatory fields.
 - **UI/UX Feedback:** Specify system notifications (Toast messages), error codes, and loading states corresponding to each process.
 
-### 4. Functional Integration Analysis
+### §F.4 Functional Integration Analysis
 
 Analyze and evaluate the linkages and influences between the cataloged functions, acting as an integration check between functions.
 
 - **Impact Analysis:** Determine whether a change in state or data within one function directly or indirectly affects other functions.
 - **Data Consistency:** Verify the synchronization of data across all related UI components after a function is executed.
 
-### 5. Acceptance Criteria (AC) Synthesis
+### §F.5 Acceptance Criteria Candidates for User Confirmation
 
-Establish the final set of measurement and evaluation standards regarding the completeness of the requirement.
+Purpose:
+- Synthesize testable AC candidates from §F.1–§F.4.
+- Use these AC candidates as a review aid only.
+- Do not treat synthesized AC as source requirement.
+- Do not use absence of source AC as a scoring penalty in Phase 2.
 
-- **Establishing Acceptance Criteria (AC):** Categorize and detail the acceptance criteria for each group: Interface (UI), Function, and Integration.
+Each row must include:
+- AC candidate
+- Type: UI / Functional / Integration
+- Trace: §F.X + source artefact
+- Confirmation status: Needs user confirmation
+- Source status: Verbatim from UC / Synthesized from understanding
 
----
-
-## Step 3: UI Coverage Self-Verification (mandatory before exiting Phase 1)
-
-Before exiting Phase 1, do a coverage audit of Section 4 against every design image:
-
-1. For each design image in the input set, count `elements_in_image` — the visible atomic UI elements (every input, dropdown, radio option, checkbox, button, action icon, table column, table row label, tab, tooltip, badge, chip, page title, subtitle, hint banner, empty-state message, toast, popup).
-2. Count `rows_in_section_4` — Section 4 rows whose `Source` column references that image.
-3. Record a delta table in working notes:
-
-   | Image | elements_in_image | rows_in_section_4 | Delta | Action |
-   |-------|-------------------|-------------------|-------|--------|
-   | *(filename)* | *(N)* | *(M)* | *(N − M)* | *(if Delta > 0: enumerate the missing elements and add rows; if Delta < 0: review for fabricated elements)* |
-
-4. Loop until `Delta == 0` for every image. Only then proceed to Phase 2.
-5. If a design image cannot be opened or rendered, mark Section 4 row `[BLOCKED: <filename> not accessible]` and surface as Blocker — do NOT skip the image silently.
+Each AC row should be self-contained per `qc-writting-rules.md` C2 and include the source tag.
 
 ---
 
 ## Checkpoint write — End of Phase 1
 
-Per `workflows/checkpoint-protocol.md` §5:
+Per `workflows/checkpoint-protocol.md` §4:
 
-1. **Write checkpoint file** `.claude/skills/qc-uc-read/process-logging/<UC-ID>/01_synthesis.md` with:
-   - The 5 synthesis sections (full content)
-   - The UI coverage delta table (must show `Delta = 0` for every image)
-   - Working notes: detected input language, UC-ID, version of source files read, list of blocked artefacts (if any)
-2. **Update `progress.md`** → `last_phase_done: 1`, `next_phase: 2`, `updated_at: <now>`.
-3. **Worklog**: rewrite last entry → `status = "Phase 1 done"`.
-4. **qc-dashboard.md**: update the UC's `UC review stt` cell → `Synthesizing Requirement Understanding done` (skip if column missing).
+1. Verify `01_synthesis.md` contains §A through §F. If §F is missing, Step 2 did not complete — do not proceed.
+2. Update `progress.md` → `last_phase_done: 1`, `next_phase: 2`, `updated_at: <now>`.
+3. Worklog: rewrite last entry → `status = "Phase 1 done"`.
 
 ---
 
 ## Hand-off to Phase 2
 
 Next file: `workflows/first-audit/2-score-and-identify-gaps.md`. It reads `01_synthesis.md` from the checkpoint folder and scores the 10 knowledge areas using the rubric in `references/scoring-rubric.md`.
+
+
+

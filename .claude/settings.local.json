@@ -96,7 +96,8 @@
       "Bash(:)",
       "Bash(echo \"\\(empty file exit $?\\)\")",
       "Bash(printf \"only_line\\\\n\")",
-      "Bash(echo \"\\(exit $?\\)\")"
+      "Bash(echo \"\\(exit $?\\)\")",
+      "Bash(grep -i \"\\\\.DS_Store$\")"
     ],
     "additionalDirectories": [
       "c:\\Users\\Admin\\Desktop\\qc-kit\\.claude\\skills\\qc-uc-read\\process-logging\\UC1",

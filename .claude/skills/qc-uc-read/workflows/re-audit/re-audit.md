@@ -39,7 +39,6 @@
 Per `workflows/checkpoint-protocol.md` §2:
 
 1. **Worklog**: rewrite last entry → `status = "Running"`. Append input file names (previous audited file + question-backlog) to `input`.
-2. **qc-dashboard.md**: update the UC's `UC review stt` cell → `Running — Phân tích & cập nhật báo cáo` (use input UC's language — see checkpoint-protocol.md §3). Skip if column missing.
 
 ---
 

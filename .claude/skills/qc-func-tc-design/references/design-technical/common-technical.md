@@ -23,7 +23,7 @@ For each screen or feature:
 
 | Field | Description |
 |---|---|
-| Test Case ID | Unique ID, for example `WEB-RSP-LOGIN-P1-001` |
+| Test Case ID | Unique ID, follow Rule 2 — Content Logic - `testcase-instruction-rules` |
 | Platform Type | `web-static`, `web-responsive`, `mobile-native`, `mobile-hybrid`, `desktop-native` |
 | Phase | Phase 1 to Phase 6 |
 | Feature / Screen | Screen, module, or workflow under test |

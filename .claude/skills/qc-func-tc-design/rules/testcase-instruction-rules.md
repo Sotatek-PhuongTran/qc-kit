@@ -69,7 +69,18 @@ The agent MUST detect the project's working language from the source UC document
 
 ### Test Case Writing rules:
 
-**Rule 1 — UI Notation Standard.** The Agent must utilize specific notations to differentiate on-screen components.
+**Rule 1 - DATA HANDLING CONSTRAINT**
+- Do NOT hardcode specific values such as system paths, account names, or concrete test data into the test cases.
+- ALWAYS use the generic name, UI label, or logical placeholder for the information.
+- When test data requires clarification, provide a short description or example enclosed in parentheses () immediately following the object name.
+
+Examples:
+Correct: Enter email into the "Email" textbox (e.g., a valid formatted email).
+Correct: Select a platform from the "Platform" dropdown ("Select platform" placeholder).
+Incorrect: Enter "admin123" into the Username field.
+Incorrect: Upload file from "D:\test_data\image.png".
+
+**Rule 2 — UI Notation Standard.** The Agent must utilize specific notations to differentiate on-screen components.
 
 `"Double Quotes"`: Use for interactive components such as Buttons, Menus, Tabs, Icons; or Labels, Placeholders, input values, or selected values from a list.
 
@@ -78,7 +89,15 @@ The agent MUST detect the project's working language from the source UC document
 | Nhập email vào "Email" textbox | Enter email into the "Email" textbox |
 | "Platform" dropdown, "Select platform" placeholder | "Platform" dropdown, "Select platform" placeholder |
 
-**Rule 2 — Content Logic.**
+**Rule 3 — Content Logic.**
+
+Do not write the test data specifically in the test case. Only use the data names and examples in parentheses to describe the test data needed for the test case.
+Example:
+
+| VI | EN |
+|---|---|
+|Nhập dữ liệu email hợp lệ (vd: phuong.tan@gmail.com) vào trường "Email"|Enter a valid email (exp: phuong.tran@gmail.com) into "Email" field|
+|Nhập dữ liệu email không hợp lệ, thiếu ký tự @ (vd: phuong.trangmail.com) vào trường "Email"|Enter an invalid email without @ character (exp: phuong,trangmail.com) into "Email" field|
 
 **TC ID** (language-agnostic): Always strictly adhere to the format `TC_[XXX]` — XXX is an incremental number (3 digits). Example: `TC_001`, `TC_002`.
 
@@ -109,11 +128,13 @@ GUI Test Title examples:
 
 Functional Test Title — start with the verb plus the business action being verified (e.g., `Kiểm tra <flow>` / `Verify <flow>`).
 
-**Pre-conditions:** Must begin with an action describing what must be performed before executing the test case.
+**Pre-conditions:**
+- Must begin with an action describing what must be performed before executing the test case.
+- One condition per row.
 
 | VI example | EN example |
 |---|---|
-| Đăng nhập vào hệ thống Admin tại [URL]. | Log in to the Admin system at [URL]. |
+| Đăng nhập vào hệ thống Admin. | Log in to the Admin system. |
 | Điều hướng đến màn hình Danh sách Sản phẩm. | Navigate to the Product List screen. |
 | Nhấp vào nút "Tạo" và đợi cửa sổ bật lên "Tạo Sản phẩm" mở hoàn toàn. | Click the "Create" button and wait for the "Create Product" popup to fully open. |
 
@@ -125,31 +146,11 @@ Functional Test Title — start with the verb plus the business action being ver
 |---|---|
 | `Truy cập`, `Nhấp vào`, `Chọn`, `Nhập`, `Di chuột qua`, `Chú ý vào` | `Access`, `Click on`, `Select`, `Enter`, `Hover over`, `Observe` |
 
-| VI example | EN example |
-|---|---|
-| <pre>1. Tại màn hình Đăng nhập, click vào textbox "Tên đăng nhập"<br>    1.1 Nhập kí tự chữ (không phân biệt chữ hoa, chữ thường) (Eg:Thao)<br>    1.2 Nhập kí tự số (Eg:123456)<br>    1.3 Nhập kí tự đặc biệt (Eg:!@#$%^&*())<br>    1.4 Nhập kí tự chữ và số (Eg:Thao123456)<br>2. Nhấp vào "Đăng nhập" button.<br>3. Kiểm tra trường "Tên đăng nhập"</pre> | <pre>1. On the Login screen, click on the "Username" textbox<br>    1.1 Enter alphabetic characters (case-insensitive) (Eg: Thao)<br>    1.2 Enter numeric characters (Eg: 123456)<br>    1.3 Enter special characters (Eg: !@#$%^&*())<br>    1.4 Enter alphanumeric characters (Eg: Thao123456)<br>2. Click on the "Login" button.<br>3. Verify the "Username" field</pre> |
-
 **Expected Result (UI Verification):**
 - MUST begin with a step number (e.g., `1. <expected result>`).
 - Do NOT write generic statements.
-
-| VI — generic to avoid | EN — generic to avoid |
-|---|---|
-| "Hệ thống hoạt động bình thường" | "System works as expected" |
-
 - Must explicitly describe the changed state of the UI: messages displayed (with full text), popups/screens opened or closed, field states (enabled / disabled / placeholder), display rules (sort order, color), system reactions (allow / block input).
-
-GUI Expected Result example:
-
-| VI | EN |
-|---|---|
-| <pre>2. Hiển thị màn hình "Danh sách báo cáo" giống design (Refer Item I. Danh sách Báo cáo tại sheet WF/Design)<br>- Thanh tìm kiếm: mặc định trống, cho phép nhập dữ liệu<br>- Dropdown [Năm]: mặc định trống, cho phép chọn dữ liệu<br>- Dropdown [Trạng thái kỳ]: mặc định trống, cho phép chọn dữ liệu<br>- Dropdown [Trạng thái hồ sơ]: mặc định trống, cho phép chọn dữ liệu<br>- Danh sách các kỳ báo cáo, gồm các cột:<br> + Năm báo cáo<br> + Trạng thái kỳ báo cáo<br>- Trong từng kỳ báo cáo, gồm các cột<br> + Mã bộ hồ sơ<br> + Số báo cáo đang xử lý<br> + Trạng thái hồ sơ<br> + Ngày cập nhật/nộp<br> + Hành động<br>- Phân trang theo kỳ báo cáo:<br> + Default: 10 kỳ báo cáo / trang<br> + Dropdown chọn số kỳ hiển thị: mặc định là 10</pre> | <pre>2. The "Report List" screen is displayed per design (Refer Item I. Report List in sheet WF/Design)<br>- Search bar: empty by default, allows input<br>- Dropdown [Year]: empty by default, allows selection<br>- Dropdown [Period Status]: empty by default, allows selection<br>- Dropdown [Submission Status]: empty by default, allows selection<br>- Reporting period list with columns:<br> + Reporting year<br> + Reporting period status<br>- Within each reporting period, columns:<br> + Submission code<br> + Number of reports in progress<br> + Submission status<br> + Update/submission date<br> + Action<br>- Pagination by reporting period:<br> + Default: 10 reporting periods / page<br> + Dropdown to select page size: default is 10</pre> |
-
-Functional Expected Result example:
-
-| VI | EN |
-|---|---|
-| 3. Hiển thị lỗi dưới chân trường dữ liệu: "Tên đăng nhập". Lỗi sẽ biến mất khi user nhập lại dữ liệu vào trường dữ liệu. | 3. An error is displayed below the "Username" field. The error disappears when the user re-enters data into the field. |
+- Do not write expected results from the API or database.
 
 ### Test cases example reference (pick by output language):
 

@@ -28,7 +28,7 @@ For each screen or feature:
 | Phase | Phase 1 to Phase 6 |
 | Feature / Screen | Screen, module, or workflow under test |
 | Test Objective | What the test case validates |
-| Preconditions | Required state: user role, data, permission, network, device, browser, OS |
+| Preconditions | Describe required User role/state, system/page state, test data/environment requirement |
 | Test Data | Inputs, files, accounts, API mocks, boundary values |
 | Steps | Clear execution steps |
 | Expected Result | Observable and measurable expected behavior |

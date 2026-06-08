@@ -70,13 +70,15 @@ The agent MUST detect the project's working language from the source UC document
 ### Test Case Writing rules:
 
 **Rule 1 - DATA HANDLING CONSTRAINT**
-- Do NOT hardcode specific values such as system paths, account names, or concrete test data into the test cases.
-- ALWAYS use the generic name, UI label, or logical placeholder for the information.
+- Do NOT hardcode specific values such as system paths, account names, or concrete test data into any part of the test case.
+- ALWAYS use the generic name, UI label, or logical placeholder for the information. Do not use the ID, Code.
 - When test data requires clarification, provide a short description or example enclosed in parentheses () immediately following the object name.
 
 Examples:
+Correct: Kiểm tra màn hình khởi tạo modal: Gán thiết bị cho bệnh nhân.
 Correct: Enter email into the "Email" textbox (e.g., a valid formatted email).
 Correct: Select a platform from the "Platform" dropdown ("Select platform" placeholder).
+Incorrect: Kiểm tra màn hình khởi tạo modal: variant patient-first.
 Incorrect: Enter "admin123" into the Username field.
 Incorrect: Upload file from "D:\test_data\image.png".
 
@@ -91,60 +93,15 @@ Incorrect: Upload file from "D:\test_data\image.png".
 
 **Rule 3 — Content Logic.**
 
-Do not write the test data specifically in the test case. Only use the data names and examples in parentheses to describe the test data needed for the test case.
-Example:
-
-| VI | EN |
-|---|---|
-|Nhập dữ liệu email hợp lệ (vd: phuong.tan@gmail.com) vào trường "Email"|Enter a valid email (exp: phuong.tran@gmail.com) into "Email" field|
-|Nhập dữ liệu email không hợp lệ, thiếu ký tự @ (vd: phuong.trangmail.com) vào trường "Email"|Enter an invalid email without @ character (exp: phuong,trangmail.com) into "Email" field|
-
-**TC ID** (language-agnostic): Always strictly adhere to the format `TC_[XXX]` — XXX is an incremental number (3 digits). Example: `TC_001`, `TC_002`.
-
-**Test Title:**
-- Must begin with a verification verb.
-- Must include the scenario context.
-
-| VI — verbs | EN — verbs |
-|---|---|
-| `Kiểm tra`, `Xác nhận` | `Verify`, `Confirm` |
-
-GUI Test Title examples:
-
-| VI | EN |
-|---|---|
-| Kiểm tra màn hình khởi tạo | Verify screen initialization |
-| Kiểm tra UI của màn hình | Verify UI of the screen |
-| Kiểm tra khi zoom in/zoom out màn hình | Verify zoom in / zoom out behavior |
-| Kiểm tra dữ liệu với độ dài tối đa (maxlength) | Verify data at maximum length (maxlength) |
-| Kiểm tra nhấn phím F5 | Verify F5 key press |
-| Kiểm tra nút Back của trình duyệt | Verify browser Back button |
-| Kiểm tra nút Next của trình duyệt | Verify browser Next button |
-| Kiểm tra nút Refresh của trình duyệt | Verify browser Refresh button |
-| Kiểm tra thao tác Tab và Shift + Tab | Verify Tab and Shift+Tab navigation |
-| Kiểm tra phím Backspace | Verify Backspace key |
-| Kiểm tra phím Enter | Verify Enter key |
-| Kiểm tra tính nhất quán của message | Verify message consistency |
-
-Functional Test Title — start with the verb plus the business action being verified (e.g., `Kiểm tra <flow>` / `Verify <flow>`).
-
-**Pre-conditions:**
-- Must begin with an action describing what must be performed before executing the test case.
-- One condition per row.
-
-| VI example | EN example |
-|---|---|
-| Đăng nhập vào hệ thống Admin. | Log in to the Admin system. |
-| Điều hướng đến màn hình Danh sách Sản phẩm. | Navigate to the Product List screen. |
-| Nhấp vào nút "Tạo" và đợi cửa sổ bật lên "Tạo Sản phẩm" mở hoàn toàn. | Click the "Create" button and wait for the "Create Product" popup to fully open. |
-
-**Test Steps (Action-Oriented):**
-- Each step must be a single, discrete action on the UI.
-- Use active imperative verbs.
-
-| VI — verbs | EN — verbs |
-|---|---|
-| `Truy cập`, `Nhấp vào`, `Chọn`, `Nhập`, `Di chuột qua`, `Chú ý vào` | `Access`, `Click on`, `Select`, `Enter`, `Hover over`, `Observe` |
+- The content of all parts MUST NOT contain code or ID; all the UI objects must be referred to by their object names (the names used in the audited documentation), in "Double Quotes".
+- The Test title MUST begin with the verification verb (exp: Verify, Confirm, Check, Ensure that; Kiểm tra, Đảm bảo rằng).
+- The Test title MUST folow this pattern: `Verification verb + test subject name/function name/flow + state + context (if any)` (exp: Kiểm tra màn hình Tạo tài khoản admin khởi tạo khi mở từ Danh sách Admin - Verify the Create Admin screen initialization in case opening from Admin list screen, Kiểm tra nút "Create" - Check "Create" button, Kiểm tra Tạo Admin thành công - Verify that the Admin account is created successfully, Kiểm tra tạo tài khoản admin không thành công trong trường hợp bỏ trống trường email. - Verify Admin account creation fails when Email field is blank.)
+- The Test case ID always strictly adhere to the format `TC_[XXX]` — XXX is an incremental number (3 digits). Example: `TC_001`, `TC_002`.
+- The Pre-conditions MUST be written in present simple, follow this pattern: System/Subject + is/are + State + Context (if any) (exp: Màn hình "Create Admin account" đang mở - The "Create Admin Account" page is displayed, Người dùng đang đăng nhập là Super Admin - User is logged in as a Super Admin, Dữ liệu email "test@admin.com" đã được tạo trong hệ thống và có trạng thái hoạt động - The email "test@admin.com" already exists and actively in the system).
+- The Pre-conditions MUST be a single, one condition per row.
+- The Test steps must be a single, follow this pattern: `Imperative Verb + data describe (if any) + UI subject name` (exp: Đi tới trang Đăng nhập của hệ thống Admin - Navigate to the Login screen of the Admin portal, Nhấn vào nút "Đăng nhập" - Click/Tap on "Login" button, Nhập dữ liệu email hợp lệ (phuong.tran@gmail.com) vào trường "Email" - Enter a valid email (phuong.tran@gmail.com) into "Email" field, Để trống trường "Email" - Leave the "Email" field blank).
+- The Expected result MUST begin with a step number, explicitly describe the changed state of the UI ov
+- The Expected result MUST folow this pattern: 
 
 **Expected Result (UI Verification):**
 - MUST begin with a step number (e.g., `1. <expected result>`).

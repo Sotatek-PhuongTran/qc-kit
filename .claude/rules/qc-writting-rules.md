@@ -8,13 +8,11 @@ sections:
 applies_to_skills:
   universal:                    # §1 + §2 apply
     - qc-uc-read
-    - qc-uc-smoke
     - qc-func-scenario-design
     - qc-context-master
     - qc-site-map
   audit_prose_only:             # §3 applies in addition to §1 + §2
     - qc-uc-read
-    - qc-uc-smoke
 excluded_skills: all skills not listed under applies_to_skills.universal
 ---
 

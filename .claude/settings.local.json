@@ -104,7 +104,25 @@
       "Bash(cp /Users/sotatek/Desktop/sotacare/.claude/skills/qc-func-tc-design/process-logging/UC-DEVICE-001/02_designed_tcs_web-responsive.md /Users/sotatek/Desktop/sotacare/docs/qc/testcases/UC-DEVICE-001/UC-DEVICE-001_gan-thiet-bi-cho-benh-nhan_testcases_web-responsive_v1.md && echo \"OK\" && wc -l /Users/sotatek/Desktop/sotacare/docs/qc/testcases/UC-DEVICE-001/UC-DEVICE-001_gan-thiet-bi-cho-benh-nhan_testcases_web-responsive_v1.md)",
       "Bash(awk '/^### I\\\\.1\\\\./,/^### I\\\\.2\\\\./' /Users/sotatek/Desktop/sotacare/docs/qc/testcases/UC-DEVICE-001/UC-DEVICE-001_gan-thiet-bi-cho-benh-nhan_testcases_web-responsive_v1.md)",
       "Bash(awk '/^### I\\\\.2\\\\./,0' /Users/sotatek/Desktop/sotacare/docs/qc/testcases/UC-DEVICE-001/UC-DEVICE-001_gan-thiet-bi-cho-benh-nhan_testcases_web-responsive_v1.md)",
-      "Bash(python3 .claude/skills/qc-func-tc-design/scripts/md_to_xlsx.py --input-glob \"docs/qc/testcases/UC-DEVICE-001/UC-DEVICE-001_*_testcases_web-responsive*.md\" --uc-id UC-DEVICE-001)"
+      "Bash(python3 .claude/skills/qc-func-tc-design/scripts/md_to_xlsx.py --input-glob \"docs/qc/testcases/UC-DEVICE-001/UC-DEVICE-001_*_testcases_web-responsive*.md\" --uc-id UC-DEVICE-001)",
+      "Bash(python3 -c \"import sys, json; d=json.loads\\(sys.stdin.read\\(\\)\\); print\\(json.dumps\\({k:d[k] for k in ['run_id','skill','status','start','end','duration_min']}, indent=2\\)\\)\")",
+      "Bash(mkdir -p /Users/sotatek/Desktop/sotacare/.claude/skills/qc-func-tc-design/process-logging/UC-DEVICE-001)",
+      "Bash(mkdir -p /Users/sotatek/Desktop/sotacare/docs/qc/testcases/UC-DEVICE-001)",
+      "Bash(cp /Users/sotatek/Desktop/sotacare/.claude/skills/qc-func-tc-design/process-logging/UC-DEVICE-001/02_designed_tcs_web-responsive.md /Users/sotatek/Desktop/sotacare/docs/qc/testcases/UC-DEVICE-001/UC-DEVICE-001_gan-thiet-bi-cho-benh-nhan_testcases_web-responsive_v1.md && wc -l /Users/sotatek/Desktop/sotacare/docs/qc/testcases/UC-DEVICE-001/UC-DEVICE-001_gan-thiet-bi-cho-benh-nhan_testcases_web-responsive_v1.md && grep -c '^| TC_' /Users/sotatek/Desktop/sotacare/docs/qc/testcases/UC-DEVICE-001/UC-DEVICE-001_gan-thiet-bi-cho-benh-nhan_testcases_web-responsive_v1.md)",
+      "Bash(awk '/^### I\\\\.2/{section=2} /^\\\\| TC_/{count[section]++} END{print \"GUI:\", count[\"\"], \"FUNC:\", count[2]}' /Users/sotatek/Desktop/sotacare/docs/qc/testcases/UC-DEVICE-001/UC-DEVICE-001_gan-thiet-bi-cho-benh-nhan_testcases_web-responsive_v1.md)",
+      "Bash(rm -rf /Users/sotatek/Desktop/sotacare/.claude/skills/qc-func-tc-design/process-logging/UC-DEVICE-001 && ls /Users/sotatek/Desktop/sotacare/.claude/skills/qc-func-tc-design/process-logging/ 2>/dev/null)",
+      "Bash(mkdir -p /Users/sotatek/Desktop/sotacare/.claude/skills/qc-uc-read/process-logging/UC-DEVICE-003)",
+      "Bash(mkdir -p /Users/sotatek/Desktop/sotacare/docs/qc/uc-read/UC-DEVICE-003)",
+      "Bash(rm -rf /Users/sotatek/Desktop/sotacare/.claude/skills/qc-uc-read/process-logging/UC-DEVICE-003 && echo \"process-logging cleaned\")",
+      "Bash(git ls-tree *)",
+      "Bash(awk '{print $4}')",
+      "Bash(git restore *)",
+      "Bash(rm -rf .claude/skills/qc-ui-extract && ls .claude/skills/ | grep -E \"ui-extract|ui-act\")",
+      "Bash(find /Users/sotatek/Desktop/sotacare -type d -name \"qc-ui-act-collector\" 2>/dev/null; find /Users/sotatek -type d -name \"qc-ui-act-collector\" 2>/dev/null | head -5)",
+      "Read(//Users/sotatek/**)",
+      "Bash(python .claude/skills/qc-ui-act-collector/scripts/validate.py)",
+      "Bash(python3 .claude/skills/qc-ui-act-collector/scripts/validate.py)",
+      "Bash(python3 .claude/skills/qc-ui-act-collector/scripts/validate.py docs/qc/ui-act-library)"
     ],
     "additionalDirectories": [
       "c:\\Users\\Admin\\Desktop\\qc-kit\\.claude\\skills\\qc-uc-read\\process-logging\\UC1",
@@ -131,7 +149,9 @@
       "/Users/sotatek/Desktop/sotacare/.claude/skills/qc-uc-read/process-logging/UC-PATIENT-004",
       "/Users/sotatek/Desktop/sotacare/.claude/skills/qc-uc-read/process-logging/UC-DEVICE-001",
       "/Users/sotatek/Desktop/sotacare/.claude/skills/qc-func-tc-design/process-logging/UC-ORGUSER-001",
-      "/Users/sotatek/Desktop/sotacare/.claude/skills/qc-func-tc-design/process-logging/UC-DEVICE-001"
+      "/Users/sotatek/Desktop/sotacare/.claude/skills/qc-func-tc-design/process-logging/UC-DEVICE-001",
+      "/Users/sotatek/Desktop/sotacare/.claude/skills/qc-uc-read/process-logging/UC-DEVICE-003",
+      "/Users/sotatek/Desktop/sotacare/.claude/skills/qc-ui-extract"
     ]
   }
 }

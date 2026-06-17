@@ -103,6 +103,23 @@ Incorrect: Upload file from "D:\test_data\image.png".
 - The Expected result MUST begin with a step number, explicitly describe the changed state of the UI ov
 - The Expected result MUST folow this pattern: 
 
+**Rule 3.1 — Canonical Action Vocabulary (MANDATORY).**
+
+Test steps MUST be written using the canonical action vocabulary loaded by `generate-test-cases.md` → Step 1.3 (or `update-test-cases.md` equivalent). Free-form verbs are forbidden so that the downstream Playwright-script step can map every step deterministically.
+
+- **Verb source.** The leading imperative verb of every Test step MUST be the `canonical.vi` value (when output language = VI) or `canonical.en` value (when output language = EN) of an atomic action defined in `atomic_actions.yaml`.
+  - Examples (VI): `Nhập`, `Nhấn`, `Chọn`, `Tích`, `Xóa`, `Tải lên`, `Truy cập`, `Kiểm tra hiển thị`, `Kiểm tra nội dung`, `Di chuột`, `Nhấn phím`, `Rời focus`.
+  - Examples (EN): `Enter`, `Click`, `Select`, `Check`, `Clear`, `Upload`, `Navigate`, `Verify visible`, `Verify text`, `Hover`, `Press key`, `Blur`.
+- **Aliases are recognition-only.** The library's `aliases` (e.g. VI: `điền`, `gõ`, `bấm`, `ấn`; EN: `input`, `type`, `tap`, `press`) MUST NOT be used as the written verb — only the canonical term is allowed.
+- **UI subject = `Element name` from `ui-elements`.** The double-quoted UI object referenced after the verb MUST be the `Element name` column value of the matching row in the page's `ui-elements/<page>_ui-elements_*.md` file. Do NOT invent names, do NOT paraphrase audited labels.
+  - Correct (VI): `Nhập email hợp lệ vào "Trường nhập email"`.
+  - Correct (EN): `Click "Nút chính — Gửi liên kết đặt lại"` (the `Element name` may stay in VI when the rest of the file is EN — keep it character-for-character).
+  - Incorrect: `Bấm vào nút "Gửi"` (uses alias `Bấm` and a paraphrased label not in `ui-elements`).
+- **Composite annotation.** When a single test step (or contiguous sub-sequence) matches end-to-end a composite defined in `composite_actions.yaml`, append `(composite: <COMPOSITE_ID>)` at the end of the step text so the script generator can collapse those step(s) into one composite call.
+  - Example (VI): `Yêu cầu liên kết đặt lại mật khẩu bằng email hợp lệ (composite: REQUEST_PASSWORD_RESET_LINK)`.
+- **Pre-condition & Expected Result.** These are written in natural language, but every UI object reference inside them MUST also use the canonical `Element name` in double quotes. Free-form labels are forbidden.
+- **STOP when canonical is missing.** If, during drafting, a step needs a verb that has no `canonical.vi` / `canonical.en` match in `atomic_actions.yaml`, the skill STOPS, lists every missing verb candidate along with the audited §5/§6 anchor that motivated it, and instructs the user to run `/qc-ui-act-collector <UC-ID>` so the library is extended first. NEVER append atomic / composite entries from this skill, and NEVER fall back to a free verb.
+
 **Expected Result (UI Verification):**
 - MUST begin with a step number (e.g., `1. <expected result>`).
 - Do NOT write generic statements.

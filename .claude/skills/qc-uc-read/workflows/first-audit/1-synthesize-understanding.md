@@ -190,34 +190,29 @@ You are a UI evidence extraction agent. Do not evaluate quality. Do not infer hi
 3. Inspect the HTML prototype files at:
    <absolute path to prototype files>
 
-4. For each relevant screen or state, extract:
-   - screen/page name
-   - source file or route
-   - visible UI text
-   - buttons and actions
-   - input fields
-   - placeholder text
-   - tooltip or helper text
-   - inline validation messages
-   - error, warning, success, or notification messages
-   - empty, loading, disabled, readonly, or selected states
-   - modal / popup / confirmation dialog content
-   - navigation actions
-   - table columns, cards, badges, statuses, or displayed data
+4. For each relevant screen or state, capture every UI element as raw evidence — **do not classify it**. For each element record these observable facts (the three in **bold** are what later classification depends on, always fill them):
+   - label / visible text (verbatim)
+   - element type (button, link, input, dropdown, checkbox, toggle, tab, text, image, badge, toast, banner, dialog, spinner, scrollbar, …)
+   - **interactive?** — Y if the user can click / type / toggle / select / focus / navigate it; N otherwise
+   - **content** — `static` (fixed text/asset) or `dynamic` (bound to data: tokens like `{name}`, record values, real-time indicators)
+   - **visibility** — `always` (rendered with the screen) or `conditional` (only in a state, e.g. hidden/disabled by default), plus the trigger/condition
+   - default value, placeholder, options/enum, required — if observable in the prototype, else `—`
+   - belongs to — parent element if nested (e.g. a button inside a banner/dialog)
+Make sure to cover: visible text; buttons and actions; input fields; placeholder text; tooltip/helper text; inline validation messages; error/warning/success/notification messages; empty, loading, disabled, readonly, or selected states; modal/popup/confirmation dialog content; navigation actions; table columns, cards, badges, statuses, or displayed data.
 
 5. Return the result as Markdown:
-
 ## Prototype UI Evidence for <UC-ID>
-
+ 
 ### Screen: <screen/page name>
 - Source: <file or route>
+- Entry / trigger: <how this screen/state is reached, if observable>
+- States / regions seen: <distinct states/frames; note any that are mutually exclusive>
 - Related UC section(s): <section names if identifiable>
-
-| UI element type | Label / text | State | Notes |
-|---|---|---|---|
-
+| # | Label / text | Element type | Interactive? | Content (static/dynamic) | Visibility | Trigger / condition | Default | Placeholder | Options / enum | Required? | Belongs to | Notes |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|
+ 
 ## Prototype Coverage Notes
-
+ 
 | UC reference | Prototype evidence | Status |
 |---|---|---|
 | <UC screen/field/action> | <matching prototype source> | FOUND / NOT_FOUND / UNCLEAR |
@@ -252,35 +247,28 @@ You are a UI evidence extraction agent. Analyze the provided design images visua
 3. Read the image design files at:
    <absolute path to image design files>
 
-4. For each relevant image, extract:
-   - image file name
-   - screen/page name
-   - visible UI text
-   - buttons and actions
-   - input fields
-   - placeholder text
-   - tooltip or helper text
-   - inline validation messages
-   - error, warning, success, or notification messages
-   - empty, disabled, readonly, selected, or loading states
-   - modal / popup / confirmation dialog content
-   - navigation actions
-   - table columns, cards, badges, statuses, or displayed data
-   - visible flow indicators such as breadcrumbs, tabs, steppers, or arrows
+4. For each relevant image, capture every visible UI element as raw evidence — **do not classify it**. For each element record these observable facts (the three in **bold** are what later classification depends on, always fill them):
+   - visible text / label (verbatim)
+   - element type (button, link, input, dropdown, checkbox, toggle, tab, text, image, badge, toast, banner, dialog, stepper, breadcrumb, …)
+   - **interactive?** — Y if it appears actionable (button, link, input, toggle, tab, nav control); N otherwise
+   - **content** — `static` (fixed text/asset) or `dynamic` (looks bound to data: tokens like `{name}`, record values, sample data)
+   - **visibility** — `always` (part of the base screen) or `conditional` (the image depicts a specific state, e.g. error/empty/loading), plus the state/trigger this image represents
+   - default value, placeholder, options/enum, required — if visible in the image, else `—`
+   - belongs to — parent element if nested (e.g. a button inside a banner/dialog)
+Make sure to cover: visible text; buttons and actions; input fields; placeholder text; tooltip/helper text; inline validation messages; error/warning/success/notification messages; empty, disabled, readonly, selected, or loading states; modal/popup/confirmation dialog content; navigation actions; table columns, cards, badges, statuses, or displayed data; flow indicators such as breadcrumbs, tabs, steppers, or arrows.
 
 5. Return the result as Markdown:
-
 ## Image UI Evidence for <UC-ID>
-
+ 
 ### Image: <file name>
 - Related screen: <screen/page name>
+- State depicted: <which UI state this image shows, if identifiable>
 - Related UC section(s): <section names if identifiable>
-
-| UI element type | Visible text / label | State | Notes |
-|---|---|---|---|
-
+| # | Visible text / label | Element type | Interactive? | Content (static/dynamic) | Visibility | State / trigger | Default | Placeholder | Options / enum | Required? | Belongs to | Notes |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|
+ 
 ## Image Coverage Notes
-
+ 
 | UC reference | Image evidence | Status |
 |---|---|---|
 | <UC screen/field/action> | <matching image/file> | FOUND / NOT_FOUND / UNCLEAR |
@@ -366,41 +354,47 @@ Append §F to `01_synthesis.md` (file created in Step 1.7). Do not overwrite §A
 
 Follow `qc-writting-rules.md` (MANDATORY). Re-number Section 1–5 below as §F.1–§F.5 in the output.
 
-### §F.1 UI Element Extraction and Cataloging
-
-Extract and catalog all User Interface (UI) elements based on the design data extracted by Sub-agent B and Sub-agent C, and map them to their corresponding descriptions in the use case document.
-
-**Granularity Rules (MANDATORY):** Every single basic UI element MUST have its **own dedicated row**. DO NOT group multiple input fields, buttons, or columns into a single row (e.g., DO NOT write "Part I: 9 API fields" — you must list each field individually). Each row MUST contain:
-
-- **Exact Label:** Exactly as displayed on the screen (Verbatim in Vietnamese/English — do not paraphrase). If there is a discrepancy between the design and the document, prioritize the design label.
-- **Component Type:** (e.g., Text Input / Number Input / Dropdown Menu / Date Picker / Radio Button / Checkbox / Text Area / Button / Icon / Table Column / Tab / Tooltip / Alert / Popup / etc.)
-- **Mandatory Flag:** (`*` shown in design = Mandatory; no `*` = Optional)
-- **Default Value:** (If pre-filled or if a default suggestion is displayed)
-- **Placeholder Text:** (The exact background text inside the input field)
-- **Enumerated Values:** (For Dropdowns/Radio Buttons/Checkboxes — you must list **all** exact options as displayed; do not use abbreviations like "(N values)")
-- **Section / Sub-section Group:** (e.g., "Section I > Investor #1")
-- **Discrepancies / Missing Elements:** Note any inconsistencies, mismatches, or missing items between the use case document and the design (images, prototype).
-
-Categorize the elements *after* listing them individually, not before:
-
-- **Data Display Structures (Grid/List/Table):** For each table, list **every column** as a separate row (maintain multi-level header hierarchy if applicable). Identify pagination limits, default sorting, and the exact Empty State text as per the design.
-- **Control Systems (Filters/Search Fields):** Each filter/search field MUST be a separate row. Record its initial state, the complete list of dropdown values, and any input constraints.
-- **Navigation and Action Elements (Buttons/Controls):** Each button/icon MUST be a separate row, including inline action icons within table rows (Edit/Delete/View/Export/Print/etc.).
-- **Other Elements:** Page titles, subtitles, suggestion banners, breadcrumbs, tooltips, badges, status chips, empty state messages, loading indicators — each element MUST be a separate row.
-
-**Self-Verification before completing this step:** For each design image or prototype provided, count the total number of visible UI elements. The number of rows generated in this section that are mapped to that image MUST be greater than or equal to your visual count. Log any numerical discrepancies in your working notes; if any elements were collapsed or grouped in your output, immediately flag them and expand them into individual rows.
-
-### §F.2 Definition of Object Attributes and Behaviors
-
-Determine the state and response of each UI object based on specific system conditions.
-
-**1-to-1 Mapping Rule (MANDATORY):** §F.2 MUST contain **at least one row for every UI element listed in §F.1**. If a UI element has no special behavior, it MUST still be listed with `System State = "Enabled (no special behavior)"` and `Behavior = "N/A"` — DO NOT skip it. Never group multiple elements into a single row (e.g., DO NOT write "Phone, Email" as one row — split them into two separate rows).
-
-**Content Extraction Rule (MANDATORY):** The content of rule codes, validation messages, or error alerts mentioned in the document MUST be replaced with the specific, detailed content already reported by Sub-agent A. If Sub-agent A returns `NOT_FOUND`: keep the original code as written in the UC, append `(NOT_FOUND in common files)`, and do not invent content.
-
-- **System State:** Define the default state of the object (Enabled, Disabled, Hidden, Read-Only) based on variables such as: account privileges (Permissions), input data conditions, or the current data state of the system.
-- **Interaction Matrix:** Define the possible interactive actions and their corresponding system responses for each object. Use vocabulary strictly from the use case specification document, such as: Click, Hover, Drag and Drop, Right-click, Keyboard shortcuts. For native mobile apps, use: Tap, Long Press, Swipe, Pull to Refresh, Pinch to Zoom, Hardware Back (Android), Edge Swipe Back (iOS).
-- **Object Behavior:** Define exactly how the object reacts to data changes or state changes in other related UI objects.
+### §F.1 UI Element Extraction, Classification, and Cataloging
+ 
+Catalog every UI element from the raw evidence reported by Sub-agent B (HTML prototype) and Sub-agent C (image design), reconcile with the use case document, and classify each element. **§F.1 is listing + classification only — no behavior analysis (that is §F.2).** Output goes into Section 4 of the template.
+ 
+**Granularity (MANDATORY):** Every basic UI element gets its **own row**. Do not group multiple fields/buttons/columns into one row (DO NOT write "9 API fields" or "(N values)" — list each individually). For each element capture:
+- **Exact label** — verbatim (VN/EN), no paraphrase. On design-vs-UC mismatch, prioritize the design label and flag the discrepancy.
+- **Component type** — Text Input / Password / Dropdown / Date Picker / Radio / Checkbox / Toggle / Button / Link / Tab / Icon / Table column / Tooltip / Alert / Banner / Toast / Popup / etc.
+- **Mandatory** (`*` in design = mandatory), **Default value**, **Placeholder**, **Enumerated values** (list all exact options).
+- **Visibility & trigger** — always shown, or conditional + the trigger (exception code, event, data threshold).
+- **Section / sub-section group**, and **discrepancies / missing** vs the UC.
+**Classification (core of this step):** assign each element to exactly **one** group by the first matching question:
+1. User can act on it directly (click / type / toggle / select / focus / navigation link)? → **Group 1 — Control**
+2. (else) Shows a value/data that changes with state or record? → **Group 2 — Data display**
+3. (else) A message/status shown conditionally (inline error, toast, banner, empty state, success)? → **Group 3 — Notification**
+4. (else) Static & always present (logo, title, footer) or a system aid carrying no data (spinner, scrollbar)? → **Group 4 — Static / auxiliary**
+Route the result into two tables **per screen**: Group 1 → **Table A (interactive)**; Groups 2/3/4 → **Table B (verification & auxiliary)**.
+ 
+**Composite objects (table / list / card / dialog):** never one row. Decompose and classify each part:
+- data region / cell values → Group 2; static column headers → Group 4 (Group 1 if sortable)
+- row checkboxes, row action icons (Edit/Delete/View/Export…), in-cell links, pagination controls → Group 1
+- pagination info text ("1–10 / 57") → Group 2
+- empty-state text → Group 3, mutually exclusive with the populated data region (record the exact design text)
+- scrollbar / loading spinner / skeleton → Group 4, visibility conditional on data volume / overflow
+**Nesting:** when a Group-3 object contains a Group-1 object (e.g. banner with a button), output two rows and record the parent in the "belongs to" field.
+**Mutual exclusion:** regions that never display together (default form / error banner / empty state / data region) must be recorded as exclusive.
+ 
+**Self-verification:** for each design image/prototype, count visible elements; rows mapped to that source must be ≥ the visual count. Flag and expand any collapsed/grouped rows.
+ 
+### §F.2 Object State and Behavior Analysis
+ 
+Analyze the dynamic behavior of **interactive objects only — Group 1** from §F.1. Output goes into Section 5 of the template. Reference §F.1 IDs; do not re-list static attributes.
+ 
+**Scope (MANDATORY):** at least one row for **every Group-1 element** in §F.1. **Exclude Groups 2/3/4** — they are expected results already covered in Section 4 Table B. Do **not** create filler "no behavior" rows for non-interactive elements. The behavior of a Group-2 object (e.g. a rule indicator updating in real time) is described in the **response column of the control that drives it**, not as its own row. Never group multiple controls into one row.
+ 
+**Content extraction (MANDATORY):** replace rule codes / validation / error messages with the specific content reported by Sub-agent A. If Sub-agent A returns `NOT_FOUND`, keep the original UC code and append `(NOT_FOUND in common files)` — do not invent content.
+ 
+For each Group-1 object define:
+- **System state** — default state (Enabled / Disabled / Hidden / Read-only / Loading) and the variables driving it (permissions, input/data conditions, current data state).
+- **Interaction matrix** — possible user actions and the system response for each, using vocabulary from the UC: Click, Hover, Drag-and-drop, Right-click, Keyboard shortcuts; for native mobile: Tap, Long Press, Swipe, Pull to Refresh, Pinch to Zoom, Hardware Back (Android), Edge Swipe Back (iOS).
+- **Object behavior** — how the object reacts to data/state changes, including its effect on related objects (reference the affected Group-2/3/4 element by ID, e.g. "→ shows error <ID>", "→ indicator <ID> updates").
+- **Branch type** — tag each response Happy / Alternative / Exception, so the row seeds test cases directly and no declared exception branch is missed.
 
 ### §F.3 Functional Logic & Workflow Decomposition
 

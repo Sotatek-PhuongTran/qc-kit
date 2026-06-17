@@ -7,8 +7,8 @@
 - Communication language: Vietnamese is the default language for all exchanges, reports, and explanations.
 - All outputs of any "skill" MUST be written in Vietnamese.
 - All skill.md files MUST be written in English.
-- All labels/messages MUST be kept in their original language (e.g., Korean, Japanese, Chinese, etc.) and annotated with the English translation in parentheses, except when they are written in Vietnamese.
-- All requirement documents, input materials, and output deliverables are in Vietnamese. MUST read and understand them accurately, write in grammatically correct Vietnamese, and preserve the clarity, naturalness, and integrity of the Vietnamese language.
+- All outputs MUST be written in a way that Junior QC readers can easily understand the content.
+- All output file MUST follow the writting rules definded in `rules/qc-writting-rules.md`
 
 ## File & Naming Standards
 

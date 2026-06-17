@@ -1,0 +1,46 @@
+# ============================================================
+# QUY CHUẨN & DANH MỤC THAM CHIẾU (CONVENTIONS) — NGUỒN CHÂN LÝ
+# ------------------------------------------------------------
+# Skill sở hữu & cập nhật file này. Trả lời:
+#   - "Có những category nào?"  (danh mục đóng bên dưới)
+#   - "Chọn category thế nào?"   (mô tả + ví dụ mỗi loại)
+#   - Quy tắc đặt tên id / canonical / alias.
+# Atomic & Composite BẮT BUỘC chọn category từ danh mục này.
+# ============================================================
+
+version: 1
+
+# ----- Danh mục cho ATOMIC (taxonomy kỹ thuật, CỐ ĐỊNH) -----
+# Phân loại theo "bản chất thao tác UI", không theo nghiệp vụ.
+atomic_categories:
+  - { id: Navigation,  vi: "Điều hướng", desc: "Mở trang, đi tới URL, back/forward" }
+  - { id: Input,       vi: "Nhập liệu",  desc: "Nhập / xóa giá trị trong trường text" }
+  - { id: Selection,   vi: "Lựa chọn",   desc: "Dropdown, checkbox, radio, toggle" }
+  - { id: Interaction, vi: "Tương tác",  desc: "Click, hover, kéo-thả, focus" }
+  - { id: File,        vi: "Tệp tin",    desc: "Upload / download tệp" }
+  - { id: Assertion,   vi: "Kiểm tra",   desc: "Xác minh hiển thị, nội dung, trạng thái" }
+  - { id: Wait,        vi: "Chờ",        desc: "Chờ điều kiện / phần tử / thời gian" }
+
+# ----- Danh mục cho COMPOSITE (module nghiệp vụ, MỞ RỘNG theo dự án) -----
+# Phân loại theo "module/chức năng" của hệ thống. Bổ sung khi có
+# use case mới, nhưng vẫn phải khai báo ở đây TRƯỚC khi dùng.
+composite_categories:
+  - { id: Authentication, vi: "Xác thực",   desc: "Đăng nhập, đăng xuất, đổi mật khẩu" }
+  - { id: Order,          vi: "Đơn hàng",   desc: "Tạo, sửa, hủy, duyệt đơn" }
+  - { id: Customer,       vi: "Khách hàng", desc: "Quản lý hồ sơ khách hàng" }
+  - { id: Payment,        vi: "Thanh toán", desc: "Thanh toán, hoàn tiền" }
+  - { id: Report,         vi: "Báo cáo",    desc: "Xuất, lọc, xem báo cáo" }
+  - { id: Administration, vi: "Quản trị",   desc: "Phân quyền, cấu hình hệ thống" }
+  - { id: Device,         vi: "Thiết bị",   desc: "Gán, thu hồi, đồng bộ thiết bị đeo cho bệnh nhân" }
+
+# ----- Quy tắc đặt tên -----
+naming_rules:
+  id: "VIẾT HOA, snake_case, tiếng Anh. Khóa tham chiếu duy nhất (vd ENTER_TEXT, LOGIN). Không đổi sau khi phát hành."
+  canonical: "Thể mệnh lệnh. Mỗi ngôn ngữ 1 từ/cụm DUY NHẤT cho 1 khái niệm."
+  aliases: "Mọi biến thể khác trong tài liệu, gom theo ngôn ngữ. Dùng để AI map về canonical."
+  one_word_per_concept: "Không để 'nhập/điền/gõ' thành 3 hành động — chỉ 1 canonical, còn lại là alias."
+
+# ----- Quy trình khi thiếu category phù hợp -----
+on_missing_category:
+  atomic: "KHÔNG tự tạo category mới cho atomic. Báo để review (taxonomy kỹ thuật cố định)."
+  composite: "Đề xuất category mới -> thêm vào composite_categories -> rồi mới dùng."

@@ -29,7 +29,7 @@
 * Diff or change notes, if available.
 * User feedback about the previous report.
 * `.claude/skills/qc-uc-read/references/scoring-rubric.md`.
-* `.claude/skills/qc-uc-read/templates/UC_readiness_review_template_v3.md`.
+* `.claude/skills/qc-uc-read/templates/UC_readiness_review_template_v4.md`.
 * `.claude/skills/qc-uc-read/references/qc-writting-rules.md`.
 
 ---

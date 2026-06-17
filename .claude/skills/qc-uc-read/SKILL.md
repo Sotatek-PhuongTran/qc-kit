@@ -39,7 +39,7 @@ The protocol is referenced by every phase file — do NOT duplicate its rules he
 ## Shared References
 
 - **Scoring rubric** (10 knowledge areas, max points, auto-cap, auto-fail, thresholds, conflict check, blocked artefact protocol, common gap patterns): `references/scoring-rubric.md`. The rubric is referenced by both first-audit Phase 2 and re-audit Phase 2 — update it ONCE to change scoring rules everywhere.
-- **UC Readiness Review Template:** `templates/UC_readiness_review_template_v3.md`.
+- **UC Readiness Review Template:** `templates/UC_readiness_review_template_v4.md`.
 - **Input file format description:** `references/input-files-format.md`.
 
 ## Workflow

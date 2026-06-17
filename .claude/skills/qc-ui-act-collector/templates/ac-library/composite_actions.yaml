@@ -1,0 +1,37 @@
+# ============================================================
+# TEMPLATE — COMPOSITE ACTIONS (clean, multi-project reference)
+# ------------------------------------------------------------
+# BẢN GỐC trong skill. KHÔNG sửa khi chạy.
+# Composite mang tính ĐẶC THÙ DỰ ÁN nên template để TRỐNG
+# (actions: []). Khi chạy, skill clone file này ra
+# qc/ui-act-library/ac-library/ rồi bồi đắp theo từng UC.
+#
+# Quy ước mỗi entry (xem ví dụ comment bên dưới):
+#   - steps[].action -> id trong atomic_actions.yaml
+#   - steps[].target -> "<page>#<row>" (row = số "Audited §4 ref"
+#     trong file ui-elements/<UC-ID>/...<page>...md)
+#   - canonical & aliases song ngữ; category từ composite_categories
+#     của references/conventions.yaml.
+#
+# Ví dụ tham khảo (đừng để trong template thật, chỉ minh hoạ):
+#
+#   - id: LOGIN
+#     canonical: { vi: "Đăng nhập", en: "Login" }
+#     aliases: { vi: ["vào hệ thống"], en: ["sign in", "log in"] }
+#     category: Authentication
+#     page: login
+#     description:
+#       vi: "Đăng nhập hệ thống bằng tài khoản và mật khẩu"
+#       en: "Log into the system with username and password"
+#     params:
+#       - { name: username, type: string, required: true }
+#       - { name: password, type: string, required: true }
+#     steps:
+#       - { action: ENTER_TEXT, target: "login#1", value: "{username}" }
+#       - { action: ENTER_TEXT, target: "login#2", value: "{password}" }
+#       - { action: CLICK,      target: "login#3" }
+#       - { action: VERIFY_VISIBLE, target: "login#4" }
+# ============================================================
+
+version: 1
+actions: []

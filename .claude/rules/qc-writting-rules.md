@@ -27,10 +27,6 @@ Supported output languages:
 - **English**
 - **Vietnamese**
 
-Intended readers: QC Lead, BA, Tester, and delivery stakeholders.
-
-Goal: make QC outputs easy to understand, easy to trace back to source documents, and reusable for downstream test design and execution.
-
 This file is organized in two tiers:
 
 - **§2 Universal rules** apply to every QC output (both atomic structured artifacts and prose reports).

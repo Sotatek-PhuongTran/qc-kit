@@ -24,6 +24,11 @@ Read the `path-registry.md` file to find the below file locations:
 - (Optional) `func-test-scenarios` - read the latest version
 - `requirement-common-files`
 - `func-test-cases` (if any) - for update-test-cases mode
+- `ac-library-atomic` — HARD REQUIREMENT. The atomic action library. Test step verbs MUST be drawn from `canonical.vi` / `canonical.en` of entries in this file (no aliases, no free verbs).
+- `ac-library-composite` — HARD REQUIREMENT. The composite action library. When a test step matches an existing composite end-to-end, annotate the step with `(composite: <ID>)`.
+- `ui-elements` — HARD REQUIREMENT. Every page file whose frontmatter `Source UCs` includes the current UC-ID. UI subjects quoted inside test steps MUST be the `Element name` column value of these files.
+
+**Vocabulary precondition (HARD GATE):** if any required entry above is missing for the UC under design — i.e. no composite/page coverage in `ac-library` for the audited screens, no `ui-elements` files matching the UC-ID, or a verb needed by the design has no canonical in `atomic_actions.yaml` — the skill STOPS and instructs the user to run `/qc-ui-act-collector <UC-ID>` first. The skill does NOT auto-append atomic/composite entries (that ownership belongs to `qc-ui-act-collector`).
 
 ## Output Contract
 Read the `path-registry.md` file to find the below file locations:

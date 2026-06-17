@@ -79,6 +79,18 @@ Read optional files if present:
 9. For EACH applicable variant, load `qc-func-tc-design/references/design-technical/<variant>-technical.md` end-to-end. Hold common + variant rubrics in working memory.
 10. Record the resolved variant list and the per-variant scope reason (`UPDATE_EXISTING` or `ADD_VARIANT`) as a working note.
 
+#### 1.3a Load Action & UI Vocabulary (MANDATORY — HARD GATE)
+
+Apply the same vocabulary load + HARD GATE as defined in `generate-test-cases.md` → Step 1.3. Specifically:
+
+1. Resolve and read `ac-library-atomic`, `ac-library-composite`, all `ui-elements` files whose frontmatter `Source UCs` includes the current UC-ID. Build the same in-memory maps (`atomic_by_canonical_vi/en`, `composite_by_page_and_id`, `elements_by_page`).
+2. STOP and ask the user to run `/qc-ui-act-collector <UC-ID>` if any of the conditions in `generate-test-cases.md` → Step 1.3 step 5 apply.
+3. **ui-elements version drift detection (UPDATE-ONLY).** Compare the `ui-elements` filenames + versions loaded now against the `Vocabulary sources` block recorded in the baseline TC file's prelude (if present):
+   - If any page has a newer `v<N+1>` of `ui-elements` than the baseline, flag every existing TC that quotes an `Element name` belonging to that page for re-review during Step 2.x impact analysis. Treat these flagged TCs as if they were also touched by `REQUIREMENT_DELTA`.
+   - If the baseline TC file has no `Vocabulary sources` block (legacy file produced before this rule existed), record a `LEGACY_BASELINE` note and treat ALL existing TCs that reference `ui-elements`-eligible pages as needing a one-shot canonicalization pass during Step 2.x (re-quote with current `Element name`s, re-verify verbs against `atomic_actions.yaml`).
+   - If an `Element name` referenced by a baseline TC no longer exists in the current `ui-elements` (renamed or removed), flag that TC and either remap to the new canonical row or mark for deletion as part of `REQUIREMENT_DELTA` impact.
+4. Record the resolved vocabulary snapshot — it will be written into every updated variant's new prelude in Step 4 (per `generate-test-cases.md` Step 4 prelude shape).
+
 #### 1.4 Identify update baseline
 
 For EACH variant V, identify:

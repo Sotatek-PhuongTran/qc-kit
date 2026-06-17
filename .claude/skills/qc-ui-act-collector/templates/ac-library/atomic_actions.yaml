@@ -1,0 +1,134 @@
+# ============================================================
+# TEMPLATE — ATOMIC ACTIONS (clean, multi-project reference)
+# ------------------------------------------------------------
+# Đây là BẢN GỐC trong skill. KHÔNG sửa khi chạy.
+# Khi chạy, skill CLONE file này ra qc/ui-act-library/ac-library/
+# rồi mới bồi đắp ở bản clone đó.
+# Atomic là hành động UI chung -> tái dùng được cho mọi dự án,
+# nên template này đã có sẵn bộ khởi đầu.
+# ============================================================
+
+version: 1
+actions:
+
+  - id: ENTER_TEXT
+    canonical: { vi: "Nhập", en: "Enter" }
+    aliases:
+      vi: ["điền", "gõ", "nhập liệu"]
+      en: ["input", "type", "fill"]
+    category: Input
+    description:
+      vi: "Nhập một giá trị vào trường input/textarea"
+      en: "Enter a value into an input/textarea field"
+    params:
+      - { name: target, type: element, required: true }
+      - { name: value,  type: string,  required: true }
+    playwright: "await page.fill({target}, {value})"
+
+  - id: CLICK
+    canonical: { vi: "Nhấn", en: "Click" }
+    aliases:
+      vi: ["bấm", "ấn", "nhấp"]
+      en: ["tap", "press"]
+    category: Interaction
+    description:
+      vi: "Nhấn vào một phần tử (nút, link, icon...)"
+      en: "Click an element (button, link, icon...)"
+    params:
+      - { name: target, type: element, required: true }
+    playwright: "await page.click({target})"
+
+  - id: SELECT_OPTION
+    canonical: { vi: "Chọn", en: "Select" }
+    aliases:
+      vi: ["lựa chọn", "chọn từ danh sách"]
+      en: ["pick", "choose"]
+    category: Selection
+    description:
+      vi: "Chọn một giá trị trong dropdown/combobox"
+      en: "Select a value from a dropdown/combobox"
+    params:
+      - { name: target, type: element, required: true }
+      - { name: value,  type: string,  required: true }
+    playwright: "await page.selectOption({target}, {value})"
+
+  - id: SET_CHECKBOX
+    canonical: { vi: "Tích", en: "Check" }
+    aliases:
+      vi: ["đánh dấu", "chọn checkbox", "bật", "bỏ tích"]
+      en: ["uncheck", "toggle", "tick"]
+    category: Selection
+    description:
+      vi: "Bật/tắt một checkbox hoặc radio"
+      en: "Toggle a checkbox or radio"
+    params:
+      - { name: target,  type: element, required: true }
+      - { name: checked, type: boolean, required: true }
+    playwright: "await page.setChecked({target}, {checked})"
+
+  - id: CLEAR
+    canonical: { vi: "Xóa", en: "Clear" }
+    aliases:
+      vi: ["làm trống", "xóa trắng", "reset trường"]
+      en: ["empty", "reset"]
+    category: Input
+    description:
+      vi: "Xóa toàn bộ giá trị trong một trường"
+      en: "Clear all content of a field"
+    params:
+      - { name: target, type: element, required: true }
+    playwright: "await page.fill({target}, '')"
+
+  - id: UPLOAD_FILE
+    canonical: { vi: "Tải lên", en: "Upload" }
+    aliases:
+      vi: ["đính kèm", "chọn file"]
+      en: ["attach", "import file"]
+    category: File
+    description:
+      vi: "Tải một tệp lên qua input file"
+      en: "Upload a file via a file input"
+    params:
+      - { name: target, type: element, required: true }
+      - { name: path,   type: string,  required: true }
+    playwright: "await page.setInputFiles({target}, {path})"
+
+  - id: NAVIGATE
+    canonical: { vi: "Truy cập", en: "Navigate" }
+    aliases:
+      vi: ["mở", "đi tới", "vào trang"]
+      en: ["go to", "open", "visit"]
+    category: Navigation
+    description:
+      vi: "Điều hướng tới một URL"
+      en: "Navigate to a URL"
+    params:
+      - { name: url, type: string, required: true }
+    playwright: "await page.goto({url})"
+
+  - id: VERIFY_VISIBLE
+    canonical: { vi: "Kiểm tra hiển thị", en: "Verify visible" }
+    aliases:
+      vi: ["hiển thị", "xuất hiện", "thấy"]
+      en: ["be visible", "is displayed", "shown"]
+    category: Assertion
+    description:
+      vi: "Xác nhận một phần tử đang hiển thị"
+      en: "Assert an element is visible"
+    params:
+      - { name: target, type: element, required: true }
+    playwright: "await expect(page.locator({target})).toBeVisible()"
+
+  - id: VERIFY_TEXT
+    canonical: { vi: "Kiểm tra nội dung", en: "Verify text" }
+    aliases:
+      vi: ["chứa text", "hiển thị nội dung"]
+      en: ["have text", "contain text"]
+    category: Assertion
+    description:
+      vi: "Xác nhận một phần tử chứa nội dung mong đợi"
+      en: "Assert an element contains expected text"
+    params:
+      - { name: target, type: element, required: true }
+      - { name: text,   type: string,  required: true }
+    playwright: "await expect(page.locator({target})).toContainText({text})"

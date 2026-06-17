@@ -77,7 +77,7 @@ The 4 per-UC skills already maintain checkpoint files in **per-UC subfolders** f
 | `.claude/skills/qc-uc-read/process-logging/<UC-ID>/progress.md` | `qc-uc-read` | A run is in-progress for that UC → `UC review stt` cell = current `status:` line |
 | `.claude/skills/qc-func-scenario-design/process-logging/<UC-ID>/progress.md` | `qc-func-scenario-design` | In-progress → `Scenario design stt` cell = current `status:` line |
 | `.claude/skills/qc-func-tc-design/process-logging/<UC-ID>/progress.md` | `qc-func-tc-design` | In-progress → `TC design stt` cell = current `status:` line |
-| `.claude/skills/qc-ui-extract/process-logging/<UC-ID>/progress.md` | `qc-ui-extract` | In-progress → `UI extract stt` cell = current `status:` line |
+| `.claude/skills/qc-ui-act-collector/process-logging/<UC-ID>/progress.md` | `qc-ui-act-collector` | In-progress → `Action & UI extract stt` cell = current `status:` line |
 
 **File existence semantics:** Each owner skill deletes its `<UC-ID>/` subfolder upon successful Phase 3 cleanup (per its `checkpoint-protocol.md` §5). So the file existing = the UC has an active or interrupted run; the file absent = either the UC has never been processed by that skill OR the skill finished successfully and cleaned up.
 
@@ -92,13 +92,13 @@ When a per-UC subfolder progress.md does NOT exist, the UC is either never-start
 | `UC review stt` | The audited UC review report file (`<uc-review-report>/<Folder ID>/*_audited_*_v<N>.md`) — extract verdict + score from the "Tổng điểm" row of the scoring table | Only parse when `Audited: V<N>` from current Files stt scan is GREATER than `v<M>` parsed from the existing cell value. If versions match → keep cell verbatim (no parse). If no Audited file → cell BLANK. |
 | `Scenario design stt` | The Files stt `Scenario: V<N>` value directly — no file parse | Always derive from Files stt (no content parse). Format: `v<N> generated`. If no Scenario file → cell BLANK. |
 | `TC design stt` | The Files stt `TC xlsx: V<N>` value directly — no file parse | Always derive from Files stt. Format: `v<N> generated`. If TC xlsx missing but TC md exists → `v<N> draft`. If neither → cell BLANK. The historical `v<N> updated` value distinction (generate vs update workflow) is NO LONGER tracked — user can edit manually if desired. |
-| `UI extract stt` | The UI extract output folder (`docs/qc/ui-elements/<Folder ID>/*_v<N>.md`) — count distinct page files; parse one of them for `audited_version` reference | Only parse when the latest ui-elements version (from filename) is GREATER than `v<M>` parsed from the existing cell value. Format: `v<N> (audited v<M>) [<Kp]` where K = page count (omit `[Kp]` if K=1). If folder missing → cell BLANK. |
+| `Action & UI extract stt` | The ui-elements output folder (`qc/ui-act-library/ui-elements/<Folder ID>/*_v<N>.md`) — count distinct page files; parse one of them for `audited_version` reference | Only parse when the latest ui-elements version (from filename) is GREATER than `v<M>` parsed from the existing cell value. Format: `v<N> (audited v<M>) [<Kp]` where K = page count (omit `[Kp]` if K=1). If folder missing → cell BLANK. |
 
 **Cache extraction regex for existing cell values:**
 
 - `UC review stt`: existing pattern `(?:Ready|Conditionally Ready|Not Ready)\s+v(\d+)\s*\(Score` → capture group 1 = cached audited version. If cell doesn't match → treat as cached version 0 (forces re-parse).
 - `Scenario design stt` / `TC design stt`: `^v(\d+)\s+(generated|updated|draft)` → cached version. No "sparse" optimization needed since the source is Files stt (no file parse).
-- `UI extract stt`: `^v(\d+)\s+\(audited` → cached ui-extract version.
+- `Action & UI extract stt`: `^v(\d+)\s+\(audited` → cached ui-elements version.
 
 **Audited file parse contract** (only used for `UC review stt` re-parse):
 
@@ -198,12 +198,12 @@ Composed cell value: `<verdict> v<auditedVersion> (Score <score>/100)` — match
 
 | Order if present | Column | Writer | Data source |
 |---|---|---|---|
-| 11 | `UI extract stt` | `qc-dashboard-sync` | (in-progress) `qc-ui-extract/process-logging/<UC-ID>/progress.md` status / (done) sparse parse of latest ui-elements file at `docs/qc/ui-elements/<UC-ID>/` |
-| 12 (or 11 if no UI extract) | `Execute stt` | future `qc-execute` skill (placeholder) | (not yet implemented) |
+| 11 | `Action & UI extract stt` | `qc-dashboard-sync` | (in-progress) `qc-ui-act-collector/process-logging/<UC-ID>/progress.md` status / (done) sparse parse of latest ui-elements file at `qc/ui-act-library/ui-elements/<UC-ID>/` |
+| 12 (or 11 if no Action & UI extract) | `Execute stt` | future `qc-execute` skill (placeholder) | (not yet implemented) |
 
-`UI extract stt` is auto-injected by this skill in Phase 5 if `docs/qc/ui-elements/` contains at least one `<UC-ID>/` subfolder with extracted files AND the column is missing from the dashboard header. `Execute stt` remains a manual user-injection placeholder until the future `qc-execute` skill exists.
+`Action & UI extract stt` is auto-injected by this skill in Phase 5 if `qc/ui-act-library/ui-elements/` contains at least one `<UC-ID>/` subfolder with extracted files AND the column is missing from the dashboard header. `Execute stt` remains a manual user-injection placeholder until the future `qc-execute` skill exists.
 
-Valid column counts: **10** (baseline), **11** (with `UI extract stt` only, or `Execute stt` only), **12** (both). `qc-dashboard-sync` accepts any of these.
+Valid column counts: **10** (baseline), **11** (with `Action & UI extract stt` only, or `Execute stt` only), **12** (both). `qc-dashboard-sync` accepts any of these.
 
 ### `Folder ID` column semantics
 
@@ -341,10 +341,10 @@ This phase is purely read-only. No dashboard file is created or modified here; t
      | Detected schema | Action |
      |---|---|
      | **Baseline 10 cols** (`Site | <ID> | Folder ID | Module | Name | In scope? | Files stt | UC review stt | Scenario design stt | TC design stt`) | Proceed normally. Existing stt cells (cols 8/9/10) are KEPT (cached values needed for sparse-parse comparisons in Phase 3b); they will be OVERWRITTEN in Phase 5 only when the corresponding source has a newer version. |
-     | **11 cols** = baseline + (`UI extract stt` OR `Execute stt`) after `TC design stt` | Proceed normally. `UI extract stt` cached value kept for sparse-parse; `Execute stt` is preserved VERBATIM into `featureIndex[ID].executeStt`. |
-     | **12 cols** = baseline + both `UI extract stt` and `Execute stt` (in that order) after `TC design stt` | Proceed normally. `UI extract stt` cached for sparse-parse; `Execute stt` preserved verbatim. |
+     | **11 cols** = baseline + (`Action & UI extract stt` OR `Execute stt`) after `TC design stt` | Proceed normally. `Action & UI extract stt` cached value kept for sparse-parse; `Execute stt` is preserved VERBATIM into `featureIndex[ID].executeStt`. |
+     | **12 cols** = baseline + both `Action & UI extract stt` and `Execute stt` (in that order) after `TC design stt` | Proceed normally. `Action & UI extract stt` cached for sparse-parse; `Execute stt` preserved verbatim. |
      | **Legacy v10** (10 cols WITHOUT `Folder ID`, header `Site | <ID> | Module | …`) | AUTO-MIGRATE: insert `Folder ID` at position 3 = column 2 self-reference; shift rest right. |
-     | **Legacy v11-old** (header contains `Specs stt`, `WF stt`, `Test scenario stt`, `Test cases stt` as separate columns — typical pre-consolidation shape: `Site | <ID> | Module | Name | In scope? | Specs stt | WF stt | Test scenario stt | Test cases stt | [UI extract stt] | [Execute stt]`) | AUTO-MIGRATE per "Legacy v11-old → new" steps below. |
+     | **Legacy v11-old** (header contains `Specs stt`, `WF stt`, `Test scenario stt`, `Test cases stt` as separate columns — typical pre-consolidation shape: `Site | <ID> | Module | Name | In scope? | Specs stt | WF stt | Test scenario stt | Test cases stt | [Action & UI extract stt] | [Execute stt]`) | AUTO-MIGRATE per "Legacy v11-old → new" steps below. |
      | **Other** (wrong header order, unknown column names, can't classify) | STOP and report. Do NOT auto-fix. |
 
      **Legacy v10 → new** migration steps (in-memory):
@@ -361,17 +361,17 @@ This phase is purely read-only. No dashboard file is created or modified here; t
         - Insert `Folder ID` at position 3.
         - Replace the 4 cols (`Specs stt`, `WF stt`, `Test scenario stt`, `Test cases stt`) with a single `Files stt` column at position 7.
         - Insert `UC review stt`, `Scenario design stt`, `TC design stt` at positions 8, 9, 10.
-        - Preserve `UI extract stt` if present (becomes col 11 optional).
+        - Preserve `Action & UI extract stt` if present (becomes col 11 optional).
         - Preserve `Execute stt` if present (becomes col 11 if no UI extract, or col 12).
      2. For every data row:
         - Insert col 3 = col 2 (self-reference).
         - Set col 7 `Files stt` = EMPTY (force next sync to populate via fresh scan).
         - Set cols 8, 9, 10 = EMPTY (no prior process-state values existed).
-        - Carry over `UI extract stt` value if column existed.
+        - Carry over `Action & UI extract stt` value if column existed.
         - Carry over `Execute stt` value if column existed.
      3. Append migration note:
         ```text
-        > **<YYYY-MM-DD> — Schema migration v11-old→new**: hop nhat 4 cot (`Specs stt`, `WF stt`, `Test scenario stt`, `Test cases stt`) thanh `Files stt` (cell trong, se duoc populate bang next sync); them `Folder ID`, `UC review stt`, `Scenario design stt`, `TC design stt`. Cac cot stt (8/9/10/11 neu co `UI extract stt`) se duoc populate tu in-progress check + sparse done-state derivation o Phase 3b. Cot `Execute stt` neu co duoc giu lai verbatim. Gia tri 4 cot file cu duoc DROP (khong transform) vi format moi yeu cau scan lai.
+        > **<YYYY-MM-DD> — Schema migration v11-old→new**: hop nhat 4 cot (`Specs stt`, `WF stt`, `Test scenario stt`, `Test cases stt`) thanh `Files stt` (cell trong, se duoc populate bang next sync); them `Folder ID`, `UC review stt`, `Scenario design stt`, `TC design stt`. Cac cot stt (8/9/10/11 neu co `Action & UI extract stt`) se duoc populate tu in-progress check + sparse done-state derivation o Phase 3b. Cot `Execute stt` neu co duoc giu lai verbatim. Gia tri 4 cot file cu duoc DROP (khong transform) vi format moi yeu cau scan lai.
         ```
      4. Print: `Da auto-migrate dashboard tu v11-old sang schema moi (<N> row, <K> cot optional duoc giu).`
      5. Continue Phase 0 with the migrated in-memory state. The actual file write happens in Phase 5.
@@ -550,7 +550,7 @@ Update worklog: `Status = Phase 3a done`.
 
 ### Phase 3b — stt columns Computation (in-progress check + sparse done-state derivation)
 
-This phase populates columns 8 (`UC review stt`), 9 (`Scenario design stt`), 10 (`TC design stt`), and 11 (`UI extract stt` if present or auto-injectable). The strategy minimizes token cost by parsing audited reports only when their version is newer than the cached value already in the cell.
+This phase populates columns 8 (`UC review stt`), 9 (`Scenario design stt`), 10 (`TC design stt`), and 11 (`Action & UI extract stt` if present or auto-injectable). The strategy minimizes token cost by parsing audited reports only when their version is newer than the cached value already in the cell.
 
 For every dashboard row (`<UC-ID>` = the row's `Folder ID`), and for each of the 4 stt columns:
 
@@ -579,7 +579,7 @@ Apply the per-column rule from the "Done-state derivation" table:
   3. Else if `tcMdVer` present → cell = `v<tcMdVer> draft`.
   4. Else → cell BLANK.
 
-- **`UI extract stt`** (only if column exists OR Step 3 auto-injection triggers):
+- **`Action & UI extract stt`** (only if column exists OR Step 3 auto-injection triggers):
   1. Scan `<ui-elements>/<UC-ID>/` (resolve `ui-elements` from `path-registry`). List files matching `*_v<N>.md`. If folder absent or empty → cell BLANK; skip.
   2. Compute `currentUiVer = max(N across files)`, `pageCount = count of distinct page-name in files at version currentUiVer`.
   3. From the row's existing cell, extract `cachedUiVer` via `^v(\d+)\s+\(audited`. If no match → `cachedUiVer = 0`.
@@ -587,9 +587,9 @@ Apply the per-column rule from the "Done-state derivation" table:
   5. Else → open ONE file from the highest-version set; grep for a reference to the audited version (pattern `audited[_\s-]*v(\d+)` in the file's header/frontmatter). Extract `auditedRefVer`. If not found → fallback to current Files stt's `Audited: V<N>` value.
   6. Compose cell value: `v<currentUiVer> (audited v<auditedRefVer>)`. Append ` [<pageCount>p]` only when `pageCount > 1`.
 
-#### Step 3 — `UI extract stt` auto-injection check
+#### Step 3 — `Action & UI extract stt` auto-injection check
 
-If the dashboard header does NOT yet have a `UI extract stt` column AND `<ui-elements>/` parent folder has at least one `<UC-ID>/` subfolder with extracted files → mark `injectUIExtractColumn = true`. Phase 5 inserts the column at position 11 (before `Execute stt` if present, else at the end).
+If the dashboard header does NOT yet have an `Action & UI extract stt` column AND `<ui-elements>/` parent folder has at least one `<UC-ID>/` subfolder with extracted files → mark `injectUIExtractColumn = true`. Phase 5 inserts the column at position 11 (before `Execute stt` if present, else at the end).
 
 #### Step 4 — Store results
 
@@ -621,7 +621,7 @@ This skill is the SOLE writer of every column in the dashboard. Phase 5 composes
 
 #### Step 1 — Optional column injection check
 
-- If Phase 3b set `injectUIExtractColumn = true` → insert a `UI extract stt` column at position 11 (before `Execute stt` if it already exists, else at the end). Pre-existing rows get blank values until Phase 3b later finds entries for them.
+- If Phase 3b set `injectUIExtractColumn = true` → insert a `Action & UI extract stt` column at position 11 (before `Execute stt` if it already exists, else at the end). Pre-existing rows get blank values until Phase 3b later finds entries for them.
 - Otherwise preserve the header as-is.
 
 #### Step 2 — Compute sort order
@@ -650,8 +650,8 @@ For every row, write ALL columns:
   - Column 3 `Folder ID` = folder-name ID linking the row to disk. NEVER blank — for top-down rows without an alias, equals column 2.
   - Column 6 `In scope?` = copied from handoff (top-down) or `Need confirm` (ORPHAN-FOLDER bucket) or preserved (EXISTING-NO-FOLDER bucket).
 - Columns **8, 9, 10** with the values from Phase 3b's `stttCells` map. If no value was computed → BLANK.
-- Optional columns (`UI extract stt`, `Execute stt`):
-  - `UI extract stt` (column 11) → value from Phase 3b. BLANK if no entry.
+- Optional columns (`Action & UI extract stt`, `Execute stt`):
+  - `Action & UI extract stt` (column 11) → value from Phase 3b. BLANK if no entry.
   - `Execute stt` — preserved VERBATIM from the parsed dashboard if present (no current owner skill writes it; the user may have written it manually).
 - Preserve the header row, applying label migration if `labelMigrationNeeded` was set in Phase 0.6 case B.
 
@@ -682,7 +682,7 @@ Update worklog: `Status = Phase 5 done`. Add `qc-dashboard.md` to the Output col
    - Features in dashboard không còn trong handoff (cần user review): <N>  (<list canonical IDs>)
    - stt cells updated (in-progress hoặc sparse-parse done): <N>  (<list "col:UC-ID" entries, max 10 then "... và <K> mục khác">)
    - Audited file re-parses (token cost):          <N>  (<list "UC-ID v<old>→v<new>" entries>)
-   - `UI extract stt` column auto-injected:        <Yes | No>
+   - `Action & UI extract stt` column auto-injected:        <Yes | No>
 
    **Sort order:**
    - Sort level:    <Site | Module | None — single module>
@@ -720,8 +720,8 @@ Triggered ONLY by the user running `/qc-dashboard-sync <UC-ID>` manually. Per-UC
 5. Run the 6-artifact disk sub-scans for `<ID>` only. Build a single-entry `regexList` from `<ID>` itself using the same shape-signature algorithm as top-down Phase 1 step 2a (so compound disk names like `<ID>_SomeSuffix` will match back to `<ID>`). Resolve folder paths inside `requirement-files/<...>`, `uc-review-report/<...>`, etc., scanning sub-folders and extracting Folder IDs via the regex; if no folder matches, fall back to a literal-name match `<ID>` exactly. Compose `Files stt` per "Files stt cell format" section.
 6. **stt computation for `<ID>` only.** Apply the exact same algorithm as top-down Phase 3b, scoped to this single UC:
    - **In-progress check:** for each of the 4 per-UC skills, check whether `.claude/skills/<skill>/process-logging/<ID>/progress.md` exists. If yes → cell = `status:` line read verbatim.
-   - **Done-state derivation** (only when in-progress file is absent): per the "Done-state derivation" table — sparse-parse audited file for `UC review stt` (only when `Audited: V<N>` from step 5 is greater than the cached cell version of the existing row, if any); derive from Files stt for `Scenario design stt` and `TC design stt`; sparse-parse latest ui-elements file for `UI extract stt`.
-   - If `docs/qc/ui-elements/<ID>/` has at least one extracted file AND the dashboard does NOT yet have a `UI extract stt` column → mark `injectUIExtractColumn = true`.
+   - **Done-state derivation** (only when in-progress file is absent): per the "Done-state derivation" table — sparse-parse audited file for `UC review stt` (only when `Audited: V<N>` from step 5 is greater than the cached cell version of the existing row, if any); derive from Files stt for `Scenario design stt` and `TC design stt`; sparse-parse latest ui-elements file for `Action & UI extract stt`.
+   - If `<ui-elements>/<ID>/` has at least one extracted file AND the dashboard does NOT yet have an `Action & UI extract stt` column → mark `injectUIExtractColumn = true`.
 7. **If `addNewRow == true`:** add a new row to `featureIndex`:
    - Column 2 `<ID label>` → `<ID>` (folder-derived; will be replaced with canonical ID once `qc-site-map` Mode 3 reconciles).
    - Column 3 `Folder ID` → `<ID>` (same as column 2 until reconciliation).
@@ -754,7 +754,7 @@ Triggered ONLY by the user running `/qc-dashboard-sync <UC-ID>` manually. Per-UC
        - UC review stt:       <value | (blank — chua co progress.md entry)>
        - Scenario design stt: <value | (blank)>
        - TC design stt:       <value | (blank)>
-       - UI extract stt:      <value | (blank | column chua duoc inject)>
+       - Action & UI extract stt:      <value | (blank | column chua duoc inject)>
 
     <only when addNewRow==true:>
     ✅ Da ghi <ID> vao .claude/skills/qc-site-map/inbox/dashboard-orphans.md cho qc-site-map Mode 3 reconcile.
@@ -791,7 +791,7 @@ Triggered ONLY by the user running `/qc-dashboard-sync <UC-ID>` manually. Per-UC
 - Schema mismatch → STOP and report. Do NOT auto-fix (except the explicit auto-migrations in Phase 0 step 5).
 - Site-map handoff file (`site-map-handoff.md`) is consumed (read only). This skill does NOT delete it — `qc-site-map` overwrites it on its next run.
 - Dashboard orphans file (`dashboard-orphans.md`) is written (append + dedupe). This skill does NOT delete it — `qc-site-map` Mode 3 owns deletion.
-- Per-UC subfolder progress.md files (`<skill>/process-logging/<UC-ID>/progress.md`) are consumed (read only) — this skill NEVER writes to them. Output files (audited reports under `<uc-review-report>/<UC-ID>/`, ui-elements under `docs/qc/ui-elements/<UC-ID>/`) are also read-only; this skill only does sparse-parse for verdict/score/version extraction.
+- Per-UC subfolder progress.md files (`<skill>/process-logging/<UC-ID>/progress.md`) are consumed (read only) — this skill NEVER writes to them. Output files (audited reports under `<uc-review-report>/<UC-ID>/`, ui-elements under `qc/ui-act-library/ui-elements/<UC-ID>/`) are also read-only; this skill only does sparse-parse for verdict/score/version extraction.
 
 ## Cross-skill contract
 
@@ -805,9 +805,9 @@ Triggered ONLY by the user running `/qc-dashboard-sync <UC-ID>` manually. Per-UC
 
 - **`qc-func-tc-design`** — same contract. Existing per-UC subfolder progress.md is unchanged. Done-state value derived from the TC xlsx/md file version in Files stt — no file content parse. The historical `v<N> updated` vs `v<N> generated` distinction is lost; user can edit manually if desired.
 
-- **`qc-ui-extract`** — same contract. Existing per-UC subfolder progress.md is unchanged. Done-state value derived from the latest ui-elements file (sparse parse of one file at the highest version to read `audited_version` reference + count pages).
+- **`qc-ui-act-collector`** — same contract. Existing per-UC subfolder progress.md is unchanged. Done-state value derived from the latest ui-elements file (sparse parse of one file at the highest version to read `audited_version` reference + count pages).
 
-**User responsibility:** the dashboard-write code currently embedded in each per-UC skill workflow (e.g., `qc-uc-read/workflows/re-audit/re-audit.md:42`, `qc-func-scenario-design/SKILL.md:75/99/118`, `qc-func-tc-design/workflows/convert-md-to-xlsx.md:72/148`, `qc-ui-extract/SKILL.md:130-141`) needs to be REMOVED manually by the user. This skill does NOT depend on those writes — but as long as they exist, two writers may race on the dashboard file. The user has elected to remove those writes by hand without modifying the per-UC SKILL.md or workflow files via automation.
+**User responsibility:** the dashboard-write code currently embedded in each per-UC skill workflow (e.g., `qc-uc-read/workflows/re-audit/re-audit.md:42`, `qc-func-scenario-design/SKILL.md:75/99/118`, `qc-func-tc-design/workflows/convert-md-to-xlsx.md:72/148`, `qc-ui-act-collector/SKILL.md`) needs to be REMOVED manually by the user. This skill does NOT depend on those writes — but as long as they exist, two writers may race on the dashboard file. The user has elected to remove those writes by hand without modifying the per-UC SKILL.md or workflow files via automation.
 
 Other skills (e.g., a future `qc-execute` skill) should follow the same contract: maintain their own per-UC subfolder progress.md for resume + produce a versioned output file that this skill can scan for done-state.
 

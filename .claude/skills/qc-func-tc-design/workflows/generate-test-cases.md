@@ -29,6 +29,34 @@ Per `workflows/checkpoint-protocol.md` §2 (write-before-work rule):
 4. For EACH applicable variant, load `qc-func-tc-design/references/design-technical/<variant>-technical.md` end-to-end. Hold all loaded rubrics in working memory.
 5. Record the resolved variant list as a working note.
 
+#### 1.3 Load Action & UI Vocabulary (MANDATORY — HARD GATE)
+
+Test cases written by this skill MUST use canonical verbs from the atomic action library and canonical element names from the per-page `ui-elements` files. This step loads that vocabulary AND verifies the UC has been collected by `qc-ui-act-collector` before drafting starts.
+
+1. **Resolve paths via `path-registry.md`:**
+   - `ac-library-atomic` → `atomic_actions.yaml`
+   - `ac-library-composite` → `composite_actions.yaml`
+   - `ui-elements` folder root
+2. **Read `atomic_actions.yaml`** end-to-end. Build the in-memory vocab map:
+   - `atomic_by_canonical_vi[canonical.vi] = id`
+   - `atomic_by_canonical_en[canonical.en] = id`
+   - `atomic_by_alias[vi/en alias] = id` (for verb-recognition only — NEVER used as the written verb)
+   - Capture each entry's `params` so step authors know which entries take a `value`, `key`, `path`, etc.
+3. **Read `composite_actions.yaml`** end-to-end. Filter to composites whose `page` field matches a page used by this UC (cross-check with audited §4 `### <SCR-ID>` blocks). Build:
+   - `composite_by_page_and_id[page][id] = {canonical, steps, params}`
+   - For each composite, dereference each `steps[].target` (`<page>#<row>`) against the corresponding ui-elements file's `#` column to confirm the row still exists.
+4. **Read every `ui-elements` file** whose frontmatter `Source UCs` includes the current UC-ID. For each file build:
+   - `elements_by_page[page][#] = { element_name, label_verbatim, nhom, audited_ref }`
+   - Track the audited-source version recorded in frontmatter (used in Step 4 prelude `Vocabulary sources`).
+5. **HARD GATE — STOP and ask the user to run `/qc-ui-act-collector <UC-ID>` if any of the following is true:**
+   - The audited UC has Ready verdict but no `ui-elements` file lists this UC-ID in its `Source UCs`.
+   - One or more screens referenced by the audited §4 / §6 flows have no matching `elements_by_page[page]` entry.
+   - A verb that the drafter would naturally pick (per the audited §5 interaction matrix or §6 workflow steps) has no `canonical.vi` / `canonical.en` match in `atomic_actions.yaml` (only alias match also counts as missing — alias must NEVER be written as the verb).
+   - A composite that exactly mirrors an audited workflow segment is missing in `composite_actions.yaml`.
+
+   The STOP message MUST list the specific missing items (page names, verb candidates, audited refs) so the user knows exactly what to feed `qc-ui-act-collector`. Do NOT auto-append entries to `atomic_actions.yaml` / `composite_actions.yaml` — ownership belongs to `qc-ui-act-collector`.
+6. **Record the resolved vocabulary snapshot** as a working note: the list of `ui-elements` filenames + versions loaded, the `atomic_actions.yaml` / `composite_actions.yaml` file mtimes (or commit hashes if available). This snapshot is later printed in the Step 4 prelude (§ `Vocabulary sources`) so the downstream Playwright-script step can pin to it.
+
 ---
 
 ### Step 2: Detailed Drafting (MANDATORY)
@@ -52,12 +80,32 @@ Apply all the rules in `qc-func-tc-design/rules/testcase-instruction-rules.md` a
 
 - **Test cases example**: read the language-matched reference — `qc-func-tc-design/references/Testcase-refer-vi.md` for Vietnamese test cases, `qc-func-tc-design/references/Testcase-refer-en.md` for English test cases — and align new TCs to the same structural & writing style (TC ID format, Title phrasing, Pre-condition / Step / Expected Result layout, multi-line bullet style).
 
-### Step 3: Build the Requirement Traceability Matrix
+### Step 3: Build the Requirement Traceability Matrix + Vocabulary Coverage Audit
+
+#### 3.1 Requirement Traceability Matrix (RTM)
 
 - Build the `Requirement Traceability Matrix` mapping every Acceptance Criterion of the audited UC to the drafted Test Case IDs.
 - Verify 100% coverage. If any AC has no linked TCs, fix the drafting in Step 2 before proceeding.
 - The RTM will be embedded in the md prelude (Step 4), not in a separate file.
 - **Multi-platform:** Build ONE RTM PER variant. Each variant's RTM lives in its own `.md` file's prelude. Each RTM must independently cover 100% of the audited ACs that are in scope for that variant.
+
+#### 3.2 Action Coverage Audit (MANDATORY)
+
+For each variant, using the atomic library + composite library + audited §5/§6 loaded in Step 1.3:
+
+- Build the expected-actions set = every atomic-action `id` invoked by either (a) the audited §5 interaction matrix of the in-scope screens, or (b) any composite whose `page` belongs to the in-scope screens.
+- Scan all drafted test steps; for each step extract the canonical verb and resolve it back to an atomic-action `id` via `atomic_by_canonical_vi/en`.
+- Every atomic-action `id` in the expected-actions set MUST appear in ≥ 1 test step. If any is missing, fix the drafting in Step 2 (add the missing TC or extend an existing one). Do not proceed until coverage is 100%.
+
+#### 3.3 Element Coverage Audit (MANDATORY)
+
+For each variant, using `elements_by_page` loaded in Step 1.3:
+
+- **Nhóm 1 (Control) rows** — every row MUST be referenced (by `Element name` inside double-quotes) in ≥ 1 GUI **or** FUNC test step / expected result.
+- **Nhóm 2 / 3 (Data display / Notification) rows** — every row MUST appear in ≥ 1 Expected Result (typically a FUNC TC asserting the message/value).
+- **Nhóm 4 (Static) rows** — every row MUST appear in ≥ 1 GUI initialization or UI verification TC's expected result.
+
+If any row is uncovered, fix the drafting in Step 2 before proceeding. Record the audit result (pass/fail per audit + uncovered IDs if any) as a working note for the Step 4 prelude.
 
 ### Step 3.5: Persist Designed TCs to Scratch (MANDATORY — atomic single Write)
 
@@ -96,12 +144,30 @@ For a single-variant project the same naming applies (just one variant in the na
 **Source scenarios (if any):** [scenarios filename + version]
 **Output language:** [VI / EN]
 
+#### Vocabulary sources
+
+**Atomic action library:** `atomic_actions.yaml` (snapshot: <mtime or commit>)
+**Composite action library:** `composite_actions.yaml` (snapshot: <mtime or commit>)
+**UI elements files:**
+- `<page-1>_ui-elements_<YYYYMMDD>_v<N>.md` (audited source: `<UC-ID>_…_audited_…_v<M>.md`)
+- `<page-2>_ui-elements_<YYYYMMDD>_v<N>.md` (audited source: `<UC-ID>_…_audited_…_v<M>.md`)
+- …
+
 #### Requirement Traceability Matrix
 
 | AC ID | Acceptance Criteria | Linked Test Cases | Status |
 |---|---|---|---|
 | AC-01 | …                   | TC_001, TC_002    | Covered |
 | …     | …                   | …                 | …       |
+
+#### Vocabulary coverage audit
+
+| Audit | Result | Uncovered IDs |
+|---|---|---|
+| Action coverage (atomic ids) | Pass / Fail | — |
+| Element coverage — Nhóm 1 (Control) | Pass / Fail | — |
+| Element coverage — Nhóm 2/3 (Display/Notify) | Pass / Fail | — |
+| Element coverage — Nhóm 4 (Static) | Pass / Fail | — |
 
 ---
 ```

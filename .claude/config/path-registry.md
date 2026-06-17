@@ -29,7 +29,9 @@
 | QC      | `func-test-cases-draft`    | `docs/qc/testcases/<UC-ID>/`         | `<UC-ID>_<feature>_testcases_draft.md`                   | Bản test cases định dạng md                                                                                                 |
 | QC      | `func-test-cases`          | `docs/qc/testcases/<UC-ID>/`         | `<UC-ID>_<feature>_testcases_<YYYYMMDD>_v<N>.xlsx`       | Test cases — output của `qc-func-tc-design`                                                                                 |
 | QC      | `func-test-cases-summary`  | `docs/qc/testcases/<UC-ID>/`         | `<UC-ID>_<feature>_testcases_summary_<YYYYMMDD>_v<N>.md` | Tóm tắt sau khi thiết kế test cases                                                                                         |
-| QC      | `ui-elements`              | `docs/qc/ui-elements/<UC-ID>/`       | `<UC-ID>_<page-name>_ui-elements_<YYYYMMDD>_v<N>.md`     | Danh sách UI elements trích từ audited UC theo từng page — output của `qc-ui-extract`, đầu vào cho `page-inspection`     |
+| QC      | `ui-elements`              | `docs/qc/ui-act-library/ui-elements/` | `<page-name>_ui-elements_<YYYYMMDD>_v<N>.md` | Danh sách UI elements theo từng **page** (key theo page, KHÔNG gắn UC-ID vì một page có thể được nhiều UC tham chiếu — danh sách UC nguồn nằm ở `Source UCs` trong frontmatter) — output của `qc-ui-act-collector`, đầu vào cho `page-inspection` |
+| QC      | `ac-library-atomic`        | `docs/qc/ui-act-library/ac-library/`      | `atomic_actions.yaml`                                    | Thư viện atomic action toàn dự án (singleton, append-only) — output của `qc-ui-act-collector`                              |
+| QC      | `ac-library-composite`     | `docs/qc/ui-act-library/ac-library/`      | `composite_actions.yaml`                                 | Thư viện composite action toàn dự án (singleton, append-only) — output của `qc-ui-act-collector`                          |
 
 ---
 
@@ -46,8 +48,8 @@ Bảng này cho thấy skill nào đọc/ghi artifact nào. Dùng để kiểm t
 | `qc-uc-smoke`             | `requirement-files` (highest v), `requirement-common-files` (optional — tra cứu nếu UC reference CMR/BR), `uc-smoke-report` (existing highest v if any, để increment version)               | `uc-smoke-report`.       |
 | `qc-uc-read`              | `requirement-common-files`, `requirement-files`, `question-backlog`, `project-context-master`, `qc-site-map` (optional).                                                   | `uc-review-report`, `question-backlog`.                                                                                                                                                                                                    |
 | `qc-func-scenario-design` | `uc-review-report`, `project-context-master`, `qc-site-map` (optional). | `func-test-scenarios`     |
-| `qc-func-tc-design`       | `uc-review-report`, `func-test-scenarios`, `project-context-master`, `qc-site-map` (optional). | `func-test-cases`, `func-test-cases-draft`, `func-test-cases-summary`.                                             |
-| `qc-ui-extract`           | `uc-review-report` (highest v), `project-context-master` (optional). | `ui-elements` (1 file/page, lean fields).                                    |
+| `qc-func-tc-design`       | `uc-review-report`, `func-test-scenarios`, `project-context-master`, `qc-site-map` (optional), `ac-library-atomic` (HARD REQ), `ac-library-composite` (HARD REQ), `ui-elements` (HARD REQ — all page files whose `Source UCs` include the current UC-ID). | `func-test-cases`, `func-test-cases-draft`, `func-test-cases-summary`.                                             |
+| `qc-ui-act-collector`     | `uc-review-report` (highest v), `ac-library-atomic` (existing, dedup), `ac-library-composite` (existing, dedup), `project-context-master` (optional). | `ui-elements` (1 file/page, lean fields), `ac-library-atomic` (append-only singleton), `ac-library-composite` (append-only singleton). |
 | `qc-qna`                  |`question-backlog`               | `question-backlog`    |
 | `qc-get-work-log`         | `worklog-per-device` (all `worklog_*.jsonl`), `agent-work-log` (existing master, for dedup)                 | `agent-work-log` (rewrite per-device tables; Legacy section never touched)          |
 

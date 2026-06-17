@@ -110,7 +110,7 @@ Quality checks before writing the file (§"Quality Checks Before Finalizing"). W
 
 ## MANDATORY Test Design Techniques
 
-Same set as `qc-func-tc-design` — applied at the **scenario level** (one technique application typically produces one scenario; the downstream TC-design skill expands that scenario into atomic cases).
+Load the `.claude/skills/qc-func-tc-design/references/design-technical` — applied at the **scenario level** (one technique application typically produces one scenario; the downstream TC-design skill expands that scenario into atomic cases).
 
 1. **Equivalence Partitioning (EP)** — one scenario per valid/invalid partition. Never bundle.
    - Allowed file types `.png .jpg .svg` → one scenario per valid extension + one per representative invalid extension. Do NOT collapse "all valid extensions" into one scenario.

@@ -2,7 +2,7 @@
 
 > **Friendly name (for worklog):** `Generating Review Report` (EN) / `Tạo báo cáo review` (VI).
 >
-> **Inputs:** `process-logging/<UC-ID>/01_synthesis.md` + `02_scoring.md` (Phase 1 & 2 outputs) + `UC_readiness_review_template_v3.md`
+> **Inputs:** `process-logging/<UC-ID>/01_synthesis.md` + `02_scoring.md` (Phase 1 & 2 outputs) + `UC_readiness_review_template_v4.md`
 >
 > **Output:** `uc-review-report v[N].md` written to the UC's output folder (resolved via `path-registry.md`). This file IS the final deliverable — no separate `03_*.md` checkpoint.
 
@@ -24,7 +24,7 @@ Open:
 
 1. `process-logging/<UC-ID>/01_synthesis.md`
 2. `process-logging/<UC-ID>/02_scoring.md`
-3. `.claude/skills/qc-uc-read/templates/UC_readiness_review_template_v3.md`
+3. `.claude/skills/qc-uc-read/templates/UC_readiness_review_template_v4.md`
 4. `.claude/skills/qc-uc-read/references/qc-writting-rules.md`, if available
 
 Do **not** reload or re-extract raw UC, design, prototype, API, common-rule, or site-map files by default.
@@ -33,7 +33,7 @@ Use checkpoint outputs as follows:
 
 | Checkpoint        | Use in Phase 3                                   |
 | ----------------- | ------------------------------------------------ |
-| `01_synthesis.md` | Fill the business understanding content in `UC_readiness_review_template_v3.md`.                                                   |
+| `01_synthesis.md` | Fill the business understanding content in `UC_readiness_review_template_v4.md`.                                                   |
 | `02_scoring.md`   | Fill readiness conclusion, scoring result, Section 10 issues/questions, Audit Summary, blockers, major issues, and recommendation. |
 
 If one of there files are missing, stop and warning user.
@@ -42,7 +42,7 @@ If one of there files are missing, stop and warning user.
 
 ## Step 2: Fill the UC Readiness Review Template
 
-The report is based on the **UC Readiness Review Template** at `.claude/skills/qc-uc-read/templates/UC_readiness_review_template_v3.md`. Open the template file, fill every section based on what was found (or not found) in the provided artefacts.
+The report is based on the **UC Readiness Review Template** at `.claude/skills/qc-uc-read/templates/UC_readiness_review_template_v4.md`. Open the template file, fill every section based on what was found (or not found) in the provided artefacts.
 
 **Section mapping (knowledge area → template section):**
 

@@ -1,0 +1,53 @@
+- generic [active] [ref=e1]:
+  - alert [ref=e43]
+  - generic [ref=e45]:
+    - generic [ref=e46]:
+      - link "Đến nội dung chính" [ref=e47] [cursor=pointer]:
+        - /url: "#main"
+      - generic [ref=e48]:
+        - img [ref=e49]
+        - button "VI" [disabled] [ref=e54] [cursor=pointer]
+        - generic [ref=e55]:
+          - generic [ref=e56]: "|"
+          - button "EN" [ref=e57] [cursor=pointer]
+    - main [ref=e58]:
+      - generic [ref=e59]:
+        - generic "SotaCare" [ref=e60]:
+          - img [ref=e62]
+          - generic [ref=e66]: SotaCare
+        - paragraph [ref=e67]: Org Portal · Quản lý theo dõi bệnh nhân
+      - region "Đăng nhập" [ref=e69]:
+        - generic [ref=e70]:
+          - heading "Đăng nhập" [level=1] [ref=e71]
+          - paragraph [ref=e72]: Sử dụng tài khoản do Sotatek cấp.
+        - generic [ref=e73]:
+          - generic [ref=e74]:
+            - generic [ref=e75]:
+              - text: Địa chỉ Email
+              - generic [ref=e76]: "*"
+            - textbox [ref=e78]
+          - generic [ref=e79]:
+            - generic [ref=e80]:
+              - text: Mật khẩu
+              - generic [ref=e81]: "*"
+            - generic [ref=e82]:
+              - textbox [ref=e83]
+              - button "Hiện mật khẩu" [ref=e84] [cursor=pointer]:
+                - img [ref=e85]
+                - generic [ref=e88]: Hiện
+          - link "Quên mật khẩu?" [ref=e90] [cursor=pointer]:
+            - /url: /forgot-password
+          - button "Đăng nhập" [disabled] [ref=e91]
+    - contentinfo [ref=e92]:
+      - generic [ref=e93]: © 2026 Sotatek · SotaCare
+      - generic [ref=e94]: ·
+      - link "Liên hệ Sotatek Support" [ref=e95] [cursor=pointer]:
+        - /url: https://support.sotatek.works
+  - status:
+    - generic [ref=e96]:
+      - img [ref=e98]
+      - generic [ref=e101]:
+        - generic [ref=e102]: Hệ thống đã gửi link đặt lại mật khẩu.
+        - generic [ref=e103]: Kiểm tra email của bạn. Link có hiệu lực một lần và hết hạn sau 5 phút.
+      - button "Đóng" [ref=e104] [cursor=pointer]:
+        - img [ref=e105]

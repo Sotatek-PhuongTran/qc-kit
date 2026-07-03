@@ -1,277 +1,96 @@
 ---
 name: qc-writting-rules
-description: Writing rules for human-read QC outputs that contain code references
+description: Quy tắc viết output QC — gọn, áp dụng cho mọi skill sinh tài liệu cho người đọc (audited report, scenario, test case, site map, context). Nguồn DUY NHẤT về cách viết; các skill chỉ trỏ về đây, không chép lại.
 applies_to_skills:
-  - qc-uc-read
-  - qc-uc-smoke
-  - qc-func-scenario-design
-  - qc-func-tc-design
-  - qc-context-master
-  - qc-site-map
-excluded_skills: all skills that are not mentioned in accplies_to_skills section
-applies_to_outputs: all output files of skills that are mentioned in accplies_to_skills section
-trigger_condition: "Output is human-read prose containing CRULE/BR/R/FR/FOQ/Q/WCAG code references"
+  universal:
+    - qc-uc-read
+    - qc-func-tc-design
+    - qc-func-scenario-design
+    - qc-context-master
+    - qc-site-map
 ---
 
-# QC Output Writing & Reference Readability Rules
+# Quy tắc viết output QC
 
-Use these rules when writing quality control (QC) reports for the skills being applied.
+**Mục tiêu:** output để QC đọc-hiểu và thực thi NGAY — không phải mở lại tài liệu nguồn, không phải dùng công cụ dịch.
 
-Supported output languages:
-
-- **English**
-- **Vietnamese**
-
-Intended readers: QC Lead, BA, Tester, and delivery stakeholders.
-
-Goal: make QC outputs easy to understand, easy to trace back to source documents, and reusable for test design.
+**Ngôn ngữ:** theo ngôn ngữ tài liệu nguồn (UC tiếng Việt → output tiếng Việt). KHÔNG trộn ngôn ngữ trong cùng một file.
 
 ---
 
-## 1. Language policy
+## 1. Năm quy tắc bắt buộc (mọi output)
 
-- If the requested output language is **English**, apply the **Common rules** only.
-- If the requested output language is **Vietnamese**, apply both **Common rules** and **Vietnamese rules**.
-- Keep official IDs, codes, file paths, API names, screen names, message keys, and product terms unchanged unless the source provides an official localized name.
-- Write human-readable explanations in the requested output language.
-- English examples are illustrative; do not copy them word-for-word into Vietnamese output.
-- Vietnamese examples are style guidance only for Vietnamese output.
+**R1 — Câu tự chứa.** Mỗi finding / bước / kết quả mong đợi viết đủ: *chủ thể + điều kiện + hành vi hệ thống + kết quả*. Đọc riêng một dòng vẫn hiểu, không cần mở UC/FRD. KHÔNG tham chiếu sang dòng/test case khác (`như TC_033`, `giống mục trên`) — nếu trùng nội dung vẫn viết lại đầy đủ. Message hệ thống luôn **trích đủ nguyên văn**, không mô tả gián tiếp.
 
----
+**R2 — Mã không bao giờ đứng một mình.** Trong câu cho người đọc, KHÔNG viết mã trần (`SCR-...`, `CRULE-...`, `Q-...`, `EF 6x`, `BR-...`, `AC-...`, `R-5`). Viết **tên người-đọc-hiểu trước**, để mã trong ngoặc làm dẫn chứng.
+- ✅ `trang quên mật khẩu (SCR-ORGUSER-002)`
+- ❌ `Người dùng nhập email tại SCR-ORGUSER-002`
 
-## 2. Common rules
+**R3 — Chỉ giữ tiếng Anh khi là DỮ LIỆU HỆ THỐNG.** Nhãn UI, nội dung message, tên màn hình, mã lỗi, tên API — giữ nguyên verbatim, đặt trong ngoặc kép `"..."`. **Mọi từ kỹ thuật khác PHẢI dịch sang tiếng Việt** theo Bảng quy đổi §3.
+- ✅ nút `"Gửi liên kết đặt lại"` chuyển sang trạng thái *đang xử lý*
+- ❌ nút Gửi chuyển sang Loading
 
-These rules apply to both English and Vietnamese QC outputs.
+**R4 — Vùng/trạng thái phải kèm tên thường.** Không viết `Vùng A` một mình; viết `trạng thái mặc định (Vùng A)`. Người đọc không phải cuộn lên tra định nghĩa vùng.
 
-### Rule C1 — Write for business review, not for source lookup
-
-Write for readers who need to understand the business meaning, review the issue, and reuse the output for test design.
-
-Do not assume the reader remembers what a code, source section, or requirement anchor means.
-
-### Rule C2 — Use complete, self-contained sentences
-
-Important findings, questions, recommendations, and summary bullets must be understandable without reopening the source document.
-
-Prefer this structure:
-
-`subject + condition + system behavior + expected result / business impact`
-
-### Rule C3 — Do not use source labels as explanations
-
-Source labels and anchors are evidence, not explanation.
-
-Examples of source labels:
-
-- `4x`
-- `5x`
-- `UC §3`
-- `FRD §6`
-- `prototype note`
-- `file.jsx:line`
-
-Convert them into clear business meaning before adding the reference.
-
-### Rule C4 — Preserve official identifiers
-
-Keep official identifiers unchanged when needed for traceability.
-
-Examples:
-
-- `UC-*`
-- `FR-*`
-- `BR-*`
-- `CRULE-*`
-- `FOQ-*`
-- `Q\d+`
-- `MSG_*`
-- `ERR_*`
-- `WCAG x.x.x`
-- API names
-- file names
-- screen names
-- message keys
-
-### Rule C5 — Explain first, put codes in parentheses
-
-When a sentence references codes or anchors, write the meaning first, then put the code at the end as trace evidence.
-
-Bad:
-
-> `FOQ-ORGUSER-005 (Q1 High)` is still open: bcrypt cost? argon2id? KMS provider?
-
-Good:
-
-> The password-storage approach is not finalized: the requirement does not say whether to use bcrypt, argon2id, or scrypt, and it does not identify the KMS provider for encrypting audit logs at rest. (Reference: `FOQ-ORGUSER-005` in `FRD §10`; audit question `Q1`, priority High.)
-
-### Rule C6 — Citations support explanation; they do not replace it
-
-Do not write a finding that is only a list of references.
-
-Bad:
-
-> `FRD §6`, `BR-USER-001`, `Q3`
-
-Good:
-
-> The user deactivation behavior is not test-ready because the expected result after disabling an account is not defined. (Reference: `BR-USER-001` in `FRD §6`; audit question `Q3`.)
-
-### Rule C7 — Make table prose cells readable
-
-For table cells that summarize a finding, question, issue, recommendation, or impact, use this pattern:
-
-`clear issue + short business/test impact + (Reference: ...)`
-
-Code-only columns such as `ID`, `Ref`, `Code`, or `Source` may remain code-only. Prose columns must be self-contained.
-
-### Rule C8 — Include a code glossary in full reports
-
-For full audit, scenario, or test-case reports, include a code glossary near the top if the report uses codes or code prefixes.
-
-Only list prefixes that actually appear in the report.
-
-English heading:
-
-```md
-## Reference code glossary
-```
-
-Vietnamese heading:
-
-```md
-## Bảng mã viết tắt
-```
-
-Recommended columns:
-
-| Code / Prefix | Meaning | Defined in |
-|---|---|---|
-| `CRULE-*` | Common rule | `docs/03-modules/common-rules.md` |
-| `BR-*` | Module business rule | module FRD §6 |
-| `R-*` | Project constraint or assumption | FRD §7 |
-| `FR-*` | Functional requirement | requirement/backbone document |
-| `FOQ-*` | Open question needing BA/product decision | FRD §10 |
-| `Q\d+` | Audit question created by QC review | current report |
-| `WCAG x.x.x` | Web accessibility criterion | WCAG standard |
-
-### Rule C9 — Do not use bare ID lists in summaries
-
-Summary, recommendation, conclusion, and testability outlook sections must not use bare ID-only phrasing.
-
-Bad:
-
-> Three High issues must be fixed: `Q1`, `Q2`, `Q13`.
-
-Good:
-
-> Three High issues must be fixed:
->
-> - Password hashing is not finalized (`Q1`)
-> - Cross-UC toast handoff is not documented (`Q2`)
-> - UC and prototype disagree on password clearing after validation error (`Q13`)
-
-### Rule C10 — Explain technical terms on first use
-
-Explain technical or domain terms the first time they appear in a report.
-
-Examples:
-
-- WCAG levels
-- KDF algorithms
-- regex syntax
-- HTML attributes
-- authentication methods
-- authorization models
-- encryption and key-management terms
-- audit logging terms
-
-After the first explanation, the shorter term can be used.
-
-### Rule C11 — Final readability pass
-
-Before finalizing, rewrite sentences that are:
-
-- too abstract
-- too code-heavy
-- too dependent on source context
-- missing business or test impact
-- using a code/citation instead of explanation
-- hard for QC Lead, BA, or Tester to understand
+**R5 — Giữ dấu tiếng Việt.** Tuyệt đối không bỏ dấu / ASCII hoá phần tiếng Việt.
 
 ---
 
-## 3. Vietnamese rules
+## 2. Văn phong tiếng Việt
 
-Apply this section only when the requested output language is **Vietnamese**.
+- Viết như **tài liệu nghiệp vụ cho QC/Tester**, không dịch word-by-word từ tiếng Anh.
+- Dùng từ thường, tránh từ học thuật/cao cấp khi đã có từ tương đương ("tránh dò tìm tài khoản" thay vì "anti-enumeration").
+- Câu ngắn, chủ động.
+- Tránh cụm máy-dịch / mơ hồ: "hiện thực hoá", "luồng downstream", "gắn ngữ cảnh tổ chức", "4x/5x cases", "system error exception".
 
-### Rule VI0 — Preserve Vietnamese diacritics
-All Vietnamese text written in any output file/report/plan... MUST be written in Vietnamese with diacritics. It MUST NOT be removed, standardized, or converted to ASCII.
-- ✅ Correct: `"Đăng nhập hệ thống bằng tài khoản NĐT"`, `"Kiểm tra màn hình khởi tạo"`, `"Truy cập menu Báo cáo định kỳ 6 tháng ĐTRNN"`
-- ❌ Wrong: `"Dang nhap he thong bang tai khoan NDT"`, `"Kiem tra man hinh khoi tao"`, `"Truy cap menu Bao cao dinh ky 6 thang DTRNN"`
+---
 
-### Rule VI1 — Write in Natural Vietnamese
+## 3. Bảng quy đổi thuật ngữ (EN → VI) — dùng ở MỌI output
 
-Write as a business document for BAs/QCs/Testers, not a word-for-word translation from English.
+Khi gặp các từ bên trái trong lúc viết (kể cả khi chúng đến từ tài liệu kỹ thuật tiếng Anh như `design-technical`), viết ra bên phải:
 
-Do not write:
+| Thay vì (EN / jargon) | Viết (VI) |
+|---|---|
+| Loading | đang xử lý |
+| focus / blur | tiêu điểm (con trỏ) / rời ô |
+| submit | gửi / xác nhận |
+| inline error | lỗi tại chỗ (dưới ô) |
+| toast | thông báo nổi |
+| disabled / enabled | vô hiệu / khả dụng |
+| editable / read-only | cho sửa / chỉ đọc |
+| placeholder | gợi ý nhập |
+| per-keystroke | theo từng ký tự |
+| navigate | điều hướng / chuyển sang |
+| highlight | làm nổi / đang chọn |
+| request | yêu cầu (gọi) |
+| browser storage | bộ nhớ trình duyệt |
+| audit log | nhật ký kiểm toán |
+| anti-enumeration | tránh dò tìm tài khoản |
+| empty state / populated state | trạng thái rỗng / trạng thái có dữ liệu |
+| loading state / error state | trạng thái đang tải / trạng thái lỗi |
+| boundary value (BVA) | giá trị biên |
+| equivalence partition (EP) | phân vùng tương đương |
+| happy path / exception flow | luồng thành công / luồng ngoại lệ |
 
-> Hệ thống hiện thực hoá trạng thái người dùng trong ngữ cảnh tổ chức.
+Từ không có trong bảng: ưu tiên từ tiếng Việt thông dụng. Nếu buộc phải giữ một thuật ngữ tiếng Anh **chính thức**, giải thích nghĩa ở lần đầu rồi mới dùng tắt.
 
-Write:
+---
 
-> Hệ thống cần xác định rõ trạng thái tài khoản của người dùng trong từng tổ chức để BA và Tester biết khi nào người dùng được phép đăng nhập, bị chặn, hoặc cần xử lý ngoại lệ.
+## 4. Báo cáo dùng nhiều mã → thêm "Bảng mã viết tắt"
 
-### Rule VI2 — Restrictions on Mixing Vietnamese and English
+Với báo cáo dạng prose (audited, scenario, context, site-map) có dùng mã/tiền tố: thêm mục `## Bảng mã viết tắt` ở đầu (cột: Mã / Tiền tố | Ý nghĩa | Định nghĩa tại). Chỉ liệt kê tiền tố thực sự xuất hiện. Thuật ngữ chuyên ngành (WCAG, KDF, PDPL, RFC 5322...) giải thích ngắn ở lần đầu xuất hiện.
 
-Do not use a mix of Vietnamese and English if the English term is not an official product term.
+> Bảng atomic (test case, RTM row, dashboard row, ui-elements row) KHÔNG bắt buộc glossary — ô đã có vai trò cố định.
 
-Do not write:
+---
 
-> UC này trigger downstream flow để resolve org context.
+## 5. Cổng tự kiểm trước khi lưu (BẮT BUỘC ở mỗi bước viết)
 
-Write:
+Quét lại toàn bộ output và sửa hết TRƯỚC khi ghi file:
 
-> UC này kích hoạt luồng xử lý tiếp theo để xác định tổ chức mà người dùng đang thao tác.
-
-If the English term is an official term, it can be kept as is, but an explanation must be provided the first time.
-
-### Rule VI3 — Avoid Ambiguous Phrases
-
-Do not use ambiguous phrases or phrases that sound like machine translations:
-
-- “UC cổng”
-- “UC xuôi dòng”
-- “hiện thực hoá”
-- “gắn ngữ cảnh tổ chức”
-- “4x/5x cases”
-- “system error exception”
-- “luồng downstream”
-- “context binding”
-- “rule mapping bị hở”
-
-Replace them with clear descriptions of the conditions, system behavior, results, and consequences of the test.
-
-### Regulation VI4 — Explanation of Technical Terms in Vietnamese
-
-Explanation of Technical Terms.
-
-Do not write:
-
-> Q10: chưa chốt WCAG 2.1 AA hay AAA.
-
-Write:
-
-> Mức độ tuân thủ tiêu chuẩn tiếp cận web (WCAG — Web Content Accessibility Guidelines) chưa được chốt: tài liệu chưa nói hệ thống cần đạt mức AA, là mức phổ biến cho phần mềm doanh nghiệp, hay mức AAA, là mức cao hơn và thường có nhiều ràng buộc hơn về tương phản, ngôn ngữ, và điều hướng. (Mã tham chiếu: câu hỏi `Q10`.)
-
-### Rule VI5 — Write the meaning first, then the reference code
-
-Do not begin a sentence with a code unless it is a code-only column.
-Do not use quotations, source code, or links in place of explanations.
-
-Do not write:
-
-> `FOQ-ORGUSER-005 (Q1 High)` còn open: bcrypt cost? argon2id? scrypt? KMS provider?
-
-Write:
-
-> Thuật toán băm mật khẩu khi lưu vào cơ sở dữ liệu chưa được chốt: tài liệu chưa nói dùng bcrypt với cost factor bao nhiêu, argon2id, hay scrypt; nhà cung cấp KMS dùng để mã hoá audit log lúc nghỉ cũng chưa được xác định. (Mã tham chiếu: `FOQ-ORGUSER-005` trong `FRD §10`; câu hỏi audit `Q1`, priority High.)
+- [ ] Còn **mã trần** trong câu cho người đọc? (`SCR-/CRULE-/Q-/EF/BR/AC/R-` hoặc `Vùng X` đứng một mình) → thêm tên thường, đưa mã vào ngoặc.
+- [ ] Còn **từ tiếng Anh** không phải nhãn/message hệ thống? → đổi theo Bảng §3.
+- [ ] Có câu nào **phải mở tài liệu nguồn mới hiểu**? → viết lại cho tự chứa (R1).
+- [ ] Còn câu **tham chiếu chéo** (`như TC_X`, `giống mục trên`) hoặc message **mô tả gián tiếp** thay vì trích nguyên văn? → viết lại đầy đủ (R1).
+- [ ] (Tiếng Việt) còn chỗ **mất dấu / trộn ngữ / văn máy-dịch**? → sửa.
+- [ ] Nhãn & nội dung hệ thống đã đặt trong **ngoặc kép** và giữ **verbatim**?

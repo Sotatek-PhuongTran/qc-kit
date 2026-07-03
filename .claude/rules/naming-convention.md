@@ -26,14 +26,16 @@ trigger: always_on
 
 | Type              | Suffix Value          | Extension | Skill              |
 | :---------------- | :-------------------- | :-------- | :----------------- |
-| Smoke Review      | `smoke`               | `.md`     | qc-uc-smoke               |
 | Audited Req       | `audited`             | `.md  `   | qc-uc-review-report       |
 | Scenario          | `scenarios`           | `.md`     | qc-scenario-design-report |
 | Test Case         | `testcases`           | `.xlsx`   | qc-tc-design-report       |
 | Extracted Req     | `extracted`           | `.md`     | Any agent          |
-| Questions         | `questions`           | `.md`     | qc-qna       |
+| Question backlog  | `question-backlog`    | `.md`     | qc-qna (xem ngoại lệ bên dưới) |
 
 ## Version Control
 - Files use `v[N]` version suffix — they are **immutable** once created.
 - When creating a new version, increment `N` (v1 → v2 → v3).
 - Never delete or overwrite a version.
+
+### Exception — living documents (no date, no version)
+- `question-backlog`: exactly ONE file per UC, fixed name `[UC-ID]_[feature-name]_question-backlog.md`, edited **in-place** by `qc-qna` only. Never add a date segment or `v[N]` suffix; history lives in the file's `Update history` block.

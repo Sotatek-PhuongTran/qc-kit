@@ -1,6 +1,6 @@
 ---
 name: qc-site-map
-description: generates and updates qc-site-map.md and qc-data-map.md for agentic QC workflows. Use when the user asks to initialize or update a screen-first QC site map, build a data-entity-first QC data map, map screens to features, analyze navigation, role access, data/API/integration/state touchpoints, data lifecycle, CRUD permissions, regression impact, or sync site-map feature coverage into qc-dashboard. Reads project-context-master.md as a hard baseline and preserves the top-down chain qc-context-master to qc-site-map/qc-data-map to qc-dashboard-sync. Supports Initialization, Update, and Confirm-Orphans mode for dashboard orphan reconciliation.
+description: Generates and updates qc-site-map.md (screen-first) and qc-data-map.md (data-entity-first). Step 2 of the chain qc-context-master -> qc-site-map -> qc-dashboard-sync; requires project-context-master.md. Trigger when the user asks to build or update the site map / data map, map screens to features, analyze navigation or role access, reconcile dashboard orphans (Mode 3), or runs /qc-site-map.
 ---
 
 # QC Site Map
@@ -140,7 +140,7 @@ Stop if `project-context-master.md` is missing. Continue as Partial if official 
 3. Follow `workflows/workflow-2-build-data-map.md` to build or update the data-entity-first data-map model.
 4. Follow `workflows/workflow-3-commit-handoff-cleanup.md` to render staged outputs, compare semantic changes, commit files safely, write `site-map-handoff.md`, invoke/suggest `qc-dashboard-sync` when appropriate, and clean checkpoints.
 
-Each workflow must write a checkpoint before moving to the next workflow.
+Each workflow must write a checkpoint before moving to the next workflow. Checkpointing: read `.claude/config/checkpoint-protocol.md` (shared rules) + `workflows/checkpoint-protocol.md` (this skill's delta) at skill start.
 
 ### Confirm-Orphans Mode
 

@@ -224,7 +224,7 @@ If `scoring-rubric.md` defines:
 
 ## Checkpoint write — End of Phase 2
 
-Per `workflows/checkpoint-protocol.md` §5:
+Per `.claude/config/checkpoint-protocol.md` §4 (checkpoint write):
 
 1. Verify `02_scoring.md` contains §A (Issue Register), §B (AC Candidate Review), §C (Scoring Table), and final score/verdict. If any section is missing, do not proceed.
 2. Update `progress.md` → `last_phase_done: 2`, `next_phase: 3`, `updated_at: <now>`.

@@ -1,6 +1,6 @@
 ---
 name: qc-context-master
-description: generates and updates compact project-level qc context for agentic qc workflows. Step 1 of the top-down chain qc-context-master -> qc-site-map -> qc-dashboard-sync. Use when the user asks to initialize or update project context, summarize high-level ba documents, or prepare shared project understanding for qc agents. Supports initialization when project-context-master.md does not exist and update when it exists. Produces project-context-master.md only. In Initialization mode auto-invokes qc-site-map after writing. In Update mode suggests the user to run qc-site-map only if changes are detected.
+description: Generates and updates project-context-master.md — the compact project-level context that downstream QC skills read first. Step 1 of the chain qc-context-master -> qc-site-map -> qc-dashboard-sync. Trigger when the user asks to initialize or update project context, summarize high-level BA documents, or runs /qc-context-master.
 ---
 # QC Context Master
 
@@ -88,7 +88,7 @@ Follow these workflow files in order. Each workflow must write its checkpoint be
 7. `workflows/phase-6-sitemap-handoff.md` — Initialization: auto-invoke `qc-site-map`. Update: suggest the user to run `qc-site-map` when output changed.
 8. `workflows/phase-7-handover-cleanup.md` — on success, deletes the entire `process-logging/` folder.
 
-Also read `workflows/checkpoint-protocol.md` at skill start.
+Checkpointing: read `.claude/config/checkpoint-protocol.md` (shared rules) + `workflows/checkpoint-protocol.md` (this skill's delta) at skill start.
 
 ## Required reading before extraction
 

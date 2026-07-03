@@ -15,7 +15,7 @@
 
 ### Status update — Start of Phase 1
 
-Per `workflows/checkpoint-protocol.md` §2 (write-before-work rule):
+Per `.claude/config/checkpoint-protocol.md` §2 (worklog, write-before-work rule):
 
 1. **Worklog**: rewrite last entry → `status = "Running (Phase 1)"`. Append input file names to `input` (excluding `process-logging/`).
 
@@ -78,6 +78,17 @@ Read optional files if present:
 8. If the user requests an unsupported variant value, STOP and ask the user to choose one of: `web-responsive`, `web-static`, `mobile-native`, `mobile-hybrid`, `desktop-native`.
 9. For EACH applicable variant, load `qc-func-tc-design/references/design-technical/<variant>-technical.md` end-to-end. Hold common + variant rubrics in working memory.
 10. Record the resolved variant list and the per-variant scope reason (`UPDATE_EXISTING` or `ADD_VARIANT`) as a working note.
+
+#### 1.3a Load UI Element Vocabulary from the audited report §4 (MANDATORY)
+
+Apply the same element load as `generate-test-cases.md` → Step 1.3 (build `elements_by_screen` from the CURRENT audited report's §4; STOP if a §6-referenced screen has no §4 block; verbs = canonical VI per `.claude/config/action-verbs.md`).
+
+**Element drift detection (UPDATE-ONLY).** Compare the current audited §4 element inventory against the baseline audited version recorded in the baseline TC file's prelude (`Nguồn phần tử UI` block, or legacy `Vocabulary sources` block):
+
+- If the audited version is newer, diff §4 per screen: flag every existing TC that quotes an element whose name/label changed or was removed — treat these flagged TCs as touched by `REQUIREMENT_DELTA` (remap to the new name, or mark for deletion).
+- If the baseline TC file has no element-source block (legacy file), record a `LEGACY_BASELINE` note and re-verify all quoted element names against the current §4 during Step 2.x.
+
+Record the element-source snapshot — it is written into every updated variant's new prelude in Step 4 (per `generate-test-cases.md` Step 4 prelude shape).
 
 #### 1.4 Identify update baseline
 
@@ -311,7 +322,7 @@ Before sending the report to the user:
 
 This is the first checkpoint for the update phase.
 
-Per `workflows/checkpoint-protocol.md` §4:
+Per `.claude/config/checkpoint-protocol.md` §4 (checkpoint write):
 
 1. Write / rewrite `pending_update_report.md` in ONE atomic Write containing the entire report content.
 2. Send the report to the user in chat and explicitly wait for approval or revision feedback.
@@ -406,6 +417,8 @@ Apply all rules in:
 - `.claude/rules/qc-writting-rules.md`
 - Language-matched test case reference: `Testcase-refer-vi.md` or `Testcase-refer-en.md`
 - `common-technical.md`
+- **Cổng tự kiểm `.claude/rules/qc-writting-rules.md` §5** — chạy trước Step 6: không mã trần, tiêu đề có trạng thái, thuật ngữ đổi sang tiếng Việt theo Bảng §3, đối tượng dùng `Element name` trong ngoặc kép.
+- **Cổng tự kiểm test case** (`rules/testcase-instruction-rules.md`): pre-condition mỗi điều kiện một dòng; không tham chiếu TC khác / trích đủ nguyên văn message; không mã trong nội dung TC (chỉ ở RTM); Priority trải đều P1–P5 (ca bàn phím/zoom/refresh/UI tĩnh để P4–P5).
 - Variant-specific technical rubric for V
 
 #### 5.2 Update the Requirement Traceability Matrix
@@ -495,7 +508,7 @@ For a single-variant project the same naming applies (just one variant in the na
 
 ### Checkpoint write — End of Phase 1
 
-Per `workflows/checkpoint-protocol.md` §4.2 (end-of-phase). At this point, two artifacts already exist on disk: the scratch `02_designed_tcs_<V>.md` (Step 5.3) and the final updated deliverable `.md` v[N+1] for variant `<V>` (Step 6). The remaining work is to publish the `## Phase 1 Summary` block to progress.md (so Phase 2 can verify the final md), then update worklog.
+Per `workflows/checkpoint-protocol.md` → "Verified-transition rule" (end-of-phase). At this point, two artifacts already exist on disk: the scratch `02_designed_tcs_<V>.md` (Step 5.3) and the final updated deliverable `.md` v[N+1] for variant `<V>` (Step 6). The remaining work is to publish the `## Phase 1 Summary` block to progress.md (so Phase 2 can verify the final md), then update worklog.
 
 1. **Compute the Phase 1 summary** by counting TCs in the final v[N+1] md (which equals the scratch — both should match exactly at this moment):
    - Total TCs (single integer) + GUI total + FUNC total (each on its own line in the summary, per `SKILL.md` §1 schema).

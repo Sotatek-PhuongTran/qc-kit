@@ -1,117 +1,144 @@
-## Testcase Instruction Rules
+# Testcase Instruction Rules
 
-### Output Language Selection (READ FIRST)
+> **Cách viết (văn phong, chống mã trần, bảng quy đổi thuật ngữ EN→VI, cổng tự kiểm trước khi lưu):** `.claude/rules/qc-writting-rules.md` — đọc BẮT BUỘC trước khi draft.
+> **Mẫu chuẩn ("gold example"):** `references/Testcase-refer-vi.md` (VI) / `references/Testcase-refer-en.md` (EN).
+> File này quy định: chọn ngôn ngữ output, encoding xlsx, layout sheet, và **format từng trường test case** (C1–C5).
 
-The output language of test cases is governed by `rules/global-rules.md`:
-- **Input UC = Vietnamese** → output test cases in **Vietnamese** → follow the **VI** column of every example below and use `references/Testcase-refer-vi.md` as the style reference.
-- **Input UC = English (or any non-Vietnamese language)** → output test cases in **English** → follow the **EN** column of every example below and use `references/Testcase-refer-en.md` as the style reference.
+## 0. Output Language Selection (READ FIRST)
 
-The agent MUST detect the project's working language from the source UC document before applying any rule below, and MUST NOT mix languages within the same output file.
+- **Input UC = Vietnamese** → output **Vietnamese**, dùng `references/Testcase-refer-vi.md` làm mẫu.
+- **Input UC = English (hoặc ngôn ngữ khác)** → output **English**, dùng `references/Testcase-refer-en.md` làm mẫu.
 
---- 
+Phát hiện ngôn ngữ từ UC nguồn TRƯỚC khi áp dụng bất kỳ rule nào. KHÔNG trộn ngôn ngữ trong cùng file.
 
-### Language & Encoding (MANDATORY)
+---
 
-> **Scope note:** 
-- If the output language is Vietnamese: apply rule 1, rule 2 and rule 3.
-- If the output language is English: apply rule 2 and rule 3.
+## Part A — Encoding (MANDATORY)
 
-**Rule 1 — Forbidden transformations.** Do NOT use any of the following on Vietnamese strings before writing to the xlsx:
-- `unicodedata.normalize('NFD', s).encode('ascii', 'ignore').decode()` — strips dấu
-- `unidecode(s)` / `text_unidecode(s)` — strips dấu
-- Manual replacement maps (`'à' → 'a'`, `'Đ' → 'D'`, …)
-- `.encode('latin-1', 'ignore')` / `.encode('cp1252', 'ignore')` — corrupts non-Latin-1 chars
-- Any transliteration library
+> Scope: VI output áp dụng A1+A2+A3; EN output áp dụng A2+A3.
 
-**Rule 2 — Use the shared converter; do NOT write a new script.** xlsx generation is performed by `qc-func-tc-design/scripts/md_to_xlsx.py`, invoked exclusively from `workflows/convert-md-to-xlsx.md` (auto-triggered by the skill — see `SKILL.md` → "Skill Execution Steps"). The agent invokes this script and does NOT write its own openpyxl populator. The script is UTF-8, opens md with `encoding='utf-8'`, writes Unicode literals, and self-verifies before exit. If you must extend the script, preserve these properties — never add `# -*- coding: cp1252 -*-`, never normalize/transliterate.
+**A1 — Forbidden transformations.** KHÔNG dùng trên chuỗi tiếng Việt trước khi ghi xlsx:
+- `unicodedata.normalize('NFD', s).encode('ascii', 'ignore')` — mất dấu
+- `unidecode(s)` / `text_unidecode(s)` — mất dấu
+- Bảng thay thế tay (`'à' → 'a'`, `'Đ' → 'D'`)
+- `.encode('latin-1'/'cp1252', 'ignore')` — hỏng ký tự
+- Bất kỳ thư viện transliterate nào
 
-**Rule 3 — Self-verification before delivery.** After generating the xlsx, open it and spot-check at least 3 rows containing non-ASCII text. If any cell shows: ASCII-only Vietnamese (no dấu, VI projects only), `?` boxes, mojibake (e.g., `Ä\x90`, `Ã©`), or any character that doesn't match the source — STOP, debug the script, regenerate. Do NOT deliver a partially-stripped output.
+**A2 — Dùng converter chung; KHÔNG viết script mới.** xlsx sinh bằng `scripts/md_to_xlsx.py`, gọi từ `workflows/convert-md-to-xlsx.md`. Script là UTF-8, đọc/ghi Unicode, tự verify. Nếu phải mở rộng script, giữ các thuộc tính này — không thêm `# -*- coding: cp1252 -*-`, không normalize/transliterate.
 
-### Sheet Layout & Section Headers (MANDATORY)
+**A3 — Self-verify trước khi giao.** Sau khi sinh xlsx, mở và spot-check ≥3 dòng có ký tự non-ASCII. Nếu thấy: tiếng Việt mất dấu (VI), ô `?`, mojibake (`Ä\x90`, `Ã©`), hay ký tự lệch nguồn → STOP, sửa script, sinh lại.
 
-**Columns** (matches the template `Test cases` sheet, row 1 — pin by column letter; the project uses one fixed template):
+---
 
-`A=ID_TC | B=Test Title/Summary of test cases | C=Pre-conditions | D=Step | E=Expected Result | F=Priority`
+## Part B — Sheet Layout & Section Headers (MANDATORY)
 
-**Within GUI section, sort in this order (4 buckets):**
-1. **Screen Initialization** — initial render, default state, empty / populated state of every object on the screen.
-2. **Item Interactions** — every UI object on the screen: textboxes, dropdowns, buttons, icons, labels — clickability, default state, list values, enabled / disabled, placeholder.
-3. **Common UI cases** — browser / keyboard interactions: F5 / Refresh, Back / Next browser, Tab / Shift+Tab, Enter, Backspace, zoom in / zoom out, message consistency.
-4. **UI elements verify** — visual fidelity vs design: position, color (HEX), spacing, font size, responsive across resolutions.
+**Cột** (khớp template `Test cases` sheet, pin theo chữ cái cột):
+`A=ID_TC | B=Test Title/Summary | C=Pre-conditions | D=Step | E=Expected Result | F=Priority`
 
-**Within FUNC section, sort by logical flow:** Happy path first → validation → error / exception cases.
+**Trong section GUI, sắp theo 4 nhóm:**
+1. **Khởi tạo màn hình** — render ban đầu, trạng thái mặc định, rỗng/có dữ liệu của mọi đối tượng.
+2. **Tương tác từng đối tượng** — mọi đối tượng UI: click được, trạng thái mặc định, list giá trị, khả dụng/vô hiệu, gợi ý nhập.
+3. **Ca UI chung** — trình duyệt/bàn phím: F5/Refresh, Back/Next, Tab/Shift+Tab, Enter, Backspace, zoom, nhất quán message.
+4. **Đối chiếu UI vs thiết kế** — vị trí, màu (HEX), spacing, cỡ chữ, responsive.
 
-**Hierarchy (use Roman numerals I, II, III… — one per screen / sub-UC). Pick the row that matches the output language:**
+**Trong section FUNC, sắp theo luồng logic:** luồng thành công trước → kiểm tra hợp lệ → ca lỗi/ngoại lệ.
 
-| Header level | VI pattern | EN pattern | Where it appears |
-|---|---|---|---|
-| Screen | `<RomanNumeral>. Màn hình: <tên màn hình>` | `<RomanNumeral>. Screen: <screen name>` | One row per screen / sub-UC |
-| GUI section | `<RomanNumeral>.1. Kiểm tra UI/UX của màn hình: <tên màn hình>` | `<RomanNumeral>.1. UI/UX verification — Screen: <screen name>` | Immediately below the screen header |
-| FUNC section | `<RomanNumeral>.2. Kiểm tra FUNC của màn hình: <tên màn hình>` | `<RomanNumeral>.2. Functional verification — Screen: <screen name>` | After all GUI test cases for that screen |
+**Phân cấp (số La Mã I, II, III… — một cho mỗi màn / sub-UC):**
 
-**Header row format:**
-- Header text goes in column **B** (`Test Title/Summary of test cases`).
-- All other columns on the header row stay empty (no TC ID, no Pre-condition, no Step, no Expected Result, no Priority).
-- Header rows are NOT counted as test cases — they do not consume TC ID numbers and they are not subject to Rule 2 (`TC_XXX`).
-- The screen name in the header MUST match the screen name used in Section 4 of the audited UC file. Do NOT paraphrase or translate.
+| Cấp | VI pattern | EN pattern |
+|---|---|---|
+| Màn hình | `<La Mã>. Màn hình: <tên màn>` | `<Roman>. Screen: <screen name>` |
+| Section GUI | `<La Mã>.1. Kiểm tra UI/UX của màn hình: <tên màn>` | `<Roman>.1. UI/UX verification — Screen: <screen name>` |
+| Section FUNC | `<La Mã>.2. Kiểm tra FUNC của màn hình: <tên màn>` | `<Roman>.2. Functional verification — Screen: <screen name>` |
 
-**Example 1 — Single-screen UC:**
+- Header text vào cột **B**; các cột khác trên dòng header để trống. Header KHÔNG tính là test case (không tiêu tốn số `TC_XXX`).
+- Tên màn trong header PHẢI khớp tên màn ở Section 4 của audited; không paraphrase, không dịch.
 
-| VI | EN |
-|---|---|
-| <pre>I. Màn hình: Danh sách báo cáo<br>I.1. Kiểm tra UI/UX của màn hình: Danh sách báo cáo<br>TC_001 \| GUI  \| Kiểm tra màn hình khởi tạo            \| …<br>TC_002 \| GUI  \| Kiểm tra trạng thái mặc định bộ lọc    \| …<br>…<br>I.2. Kiểm tra FUNC của màn hình: Danh sách báo cáo<br>TC_012 \| FUNC \| Kiểm tra hiển thị các kỳ báo cáo      \| …<br>TC_013 \| FUNC \| Kiểm tra trạng thái nộp báo cáo       \| …<br>…</pre> | <pre>I. Screen: Report List<br>I.1. UI/UX verification — Screen: Report List<br>TC_001 \| GUI  \| Verify screen initialization              \| …<br>TC_002 \| GUI  \| Verify default state of filter bar       \| …<br>…<br>I.2. Functional verification — Screen: Report List<br>TC_012 \| FUNC \| Verify display of reporting periods       \| …<br>TC_013 \| FUNC \| Verify report submission state            \| …<br>…</pre> |
+---
 
-**Example 2 — Multi-screen UC (3 screens):**
+## Part C — Format từng trường test case
 
-| VI | EN |
-|---|---|
-| <pre>I. Màn hình: Danh sách báo cáo<br>  I.1. Kiểm tra UI/UX của màn hình: Danh sách báo cáo<br>  …GUI test cases for screen I<br>  I.2. Kiểm tra FUNC của màn hình: Danh sách báo cáo<br>  …FUNC test cases for screen I<br>II. Màn hình: Tạo mới báo cáo<br>  II.1. Kiểm tra UI/UX của màn hình: Tạo mới báo cáo<br>  …GUI test cases for screen II<br>  II.2. Kiểm tra FUNC của màn hình: Tạo mới báo cáo<br>  …FUNC test cases for screen II<br>III. Màn hình: Chi tiết báo cáo<br>  III.1. Kiểm tra UI/UX của màn hình: Chi tiết báo cáo<br>  …GUI test cases for screen III<br>  III.2. Kiểm tra FUNC của màn hình: Chi tiết báo cáo<br>  …FUNC test cases for screen III</pre> | <pre>I. Screen: Report List<br>  I.1. UI/UX verification — Screen: Report List<br>  …GUI test cases for screen I<br>  I.2. Functional verification — Screen: Report List<br>  …FUNC test cases for screen I<br>II. Screen: Create Report<br>  II.1. UI/UX verification — Screen: Create Report<br>  …GUI test cases for screen II<br>  II.2. Functional verification — Screen: Create Report<br>  …FUNC test cases for screen II<br>III. Screen: Report Detail<br>  III.1. UI/UX verification — Screen: Report Detail<br>  …GUI test cases for screen III<br>  III.2. Functional verification — Screen: Report Detail<br>  …FUNC test cases for screen III</pre> |
+> Mọi nội dung tuân theo `.claude/rules/qc-writting-rules.md` (đặc biệt R2 chống mã trần, R3 thuật ngữ, R4 vùng). Tham chiếu mẫu ở `Testcase-refer-*.md`.
 
-### Test Case Writing rules:
+### C1 — Title (tiêu đề)
 
-**Rule 1 - DATA HANDLING CONSTRAINT**
-- Do NOT hardcode specific values such as system paths, account names, or concrete test data into any part of the test case.
-- ALWAYS use the generic name, UI label, or logical placeholder for the information. Do not use the ID, Code.
-- When test data requires clarification, provide a short description or example enclosed in parentheses () immediately following the object name.
+- Bắt đầu bằng **động từ kiểm tra**: `Kiểm tra` / `Đảm bảo` (VI); `Verify` / `Confirm` / `Check` / `Ensure` (EN).
+- **Pattern BẮT BUỘC:** `Động từ kiểm tra + đối tượng/chức năng/luồng + TRẠNG THÁI + ngữ cảnh (nếu có)`.
+- ⚠️ **Phần TRẠNG THÁI gần như luôn bắt buộc** — đây là lỗi rớt thường gặp nhất. Checklist trước khi chốt mỗi tiêu đề:
+  - [ ] Đã nêu trạng thái/điều kiện? (khởi tạo / mặc định / khi để trống / thành công / thất bại khi <điều kiện>)
+  - [ ] Đối tượng gọi bằng **tên người-đọc-hiểu** (Element name), KHÔNG dùng mã màn (`SCR-...`) hay mã vùng (`Vùng A`) trần?
+- Ví dụ:
+  - ✅ `Kiểm tra trạng thái khởi tạo của trang Tạo tài khoản admin khi mở từ Danh sách admin`
+  - ✅ `Kiểm tra tạo admin thất bại khi để trống trường "Email"`
+  - ❌ `Kiểm tra hiển thị Bộ chuyển ngôn ngữ` (thiếu trạng thái)
+  - ❌ `Kiểm tra màn hình khởi tạo: variant patient-first` (dùng mã/khái niệm kỹ thuật thay tên màn)
 
-Examples:
-Correct: Kiểm tra màn hình khởi tạo modal: Gán thiết bị cho bệnh nhân.
-Correct: Enter email into the "Email" textbox (e.g., a valid formatted email).
-Correct: Select a platform from the "Platform" dropdown ("Select platform" placeholder).
-Incorrect: Kiểm tra màn hình khởi tạo modal: variant patient-first.
-Incorrect: Enter "admin123" into the Username field.
-Incorrect: Upload file from "D:\test_data\image.png".
+### C2 — Pre-conditions
 
-**Rule 2 — UI Notation Standard.** The Agent must utilize specific notations to differentiate on-screen components.
+- Thì hiện tại đơn. **MỖI điều kiện một dòng riêng**, phân tách bằng `<br>` trong ô — KHÔNG gộp nhiều điều kiện vào một câu bằng dấu `;`.
+- Pattern mỗi dòng: `Hệ thống/Chủ thể + đang + trạng thái + ngữ cảnh (nếu có)`.
+- Ví dụ (ô có 3 điều kiện):<br>`Trang quên mật khẩu đang mở`<br>`Email khớp một tài khoản đang hoạt động`<br>`Dịch vụ email giả lập trả lỗi (timeout / mất kết nối)`
+- Mỗi dòng là một điều kiện độc lập, kiểm được riêng.
 
-`"Double Quotes"`: Use for interactive components such as Buttons, Menus, Tabs, Icons; or Labels, Placeholders, input values, or selected values from a list.
+### C3 — Test Steps (từ vựng nhất quán — MANDATORY)
 
-| VI example | EN example |
-|---|---|
-| Nhập email vào "Email" textbox | Enter email into the "Email" textbox |
-| "Platform" dropdown, "Select platform" placeholder | "Platform" dropdown, "Select platform" placeholder |
+- Mỗi bước một hành động. Pattern: `Động từ + mô tả dữ liệu (nếu có) + tên đối tượng UI`.
+- **Động từ = canonical VI** trong bảng chuẩn kit `.claude/config/action-verbs.md` (`Nhập`, `Nhấn`, `Chọn`, `Tích`, `Xóa`, `Tải lên`, `Truy cập`, `Kiểm tra hiển thị`, `Di chuột`, `Nhấn phím`, `Rời ô`...). **Alias** (bấm, gõ, điền, ấn) chỉ để nhận diện — KHÔNG được viết ra. Động từ chưa có trong bảng → xử lý theo quy tắc 3 của `action-verbs.md` (đánh dấu + đề xuất bổ sung, không tự do im lặng).
+- **Đối tượng UI = tên phần tử theo bảng kiểm kê §4 của audited report** (Bảng A/B của màn hình tương ứng), đặt trong ngoặc kép; nhãn hiển thị trích **nguyên văn**. Không bịa tên, không paraphrase nhãn audited.
+  - ✅ `Nhập email hợp lệ vào "Trường nhập email"`
+  - ❌ `Bấm vào nút "Gửi"` (động từ lệch chuẩn file + nhãn không có trong audited §4)
+- **Thiếu phần tử trong §4:** nếu bước cần một phần tử không có trong audited §4, skill DỪNG và yêu cầu bổ sung audited report (re-audit `/qc-uc-read`). KHÔNG tự bịa phần tử.
 
-**Rule 3 — Content Logic.**
+### C4 — Expected Result
 
-- The content of all parts MUST NOT contain code or ID; all the UI objects must be referred to by their object names (the names used in the audited documentation), in "Double Quotes".
-- The Test title MUST begin with the verification verb (exp: Verify, Confirm, Check, Ensure that; Kiểm tra, Đảm bảo rằng).
-- The Test title MUST folow this pattern: `Verification verb + test subject name/function name/flow + state + context (if any)` (exp: Kiểm tra màn hình Tạo tài khoản admin khởi tạo khi mở từ Danh sách Admin - Verify the Create Admin screen initialization in case opening from Admin list screen, Kiểm tra nút "Create" - Check "Create" button, Kiểm tra Tạo Admin thành công - Verify that the Admin account is created successfully, Kiểm tra tạo tài khoản admin không thành công trong trường hợp bỏ trống trường email. - Verify Admin account creation fails when Email field is blank.)
-- The Test case ID always strictly adhere to the format `TC_[XXX]` — XXX is an incremental number (3 digits). Example: `TC_001`, `TC_002`.
-- The Pre-conditions MUST be written in present simple, follow this pattern: System/Subject + is/are + State + Context (if any) (exp: Màn hình "Create Admin account" đang mở - The "Create Admin Account" page is displayed, Người dùng đang đăng nhập là Super Admin - User is logged in as a Super Admin, Dữ liệu email "test@admin.com" đã được tạo trong hệ thống và có trạng thái hoạt động - The email "test@admin.com" already exists and actively in the system).
-- The Pre-conditions MUST be a single, one condition per row.
-- The Test steps must be a single, follow this pattern: `Imperative Verb + data describe (if any) + UI subject name` (exp: Đi tới trang Đăng nhập của hệ thống Admin - Navigate to the Login screen of the Admin portal, Nhấn vào nút "Đăng nhập" - Click/Tap on "Login" button, Nhập dữ liệu email hợp lệ (phuong.tran@gmail.com) vào trường "Email" - Enter a valid email (phuong.tran@gmail.com) into "Email" field, Để trống trường "Email" - Leave the "Email" field blank).
-- The Expected result MUST begin with a step number, explicitly describe the changed state of the UI ov
-- The Expected result MUST folow this pattern: 
+- **Bắt đầu bằng số bước** (vd `2. ...`) — ứng với bước tạo ra kết quả.
+- Mô tả **trạng thái thay đổi quan sát được trên UI**:
+  - message hiển thị → trích **đủ nguyên văn** trong ngoặc kép `"..."`;
+  - popup / màn mở hoặc đóng;
+  - trạng thái trường (khả dụng / vô hiệu / gợi ý nhập / cho sửa);
+  - quy tắc hiển thị (thứ tự sắp xếp, màu);
+  - phản ứng hệ thống (cho nhập / chặn nhập / điều hướng).
+- **Pattern:** `<số bước>. <chủ thể> + <trạng thái mới / kết quả quan sát được> (+ "message nguyên văn" nếu có)`.
+- KHÔNG viết chung chung ("hệ thống hoạt động đúng"). KHÔNG viết kết quả từ API hay database — chỉ những gì quan sát được qua giao diện.
+- Mọi tham chiếu đối tượng trong Expected Result cũng dùng `Element name` trong ngoặc kép.
+- **TỰ CHỨA — KHÔNG tham chiếu test case khác.** Tuyệt đối không viết `như TC_033`, `giống TC_X`, `tương tự`, `cùng ... như TC_...`. Mỗi test case phải đọc-hiểu độc lập (chuyển sang test script mỗi TC chạy riêng).
+- **Trích ĐỦ NGUYÊN VĂN message**, không mô tả gián tiếp. Viết hẳn `"Hệ thống đã gửi liên kết đặt lại mật khẩu."` — KHÔNG viết "thông báo thành công" suông, càng KHÔNG viết "thông báo như TC_033".
+- Tránh từ mơ hồ/so sánh: `như`, `giống`, `tương tự`, `cùng ... như`. Nếu hai TC có cùng kết quả, vẫn phải viết lại đầy đủ kết quả đó ở mỗi TC.
 
-**Expected Result (UI Verification):**
-- MUST begin with a step number (e.g., `1. <expected result>`).
-- Do NOT write generic statements.
-- Must explicitly describe the changed state of the UI: messages displayed (with full text), popups/screens opened or closed, field states (enabled / disabled / placeholder), display rules (sort order, color), system reactions (allow / block input).
-- Do not write expected results from the API or database.
+### C5 — Data handling & UI notation
 
-### Test cases example reference (pick by output language):
+- KHÔNG hardcode giá trị cụ thể (đường dẫn, tên tài khoản, dữ liệu thật) vào bất kỳ phần nào. Dùng tên/nhãn logic; cần ví dụ thì ghi trong ngoặc đơn ngay sau tên đối tượng.
+  - ✅ `Nhập một email hợp lệ (vd `user@org.vn`) vào "Trường nhập email"`
+  - ❌ `Nhập "admin123" vào trường Username` · ❌ `Tải file từ "D:\test_data\image.png"`
+- **Ngoặc kép `"..."`** cho: nút, menu, tab, icon, nhãn, gợi ý nhập, giá trị nhập, giá trị đã chọn — và mọi `Element name`.
+- **TUYỆT ĐỐI không có mã trong 5 trường nội dung** (Title, Pre-condition, Step, Expected Result, và giá trị) — kể cả trong ngoặc: `CRULE-`, `AC-`, `BR-`, `R-`, `Q-`, `EF 6x`, `SCR-`, `Vùng X`. **Lý do:** bước chuyển test case sang test script sẽ **vỡ** khi gặp mã. (Đây là điểm KHÁC báo cáo audited: báo cáo cho người đọc được phép để mã trong ngoặc theo `qc-writting-rules.md` R2; test case thì KHÔNG.)
+- Khi audited giải thích hành vi kèm một mã (vd "đối chiếu không phân biệt hoa thường (CRULE-004)"), chỉ viết **hành vi bằng lời** ("đối chiếu email không phân biệt hoa thường"), BỎ mã đi.
+- Mã chỉ được xuất hiện ở **RTM (ma trận truy vết)** và cột truy vết — KHÔNG bao giờ trong nội dung TC.
+- Đối tượng UI luôn gọi bằng tên (`Element name`) trong ngoặc kép.
 
-- **Vietnamese projects** → read `qc-func-tc-design/references/Testcase-refer-vi.md`
-- **English projects** → read `qc-func-tc-design/references/Testcase-refer-en.md`
 
-The agent MUST read **only** the file matching the project's output language and align new/updated TCs to the same structural & writing style (TC ID format, Title phrasing, Pre-condition / Step / Expected Result layout, multi-line bullet style).
+### C6 — Priority (P1–P5)
+
+Gán theo **mức ảnh hưởng nghiệp vụ × tần suất thực tế** — KHÔNG dồn mọi case vào P1/P2. Một bộ TC thực tế phải trải đều các mức.
+
+| Mức | Khi nào | Ví dụ |
+|---|---|---|
+| **P1 — Nghiêm trọng** | Luồng chính & bảo mật; fail là chặn nghiệp vụ | Gửi liên kết đặt lại thành công; lưu mật khẩu thành công; không công nhận kết quả khi ghi nhật ký kiểm toán lỗi; phản hồi trung lập tránh dò tài khoản; vô hiệu liên kết sau khi dùng |
+| **P2 — Cao** | Validation chính, thông báo lỗi nghiệp vụ, trạng thái nút theo điều kiện | Báo lỗi email trống / sai định dạng; nút Gửi vô hiệu khi email chưa hợp lệ; lỗi xác nhận mật khẩu không trùng |
+| **P3 — Trung bình** | Chức năng phụ / hiển thị có ý nghĩa nghiệp vụ | Chuyển ngôn ngữ VN/EN; nội dung email biến thể A |
+| **P4 — Thấp** | Ca hiếm/biên ít xảy ra; hiển thị tĩnh có nội dung | Giá trị biên độ dài hiếm gặp; hiển thị tiêu đề thẻ / dòng hướng dẫn |
+| **P5 — Rất thấp** | Hành vi người dùng hiếm thực hiện và **KHÔNG ảnh hưởng logic** | Thứ tự tiêu điểm Tab / Shift+Tab; phóng to / thu nhỏ (zoom); F5 / refresh; back / next trình duyệt; con trỏ đổi thành pointer khi rê chuột; hiển thị logo / footer tĩnh |
+
+- Nhóm GUI "Ca UI chung" (bàn phím/trình duyệt) và "đối chiếu UI tĩnh" mặc định **P4–P5**, trừ khi tác động trực tiếp nghiệp vụ.
+
+---
+
+## Cổng tự kiểm test case (BẮT BUỘC trước khi ghi md)
+
+Ngoài cổng chung `.claude/rules/qc-writting-rules.md` §5, quét thêm:
+
+- [ ] **Pre-condition:** mỗi điều kiện một dòng (`<br>`), không gộp bằng `;` (C2).
+- [ ] **Không tham chiếu TC khác** (`như/giống/tương tự TC_...`); mỗi message trích **đủ nguyên văn** (C4).
+- [ ] **Không có mã** (`CRULE-/AC-/BR-/R-/Q-/EF/SCR-/Vùng X`) trong Title / Pre-condition / Step / Expected Result — chỉ nằm ở RTM (C5).
+- [ ] **Tiêu đề có TRẠNG THÁI** (C1).
+- [ ] **Priority trải đều**, các ca bàn phím/zoom/refresh/UI tĩnh để **P4–P5** (C6) — không để tất cả P1/P2.

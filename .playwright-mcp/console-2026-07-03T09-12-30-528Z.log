@@ -1,0 +1,6 @@
+[     386ms] [LOG] [SW] Registered, scope: https://app.sota-care.com/ @ https://app.sota-care.com/_next/static/chunks/13835tqaqugyq.js:0
+[     387ms] [WARNING] Error while trying to use the following icon from the Manifest: https://app.sota-care.com/icon-192.png (Resource size is not correct - typo in the Manifest?) @ https://app.sota-care.com/forgot-password:0
+[     399ms] [ERROR] Failed to load resource: the server responded with a status of 404 () @ https://app.sota-care.com/favicon.ico:0
+[  102386ms] [ERROR] Failed to load resource: the server responded with a status of 400 () @ https://api.sota-care.com/api/auth/forgot-password:0
+[  102522ms] [WARNING] Error while trying to use the following icon from the Manifest: https://app.sota-care.com/icon-192.png (Resource size is not correct - typo in the Manifest?) @ https://app.sota-care.com/login:0
+[  102571ms] [VERBOSE] [DOM] Password field is not contained in a form: (More info: https://goo.gl/9p2vKq) %o @ https://app.sota-care.com/login:0

@@ -1,0 +1,5 @@
+[     106ms] [VERBOSE] [DOM] Password field is not contained in a form: (More info: https://goo.gl/9p2vKq) %o @ https://app.sota-care.com/set-password?token=invalid-fake-token:0
+[     106ms] [VERBOSE] [DOM] Password field is not contained in a form: (More info: https://goo.gl/9p2vKq) %o @ https://app.sota-care.com/set-password?token=invalid-fake-token:0
+[     145ms] [LOG] [SW] Registered, scope: https://app.sota-care.com/ @ https://app.sota-care.com/_next/static/chunks/13835tqaqugyq.js:0
+[     150ms] [WARNING] Error while trying to use the following icon from the Manifest: https://app.sota-care.com/icon-192.png (Resource size is not correct - typo in the Manifest?) @ https://app.sota-care.com/set-password?token=invalid-fake-token:0
+[   94445ms] [ERROR] Failed to load resource: the server responded with a status of 400 () @ https://api.sota-care.com/api/auth/reset-password:0

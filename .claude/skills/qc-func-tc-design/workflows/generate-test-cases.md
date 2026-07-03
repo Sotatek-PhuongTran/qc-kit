@@ -10,7 +10,7 @@
 
 ### Status update — Start of Phase 1
 
-Per `workflows/checkpoint-protocol.md` §2 (write-before-work rule):
+Per `.claude/config/checkpoint-protocol.md` §2 (worklog, write-before-work rule):
 
 1. **Worklog**: rewrite last entry → `status = "Running (Phase 1)"`. Append input file names to `input` (excluding `process-logging/`).
 
@@ -28,6 +28,17 @@ Per `workflows/checkpoint-protocol.md` §2 (write-before-work rule):
 3. **If the field is missing or blank → STOP and ask the user to populate it** (this field is mandatory; the rubric drives TC coverage).
 4. For EACH applicable variant, load `qc-func-tc-design/references/design-technical/<variant>-technical.md` end-to-end. Hold all loaded rubrics in working memory.
 5. Record the resolved variant list as a working note.
+
+#### 1.3 Load UI Element Vocabulary from the audited report §4 (MANDATORY)
+
+Test steps refer to UI elements by the names inventoried in the audited report's §4 (`### <SCR-ID>` blocks — Bảng A: Control rows / Nhóm 1; Bảng B: Data display / Notification / Static rows / Nhóm 2-3-4). No external action/element library is required.
+
+1. For every in-scope screen (`### <SCR-ID>` block in audited §4), build:
+   - `elements_by_screen[screen][#] = { element_name, label_verbatim, nhom }`
+   - `element_name` = a short reader-friendly identifier derived from the row (e.g. `nút "Xác nhận"`); `label_verbatim` = the display text copied character-for-character.
+2. **If a screen referenced by the audited §6 flows has NO §4 block** → STOP and tell the user (Vietnamese) that the audited report is missing the UI inventory for that screen; suggest re-running `/qc-uc-read` (re-audit) to complete §4. Do NOT invent elements.
+3. **Verb rule:** step verbs MUST be the canonical VI verbs from the kit-level table `.claude/config/action-verbs.md` (read it once at this step). Aliases are recognition-only — never written. A verb missing from the table → follow `action-verbs.md` rule 3 (mark in the run report + propose adding a row; no silent free verbs).
+4. **Record the element-source snapshot** as a working note: the audited filename + version and the list of in-scope screens. This is printed in the Step 4 prelude (§ `Nguồn phần tử UI`).
 
 ---
 
@@ -51,13 +62,33 @@ They all contribute to the same in-memory TC list **per variant** that gets pers
 Apply all the rules in `qc-func-tc-design/rules/testcase-instruction-rules.md` and `.claude/rules/qc-writting-rules.md`.
 
 - **Test cases example**: read the language-matched reference — `qc-func-tc-design/references/Testcase-refer-vi.md` for Vietnamese test cases, `qc-func-tc-design/references/Testcase-refer-en.md` for English test cases — and align new TCs to the same structural & writing style (TC ID format, Title phrasing, Pre-condition / Step / Expected Result layout, multi-line bullet style).
+- **Cổng tự kiểm (BẮT BUỘC trước khi ghi md):** chạy checklist `.claude/rules/qc-writting-rules.md` §5 — tiêu đề có đủ **TRẠNG THÁI** (testcase-instruction-rules C1); không **mã trần** trong tiêu đề/bước/kết quả (R2); thuật ngữ kỹ thuật đổi sang tiếng Việt theo **Bảng §3**; đối tượng gọi bằng `Element name` trong ngoặc kép. **+ chạy "Cổng tự kiểm test case" trong `rules/testcase-instruction-rules.md`:** pre-condition mỗi điều kiện một dòng; không tham chiếu TC khác / trích đủ nguyên văn message; **không mã** (`CRULE-/AC-/BR-/R-/Q-/EF/SCR-/Vùng X`) trong nội dung TC (chỉ ở RTM); **Priority trải đều P1–P5**, ca bàn phím/zoom/refresh/UI tĩnh để P4–P5.
 
-### Step 3: Build the Requirement Traceability Matrix
+### Step 3: Build the Requirement Traceability Matrix + Vocabulary Coverage Audit
+
+#### 3.1 Requirement Traceability Matrix (RTM)
 
 - Build the `Requirement Traceability Matrix` mapping every Acceptance Criterion of the audited UC to the drafted Test Case IDs.
 - Verify 100% coverage. If any AC has no linked TCs, fix the drafting in Step 2 before proceeding.
 - The RTM will be embedded in the md prelude (Step 4), not in a separate file.
 - **Multi-platform:** Build ONE RTM PER variant. Each variant's RTM lives in its own `.md` file's prelude. Each RTM must independently cover 100% of the audited ACs that are in scope for that variant.
+
+#### 3.2 Interaction Coverage Audit (MANDATORY)
+
+For each variant, using the audited §5 interaction matrix + §6 flows of the in-scope screens:
+
+- Build the expected-interactions set = every distinct user interaction listed in §5 (per screen) plus every step of the §6 workflows.
+- Every expected interaction MUST be exercised by ≥ 1 drafted test step. If any is missing, fix the drafting in Step 2 (add the missing TC or extend an existing one). Do not proceed until coverage is 100%.
+
+#### 3.3 Element Coverage Audit (MANDATORY)
+
+For each variant, using `elements_by_screen` loaded in Step 1.3:
+
+- **Nhóm 1 (Control) rows** — every row MUST be referenced (by `Element name` inside double-quotes) in ≥ 1 GUI **or** FUNC test step / expected result.
+- **Nhóm 2 / 3 (Data display / Notification) rows** — every row MUST appear in ≥ 1 Expected Result (typically a FUNC TC asserting the message/value).
+- **Nhóm 4 (Static) rows** — every row MUST appear in ≥ 1 GUI initialization or UI verification TC's expected result.
+
+If any row is uncovered, fix the drafting in Step 2 before proceeding. Record the audit result (pass/fail per audit + uncovered IDs if any) as a working note for the Step 4 prelude.
 
 ### Step 3.5: Persist Designed TCs to Scratch (MANDATORY — atomic single Write)
 
@@ -96,12 +127,29 @@ For a single-variant project the same naming applies (just one variant in the na
 **Source scenarios (if any):** [scenarios filename + version]
 **Output language:** [VI / EN]
 
+#### Nguồn phần tử UI
+
+**Audited source:** `<UC-ID>_…_audited_…_v<M>.md`
+**Màn hình trong phạm vi (§4):**
+- `<SCR-ID-1>` — <tên màn hình>
+- `<SCR-ID-2>` — <tên màn hình>
+- …
+
 #### Requirement Traceability Matrix
 
 | AC ID | Acceptance Criteria | Linked Test Cases | Status |
 |---|---|---|---|
 | AC-01 | …                   | TC_001, TC_002    | Covered |
 | …     | …                   | …                 | …       |
+
+#### Coverage audit
+
+| Audit | Result | Uncovered items |
+|---|---|---|
+| Interaction coverage (audited §5/§6) | Pass / Fail | — |
+| Element coverage — Nhóm 1 (Control) | Pass / Fail | — |
+| Element coverage — Nhóm 2/3 (Display/Notify) | Pass / Fail | — |
+| Element coverage — Nhóm 4 (Static) | Pass / Fail | — |
 
 ---
 ```
@@ -117,7 +165,7 @@ After the prelude, write all screen / GUI / FUNC sections with their test case t
 
 ### Checkpoint write — End of Phase 1
 
-Per `workflows/checkpoint-protocol.md` §4.2 (end-of-phase). At this point, the following artifacts already exist on disk: ONE scratch file per variant (`02_designed_tcs_<V>.md` from Step 3.5) and that variant's final deliverable `.md` file(s) (from Step 4). The remaining work is to publish ONE consolidated `## Phase 1 Summary` block to progress.md covering ALL variants (so Phase 2 can iterate per variant), then update worklog.
+Per `workflows/checkpoint-protocol.md` → "Verified-transition rule" (end-of-phase). At this point, the following artifacts already exist on disk: ONE scratch file per variant (`02_designed_tcs_<V>.md` from Step 3.5) and that variant's final deliverable `.md` file(s) (from Step 4). The remaining work is to publish ONE consolidated `## Phase 1 Summary` block to progress.md covering ALL variants (so Phase 2 can iterate per variant), then update worklog.
 
 1. **Compute the per-variant Phase 1 summary** by counting TCs in EACH variant's final md (which equals that variant's scratch — both should match exactly at this moment). For each variant V:
    - Total TCs + GUI / FUNC split (3 discrete integers).

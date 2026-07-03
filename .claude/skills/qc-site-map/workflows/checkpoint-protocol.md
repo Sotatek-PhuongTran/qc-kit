@@ -1,73 +1,40 @@
-# Checkpoint Protocol
+# Checkpoint Delta — qc-site-map
 
-Use checkpoints to make long `qc-site-map` runs resumable.
+> Title: Checkpoint Delta qc-site-map | Created: 2026-07-02 | Author: Claude (QC Kit v3 rebuild) | Version: v1
 
-Canonical checkpoint folder:
+Generic checkpoint/resume rules live in `.claude/config/checkpoint-protocol.md`. Read that ONCE at skill start. This file declares only this skill's delta.
 
-```text
-.claude/skills/qc-site-map/process-logging/
-```
+**Scope:** singleton — checkpoints at `.claude/skills/qc-site-map/process-logging/` (flat). This skill checkpoints per **workflow** (not per phase): `progress.md` uses `last_workflow_done` / `next_workflow` instead of phase numbers.
 
-If an old run used `process-logging/qc-site-map/`, read it for resume compatibility, then migrate or continue under the canonical folder.
+## Checkpoint files
 
-This folder is internal scratch space. It is not a user deliverable.
+| File | Owner workflow | Purpose |
+|---|---|---|
+| `progress.md` | all | Resume state (shared format; workflow-keyed). Records `mode: Initialization / Update / Mode3-ConfirmOrphans / Skipped`. |
+| `00_run_control.md` | Workflow 0 | Resolved paths, mode decision, prerequisites, version preflight, source audit. |
+| `01_site_map_model.md` | Workflow 1 | Screen-first site-map model (staged, pre-render). |
+| `02_data_map_model.md` | Workflow 2 | Data-entity-first data-map model (staged, pre-render). |
+| `03_commit_handoff_cleanup.md` | Workflow 3 | Render/commit status, semantic-change comparison, handoff decision. |
+| `mode_3_confirm_orphans.md` | Mode 3 only | Orphan reconciliation decisions. |
 
----
+Every checkpoint must record: run id, mode, workflow name, inputs used, output produced, changed/unmodified state, gaps/conflicts/assumptions, next workflow.
 
-## Required files
+## Resume load table
 
-```text
-.claude/skills/qc-site-map/process-logging/progress.md
-.claude/skills/qc-site-map/process-logging/00_run_control.md
-.claude/skills/qc-site-map/process-logging/01_site_map_model.md
-.claude/skills/qc-site-map/process-logging/02_data_map_model.md
-.claude/skills/qc-site-map/process-logging/03_commit_handoff_cleanup.md
-```
+| Resuming at workflow | Load |
+|---|---|
+| 1 | `00_run_control.md` |
+| 2 | `00_run_control.md`, `01_site_map_model.md` |
+| 3 | `00_run_control.md`, `01_site_map_model.md`, `02_data_map_model.md` |
+| Mode 3 | `mode_3_confirm_orphans.md` (if present) + `.claude/skills/qc-site-map/inbox/dashboard-orphans.md` |
 
-Mode 3 may also write:
+Do not re-prompt mode on resume — preserve the mode recorded by the interrupted run.
 
-```text
-.claude/skills/qc-site-map/process-logging/mode_3_confirm_orphans.md
-```
+## Skill-specific cleanup conditions
 
----
+Cleanup (delete `process-logging/`) only after ALL of:
 
-## Resume rule
-
-At the start of every run:
-
-1. Look for `progress.md` in the canonical checkpoint folder, then in the legacy folder.
-2. If found, read `run_id`, `mode`, `last_workflow_done`, `next_workflow`, and `status`.
-3. Resume from `next_workflow` if checkpoint files are present and consistent.
-4. If checkpoints are inconsistent, report the inconsistency and resume from the last safe workflow.
-5. Do not re-prompt mode on resume. Preserve the mode recorded by the interrupted run.
-
----
-
-## Checkpoint contract
-
-Every checkpoint must include:
-
-- run id or timestamp;
-- mode: Initialization / Update / Mode3-ConfirmOrphans / Skipped;
-- workflow name;
-- inputs used;
-- output produced;
-- changed/unmodified state where relevant;
-- gaps/conflicts/assumptions found;
-- next workflow.
-
-Every workflow must write its checkpoint before moving to the next workflow.
-
----
-
-## Cleanup rule
-
-Do not delete checkpoint folders mid-run.
-
-Cleanup is allowed only after:
-
-- `qc-site-map.md` was written successfully or confirmed unchanged;
-- `qc-data-map.md` was written successfully, confirmed unchanged, or explicitly skipped with a reason;
-- dashboard handoff was written, preserved, or explicitly skipped with a reason;
-- final handover summary was produced.
+- `qc-site-map.md` written successfully or confirmed unchanged;
+- `qc-data-map.md` written, confirmed unchanged, or explicitly skipped with a reason;
+- dashboard handoff written, preserved, or explicitly skipped with a reason;
+- final handover summary produced.

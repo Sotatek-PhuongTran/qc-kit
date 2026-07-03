@@ -19,6 +19,23 @@ For each screen or feature:
 4. Add business rules, role/permission matrix, data matrix, browser/device/OS matrix as needed.
 5. Convert the checklist into concrete test cases with clear preconditions, steps, and expected results.
 
+## Output language & localization (ĐỌC TRƯỚC KHI VIẾT)
+
+File hướng dẫn kỹ thuật này viết bằng tiếng Anh để mô tả KỸ THUẬT thiết kế test. Khi project output **tiếng Việt**, KHÔNG bê nguyên thuật ngữ tiếng Anh vào test case — dịch sang tiếng Việt theo **`.claude/rules/qc-writting-rules.md` §3 (Bảng quy đổi)**. Các từ hay gặp trong file này và cách viết trong output tiếng Việt:
+
+| Trong file này (EN) | Viết trong test case (VI) |
+|---|---|
+| Empty / Populated / Loading / Error state | trạng thái rỗng / có dữ liệu / đang tải / lỗi |
+| Boundary Value Analysis (BVA) | phân tích giá trị biên |
+| Equivalence Partitioning (EP) | phân vùng tương đương |
+| Happy path / Exception handling | luồng thành công / xử lý ngoại lệ |
+| focus / blur / submit / disabled | tiêu điểm / rời ô / gửi / vô hiệu |
+| per-keystroke / inline error / toast | theo từng ký tự / lỗi tại chỗ / thông báo nổi |
+
+Chỉ giữ nguyên tiếng Anh khi đó là **nhãn/nội dung hệ thống** (đặt trong ngoặc kép). Tên kỹ thuật (BVA, EP) có thể ghi trong ngoặc đơn sau cụm tiếng Việt nếu cần truy vết: `giá trị biên (BVA)`.
+
+---
+
 ## Recommended test case fields
 
 | Field | Description |

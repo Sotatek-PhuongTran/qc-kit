@@ -1,6 +1,6 @@
 ---
 name: qc-uc-read
-description: Reviews a use case (UC) document to determine whether it is ready for test design. Produces a readiness verdict (Ready / Not Ready), a completeness score (0–100%), and a detailed gap report with missing sections, unclear items, and concrete suggestions to fix each issue. Use this skill whenever a user say `review uc`, `review requirement`.
+description: Reviews a use case (UC) document set to determine whether it is ready for test design. Produces a readiness verdict (Ready / Conditionally Ready / Not Ready), a completeness score (0–100), and a detailed gap report with concrete fix suggestions. Trigger when the user says "review uc", "review requirement", "/qc-uc-read <UC-ID>", or shares a UC and asks whether it is testable.
 ---
 # Requirements Readiness Review Skill
 
@@ -14,32 +14,24 @@ Read the `path-registry.md` file to find the below file's location:
 - `requirement-common-files` — read first; resolve any code/ID reference (error codes, business rule IDs, common function names) appearing in the UC to its exact text from these files and inline that text into the audit output (see Common Reference Resolution rule in the phase files).
 - `requirement-files`
 - `question-backlog`
-- `.claude/skills/qc-uc-read/references/qc-writting-rules.md`
+- `.claude/rules/qc-writting-rules.md`
 - Important: Check the input directory for existing versions, read the highest version of the files.
 
 ## Output Contract
 
 Read the `path-registry.md` file to find the below file's location:
 
-- `uc-review-report`
-- `question-backlog`
-- Important: Check the output directory for existing versions. If `v[N]` exists, increment the version to `v[N+1]`. Never overwrite existing files.
+- `uc-review-report` — versioned artifact: check the output directory for existing versions; if `v[N]` exists, write `v[N+1]`. Never overwrite an existing version.
+- `question-backlog` — ONE living file per UC with the FIXED name `[UC-ID]_[feature-name]_question-backlog.md` (no date, no version), edited in-place. This skill NEVER writes it directly — every backlog edit is delegated to `qc-qna` (first-audit Phase 3 Step 4; re-audit Step 10).
 
 ## Checkpoint & Resume
 
-This skill writes **per-phase checkpoint files** to `.claude/skills/qc-uc-read/process-logging/<UC-ID>/` so that a context-limit / interruption mid-run does NOT force the user to redo finished work. Read `workflows/checkpoint-protocol.md` ONCE at skill start; it defines:
-
-- `process-logging/<UC-ID>/` directory layout and `progress.md` format
-- Worklog update protocol — defers to `docs/qc-lead/agent-work-log.local/README.md` (write-before-work rule)
-- Resume detection at Phase 0
-- Cleanup at the end of Phase 3
-
-The protocol is referenced by every phase file — do NOT duplicate its rules here.
+Follow `.claude/config/checkpoint-protocol.md` (shared rules: directory layout, `progress.md` format, worklog, resume, cleanup) + `workflows/checkpoint-protocol.md` (this skill's delta: checkpoint file list, resume load table, re-audit single-flow rule). Read both ONCE at skill start — do NOT duplicate their rules anywhere.
 
 ## Shared References
 
 - **Scoring rubric** (10 knowledge areas, max points, auto-cap, auto-fail, thresholds, conflict check, blocked artefact protocol, common gap patterns): `references/scoring-rubric.md`. The rubric is referenced by both first-audit Phase 2 and re-audit Phase 2 — update it ONCE to change scoring rules everywhere.
-- **UC Readiness Review Template:** `templates/UC_readiness_review_template_v3.md`.
+- **UC Readiness Review Template:** `templates/UC_readiness_review_template_v4.md`.
 - **Input file format description:** `references/input-files-format.md`.
 
 ## Workflow
@@ -50,7 +42,7 @@ The protocol is referenced by every phase file — do NOT duplicate its rules he
 
 1. **Identify the UC-ID** from the user's prompt or from the requirement file name. This is treated as the on-disk Folder ID.
 
-2. **Resume detection** (per `workflows/checkpoint-protocol.md` §4):
+2. **Resume detection** (per shared protocol §3):
    - Check `.claude/skills/qc-uc-read/process-logging/<UC-ID>/progress.md`.
    - **Found** → ask the user `Continue from Phase <next>?` or `Restart fresh?`. Branch accordingly. If user picks Continue, prefer the stored mode and skip the Determine mode section, unless they explicitly Restart.
    - **Not found** → fresh run.
@@ -81,7 +73,7 @@ Dispatch to the appropriate workflow folder based on `mode`:
 | ----- | --------------------------------------------------------------- | -------------------------------------------- |
 | 1     | `workflows/re-audit/re-audit.md`                      | Phân tích thông tin mới, câu trả lời, áp dụng thay đổi                  |
 
-Each phase file is self-contained: it includes its own Start status update, work steps, end-of-phase checkpoint write, and hand-off pointer to the next phase. After Phase 3 finishes, cleanup runs per `checkpoint-protocol.md` §5.
+Each phase file is self-contained: it includes its own Start status update, work steps, end-of-phase checkpoint write, and hand-off pointer to the next phase. After Phase 3 finishes, cleanup runs per shared protocol §5.
 
 ## Purpose
 You operate by **YAGNI**, **KISS**, and **DRY**. Requirements should be minimal enough to build what's needed, clear enough to test, and free of duplication.

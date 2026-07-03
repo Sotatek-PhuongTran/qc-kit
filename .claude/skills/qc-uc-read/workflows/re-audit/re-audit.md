@@ -29,17 +29,16 @@
 * Diff or change notes, if available.
 * User feedback about the previous report.
 * `.claude/skills/qc-uc-read/references/scoring-rubric.md`.
-* `.claude/skills/qc-uc-read/templates/UC_readiness_review_template_v3.md`.
-* `.claude/skills/qc-uc-read/references/qc-writting-rules.md`.
+* `.claude/skills/qc-uc-read/templates/UC_readiness_review_template_v4.md`.
+* `.claude/rules/qc-writting-rules.md`.
 
 ---
 
 ## Status update — Start
 
-Per `workflows/checkpoint-protocol.md` §2:
+Per `.claude/config/checkpoint-protocol.md` §2 (worklog):
 
 1. **Worklog**: rewrite last entry → `status = "Running"`. Append input file names (previous audited file + question-backlog) to `input`.
-2. **qc-dashboard.md**: update the UC's `UC review stt` cell → `Running — Phân tích & cập nhật báo cáo` (use input UC's language — see checkpoint-protocol.md §3). Skip if column missing.
 
 ---
 
@@ -303,15 +302,11 @@ Append Section 11 Change log:
 
 ---
 
-## Step 10 — Sync question backlog
+## Step 10 — Sync question backlog (delegate to `qc-qna`)
 
-After writing the new report, sync only Section 10.1 changes:
+After writing the new report, invoke the **`qc-qna`** skill for `<UC-ID>`, passing the NEW audited file path. `qc-qna` is the SOLE writer of the backlog — this skill MUST NOT edit the backlog file itself, and MUST NOT create any new backlog file/version.
 
-* add new open questions;
-* update statuses for existing questions;
-* attach stakeholder answers when available;
-* do not duplicate existing Q-IDs;
-* do not sync from Audit Summary.
+`qc-qna` reconciles the backlog against the new audited Section 10.1 (the canonical source): appends new Open questions, mirrors status updates, attaches stakeholder answers, never duplicates Q-IDs, never syncs from Audit Summary. Wait for its summary and include it in the final report. If `qc-qna` fails, surface a warning on chat — do NOT fall back to editing the backlog directly.
 
 ---
 
@@ -330,7 +325,7 @@ After writing the new report, sync only Section 10.1 changes:
 ---
 ## Final Status Update & Cleanup
 
-Per `workflows/checkpoint-protocol.md` §5 and §6:
+Per `.claude/config/checkpoint-protocol.md` §5 (cleanup) and §6 (failure modes):
 
 1. **Worklog**: rewrite last entry → `status = "Done"`, `end = now`, `duration_min = computed`. Add `uc-review-report v[N+1].md` to `output`. If Step 10 updated the question-backlog, also add it to `output`.
 2. **Cleanup**: delete the entire `.claude/skills/qc-uc-read/process-logging/<UC-ID>/` folder. Cleanup only happens on successful completion.

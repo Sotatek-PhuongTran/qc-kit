@@ -2,7 +2,7 @@
 
 > **Friendly name (for worklog):** `Generating Review Report` (EN) / `Tạo báo cáo review` (VI).
 >
-> **Inputs:** `process-logging/<UC-ID>/01_synthesis.md` + `02_scoring.md` (Phase 1 & 2 outputs) + `UC_readiness_review_template_v3.md`
+> **Inputs:** `process-logging/<UC-ID>/01_synthesis.md` + `02_scoring.md` (Phase 1 & 2 outputs) + `UC_readiness_review_template_v4.md`
 >
 > **Output:** `uc-review-report v[N].md` written to the UC's output folder (resolved via `path-registry.md`). This file IS the final deliverable — no separate `03_*.md` checkpoint.
 
@@ -10,7 +10,7 @@
 
 ## Status update — Start
 
-Per `workflows/checkpoint-protocol.md` §2:
+Per `.claude/config/checkpoint-protocol.md` §2 (worklog):
 
 1. **Worklog**: rewrite last entry → `status = "Running (Phase 3)"`.
 
@@ -24,8 +24,8 @@ Open:
 
 1. `process-logging/<UC-ID>/01_synthesis.md`
 2. `process-logging/<UC-ID>/02_scoring.md`
-3. `.claude/skills/qc-uc-read/templates/UC_readiness_review_template_v3.md`
-4. `.claude/skills/qc-uc-read/references/qc-writting-rules.md`, if available
+3. `.claude/skills/qc-uc-read/templates/UC_readiness_review_template_v4.md`
+4. `.claude/rules/qc-writting-rules.md` — **BẮT BUỘC đọc** (cách viết, bảng quy đổi thuật ngữ EN→VI §3, cổng tự kiểm §5)
 
 Do **not** reload or re-extract raw UC, design, prototype, API, common-rule, or site-map files by default.
 
@@ -33,7 +33,7 @@ Use checkpoint outputs as follows:
 
 | Checkpoint        | Use in Phase 3                                   |
 | ----------------- | ------------------------------------------------ |
-| `01_synthesis.md` | Fill the business understanding content in `UC_readiness_review_template_v3.md`.                                                   |
+| `01_synthesis.md` | Fill the business understanding content in `UC_readiness_review_template_v4.md`.                                                   |
 | `02_scoring.md`   | Fill readiness conclusion, scoring result, Section 10 issues/questions, Audit Summary, blockers, major issues, and recommendation. |
 
 If one of there files are missing, stop and warning user.
@@ -42,7 +42,7 @@ If one of there files are missing, stop and warning user.
 
 ## Step 2: Fill the UC Readiness Review Template
 
-The report is based on the **UC Readiness Review Template** at `.claude/skills/qc-uc-read/templates/UC_readiness_review_template_v3.md`. Open the template file, fill every section based on what was found (or not found) in the provided artefacts.
+The report is based on the **UC Readiness Review Template** at `.claude/skills/qc-uc-read/templates/UC_readiness_review_template_v4.md`. Open the template file, fill every section based on what was found (or not found) in the provided artefacts.
 
 **Section mapping (knowledge area → template section):**
 
@@ -131,6 +131,16 @@ Rules:
 
 ---
 
+## Step 2.9 — Cổng tự kiểm văn phong (BẮT BUỘC)
+
+Trước khi ghi file, chạy cổng tự kiểm `.claude/rules/qc-writting-rules.md` §5 trên TOÀN báo cáo và sửa hết:
+- Không còn **mã trần** trong câu cho người đọc — tên thường trước, mã trong ngoặc (R2: `trang quên mật khẩu (SCR-ORGUSER-002)`, không `SCR-ORGUSER-002`).
+- Mọi **`Vùng X`** đều kèm tên thường (R4: `trạng thái mặc định (Vùng A)`).
+- Không còn **từ tiếng Anh** ngoài nhãn/message hệ thống → đổi theo **Bảng quy đổi §3** (Loading→đang xử lý, inline error→lỗi tại chỗ, audit log→nhật ký kiểm toán...).
+- Câu **tự chứa** (R1) và **giữ dấu** tiếng Việt (R5); nhãn/nội dung hệ thống đặt trong ngoặc kép, verbatim.
+
+---
+
 ## Step 3: Write the Output File
 
 Resolve the output path via `path-registry.md` → `uc-review-report` logical name.
@@ -161,7 +171,7 @@ This auto-trigger is the documented kit flow: first-audit always produces fresh 
 
 ## Final Status Update & Cleanup
 
-Per `workflows/checkpoint-protocol.md` §5 and §6:
+Per `.claude/config/checkpoint-protocol.md` §5 (cleanup) and §6 (failure modes):
 
 1. **Worklog**: rewrite last entry → `status = "Done"`, `end = now`, `duration_min = computed`. Add the output file name to `output`. If `qc-qna` wrote to `question-backlog`, also add it to `output`.
 2. **Cleanup**: delete the entire `.claude/skills/qc-uc-read/process-logging/<UC-ID>/` folder. Cleanup only happens on successful completion.

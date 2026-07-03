@@ -46,6 +46,7 @@ VERSION_SUFFIX_RE = re.compile(r"_v(\d+)\.xlsx$", re.IGNORECASE)
 DRAFT_PART_SUFFIX_RE = re.compile(
     r"_(?:draft|draft_v\d+)?_?part\d+\.md$", re.IGNORECASE
 )
+BASENAME_VERSION_SUFFIX_RE = re.compile(r"_v\d+$", re.IGNORECASE)
 VIET_DIACRITIC_RE = re.compile(
     "[àáâãèéêìíòóôõùúýăđĩũơưạảấầẩẫậắằẳẵặẹẻẽếềểễệỉịọỏốồổỗộớờởỡợụủứừửữựỳỵỷỹ"
     "ÀÁÂÃÈÉÊÌÍÒÓÔÕÙÚÝĂĐĨŨƠƯẠẢẤẦẨẪẬẮẰẲẴẶẸẺẼẾỀỂỄỆỈỊỌỎỐỒỔỖỘỚỜỞỠỢỤỦỨỪỬỮỰỲỴỶỸ]"
@@ -150,6 +151,9 @@ def derive_output_basename(first_md_path: str) -> str:
     base = DRAFT_PART_SUFFIX_RE.sub("", name)
     if base == name:
         base = os.path.splitext(name)[0]
+    # Strip an existing trailing `_v{N}` so the version is not duplicated when
+    # the new `_v{N}.xlsx` suffix is appended downstream.
+    base = BASENAME_VERSION_SUFFIX_RE.sub("", base)
     return base
 
 

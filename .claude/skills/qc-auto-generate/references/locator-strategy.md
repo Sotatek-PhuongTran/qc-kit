@@ -2,7 +2,9 @@
 
 > Title: Auto-generate Locator Strategy | Created: 2026-07-02 | Updated: 2026-07-03 (crawl-findings loop) | Version: v2
 
-Goal: every UI element gets **one stable primary locator** + **at least one alternative of a different type**, written in Playwright syntax so the test-script generator can use them directly.
+**Scope: INTERACTION elements only** (inputs, buttons, links, toggles — things tests act on; mapping-rules §0). Outcome elements (messages, banners, toasts, records) are NOT located this way — they are resolved at runtime by semantic channel detectors (mapping-rules §3.0 + the per-portal channel map); do not crawl locators for them.
+
+Goal: every interaction element gets **one stable primary locator** + **at least one alternative of a different type**, written in Playwright syntax so the test-script generator can use them directly.
 
 ## 1. Preference order (choosing the primary locator)
 

@@ -3,8 +3,8 @@
 // Usage: node scripts/build-test-data.mjs <UC-ID> [--dir <data-dir>]
 // Source of truth = the markdown; this JSON is a build output (do NOT hand-edit).
 // Fails loudly (non-zero exit) on schema violations.
-// v2 (2026-07-03): Preconditions table extended — Seed channel | TCs | Check | Confirmed
-//   (read by qc-auto-run pre-flight). Legacy 3-column rows still build, with a migration warning.
+// v3 (2026-07-04): ONE living data file per UC (<UC-ID>_testdata.md); Preconditions = 6-column schema only
+//   (Key | Required state | Seed channel | TCs | Check | Confirmed — read by qc-auto-run pre-flight); legacy formats no longer accepted.
 
 import fs from 'node:fs';
 import path from 'node:path';
@@ -14,10 +14,9 @@ if (!ucId) { console.error('Usage: node build-test-data.mjs <UC-ID> [--dir <data
 const dirIdx = process.argv.indexOf('--dir');
 const dataDir = dirIdx > -1 ? process.argv[dirIdx + 1] : 'data';  // default: ./data (run from the automation project root)
 
-// locate the highest-version test-data md for the UC
-const files = fs.readdirSync(dataDir).filter(f => new RegExp(`^${ucId}_testdata_.*\\.md$`).test(f)).sort();
-if (!files.length) { console.error(`No test-data md found for ${ucId} in ${dataDir}`); process.exit(2); }
-const mdPath = path.join(dataDir, files[files.length - 1]);
+// locate the test-data md: ONE living file per UC — <UC-ID>_testdata.md (no date/version).
+const mdPath = path.join(dataDir, `${ucId}_testdata.md`);
+if (!fs.existsSync(mdPath)) { console.error(`No test-data md found: ${mdPath} (one living file per UC — run qc-auto-generate first)`); process.exit(2); }
 const md = fs.readFileSync(mdPath, 'utf8');
 
 const errors = [];
@@ -78,8 +77,7 @@ if (cfgRows) for (const [key, value] of cfgRows) {
 }
 
 // --- Preconditions (data-state) ---
-// v2 columns: Key | Required state | Seed channel | TCs | Check (pre-flight) | Confirmed
-// Legacy (v1) columns: Key | Required state | How to seed  → treated as manual, no check (warn).
+// Columns (exactly 6): Key | Required state | Seed channel | TCs | Check (pre-flight) | Confirmed
 const preconditions = {};
 const CHANNEL_RE = /^(ui:.+|api:.+|db:.+|manual)$/;
 const preRows = tableUnder('Preconditions');
@@ -87,27 +85,22 @@ if (preRows) for (const cells of preRows) {
   const key = cells[0];
   if (!key || key === '—') continue;
   if (preconditions[key]) { fail(`Duplicate precondition key: ${key}`); continue; }
-  if (cells.length >= 6) {
-    const [, state, channel, tcsCell, checkCell, confirmedCell] = cells;
-    if (!state || state === '—') fail(`Precondition "${key}": empty "Required state".`);
-    if (!CHANNEL_RE.test(channel || '')) fail(`Precondition "${key}": "Seed channel" must be ui:<ref> | api:<ref> | db:<ref> | manual (got "${channel || ''}").`);
-    const tcs = (tcsCell || '').split(/[,\s]+/).filter(Boolean);
-    if (!tcs.length || tcs.some(t => !/^TC_\w+/.test(t))) fail(`Precondition "${key}": "TCs" must be a non-empty list of TC_* ids (got "${tcsCell || ''}").`);
-    const check = (checkCell && checkCell !== '—') ? checkCell : 'none';
-    let confirmed = (confirmedCell && confirmedCell !== '—') ? confirmedCell : '';
-    if (confirmed && !/^yes\b/i.test(confirmed)) {
-      console.warn(`⚠ Precondition "${key}": Confirmed must start with "yes — <YYYY-MM-DD> — <name>" — value "${confirmed}" is treated as NOT confirmed.`);
-      confirmed = '';
-    }
-    if (channel === 'manual' && check === 'none' && !confirmed) {
-      console.warn(`⚠ Precondition "${key}" is manual with no pre-flight check and not confirmed — qc-auto-run will ask before running its TCs (${tcs.join(', ')}).`);
-    }
-    preconditions[key] = { state, channel, tcs, check, confirmed };
-  } else {
-    const [, state, seed] = cells;
-    console.warn(`⚠ Precondition "${key}" uses the legacy 3-column format — migrate to v2 (Seed channel | TCs | Check | Confirmed). Treated as manual, no check, no dependent-TC list (qc-auto-run cannot Block precisely).`);
-    preconditions[key] = { state: state || '', channel: 'manual', tcs: [], check: 'none', confirmed: '', legacySeed: seed || '' };
+  if (cells.length < 6) { fail(`Precondition "${key}": expected 6 columns (Key | Required state | Seed channel | TCs | Check | Confirmed) — got ${cells.length}.`); continue; }
+  const [, state, channel, tcsCell, checkCell, confirmedCell] = cells;
+  if (!state || state === '—') fail(`Precondition "${key}": empty "Required state".`);
+  if (!CHANNEL_RE.test(channel || '')) fail(`Precondition "${key}": "Seed channel" must be ui:<ref> | api:<ref> | db:<ref> | manual (got "${channel || ''}").`);
+  const tcs = (tcsCell || '').split(/[,\s]+/).filter(Boolean);
+  if (!tcs.length || tcs.some(t => !/^TC_\w+/.test(t))) fail(`Precondition "${key}": "TCs" must be a non-empty list of TC_* ids (got "${tcsCell || ''}").`);
+  const check = (checkCell && checkCell !== '—') ? checkCell : 'none';
+  let confirmed = (confirmedCell && confirmedCell !== '—') ? confirmedCell : '';
+  if (confirmed && !/^yes\b/i.test(confirmed)) {
+    console.warn(`⚠ Precondition "${key}": Confirmed must start with "yes — <YYYY-MM-DD> — <name>" — value "${confirmed}" is treated as NOT confirmed.`);
+    confirmed = '';
   }
+  if (channel === 'manual' && check === 'none' && !confirmed) {
+    console.warn(`⚠ Precondition "${key}" is manual with no pre-flight check and not confirmed — qc-auto-run will ask before running its TCs (${tcs.join(', ')}).`);
+  }
+  preconditions[key] = { state, channel, tcs, check, confirmed };
 }
 
 if (errors.length) {

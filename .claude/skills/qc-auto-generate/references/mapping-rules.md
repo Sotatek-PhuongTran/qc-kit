@@ -6,10 +6,11 @@ Input test cases use canonical action verbs (per the kit-level table `.claude/co
 
 ## 0. Page object (FULL-page crawl from audited §4) — ONE crawl per page, cached
 
-One page object per page: `portals/<portal>/pages/<page>.page.ts`. The page object represents the **whole page**, not one test's subset.
+One page object per page: `portals/<portal>/pages/<page>.page.ts`. The page object represents the page's **entire interaction inventory**, not one test's subset (outcome elements are NOT part of it — see §3.0).
 
 - Class extends `BasePage` (holds `page`, `goto(route)`).
-- **Element inventory = ALL elements of the page listed in audited §4** — not just the ones the current TCs touch. One live-crawl session resolves the full inventory (driving the UI to each reachable state per `locator-strategy.md` §5), so later UCs touching the same page REUSE the page object with no re-crawl. Each element → a **locator getter** named from the element name (lowerCamelCase, deburred): `"Trường nhập email"` → `emailInput()`.
+- **Element inventory = the page's INTERACTION elements from audited §4** (inputs, buttons, links, toggles, menus — things the tests act on) plus structural containers needed for aria snapshots. **Outcome elements (messages, banners, toasts, new records) are NOT crawled** — they are resolved at runtime by semantic channel detectors (§3.0); a page object may expose convenience getters for them, but implemented via `expect-outcome` detectors, never via crawled locators. One live-crawl session resolves the full interaction inventory (driving the UI to each reachable state per `locator-strategy.md` §5), so later UCs touching the same page REUSE the page object with no re-crawl. Each element → a **locator getter** named from the element name (lowerCamelCase, deburred): `"Trường nhập email"` → `emailInput()`.
+- **Verification stamp per getter**: a locator resolved on the live UI is stamped `// verified: <date> <env>`; generated WITHOUT a DOM channel → `// PROVISIONAL — chưa xác minh trên UI thật`. Run failures on PROVISIONAL locators are locator debt (re-crawl), not app defects — `qc-auto-run` reports them accordingly.
 - The actual locator is resolved by **live crawl** of the page (`references/dom-channels.md` for channel choice, `references/locator-strategy.md` for preference order + stability tiers). Keep one alternative locator as a `//` comment; low-stability locators get `// TODO: low-stability — consider data-testid`.
 - Add a few **action methods** for the page's common interactions (from recurring step patterns): `async requestReset(email) { await this.emailInput().fill(email); await this.submitButton().click(); }`.
 - **Header stamp:** `// source: audited <filename v<N>> §4 | crawled: <date> <env URL>` — used for staleness.
@@ -40,13 +41,31 @@ When the same multi-step sequence appears across TCs/screens (login as role X, r
 
 Every assertion checks a **positive observable outcome**, never mere absence. Messages stay **verbatim**. By case type:
 
+### 3.0 Resolving expected elements — semantic CHANNEL DETECTORS, never pre-crawled locators
+
+Expected results in a TC are written semantically ("lỗi tại chỗ X dưới ô Email", "chú thích cảnh báo nội dung Y", "bản ghi Z xuất hiện") — the tester does not care which div renders them. So outcome elements are located at RUN TIME by **type/channel**, then their CONTENT is compared verbatim:
+
+| Channel | Detector semantics | Runtime source |
+|---|---|---|
+| `inline` | message element within the SAME field group as the anchor input (relational — computed at runtime, e.g. alert nearest to `emailInput()`) | `helpers/expect-outcome.ts` + `portals/<portal>/notification-channels.ts` |
+| `banner` | page/card-level alert region | same |
+| `toast` | transient notification area (aria-live/status or the project's toast idiom); supports auto-hide assertions | same |
+| `dialog` | modal/dialog container | same |
+| `list-row` / `detail-field` | data verification by IDENTITY (§3.2) | same |
+
+Rules:
+- **Specificity follows the TC** (project decision 2026-07-04): the TC names a position/channel/behavior ("dưới ô Email", "đầu form", "góc trên bên phải", "tự đóng sau 4 giây") → the detector MUST enforce that channel + anchor (+ behavior). The TC is silent about position → a loose content match (`getByText(<verbatim>)` visible) is acceptable.
+- The **channel map** (`portals/<portal>/notification-channels.ts`) holds the project's DOM idiom per channel (e.g. inline = `.field [role="alert"]`, banner = `.preauth-card-banner [role="alert"]`). It is learned ONCE per portal during the crawl's state tour (drive a validation error + an auth/server error where safely possible), is QC-editable, and is the only notification "locator" ever maintained — fix one line, every spec benefits. Un-learnable channels (state not reachable at crawl) → `crawl-findings` loop.
+- Multiple messages visible at once (banner + inline) are disambiguated by channel + anchor, never by guessing containers.
+- Detection is TYPE-first, content-second: find the channel's element, `getText`, compare verbatim — so a wrong message text fails on the TEXT assertion (a real finding), not on element lookup.
+
 ### 3.1 Validation / negative case — assert BOTH sides
-1. **Error shown:** `await expect(p.emailInvalidError()).toHaveText('Email không hợp lệ.')`.
+1. **Error shown:** `await expect(p.emailInvalidError()).toHaveText('Email không hợp lệ.')` — `emailInvalidError()` is a detector-backed convenience getter (§3.0 inline channel anchored to the email input), not a crawled locator.
 2. **Function NOT performed (guard the side-effect):** still on the same page (`toHaveURL(/forgot-password/)`), **no** success toast (`toHaveCount(0)`), field value preserved, no error/exception page. Catches "hiện msg nhưng vẫn submit / API lỗi mà function vẫn chạy".
 
 ### 3.2 Function-success case — assert BOTH
-1. **Success UI signals:** message and/or screen transition.
-2. **Post-condition:** verify the real effect — prefer a black-box UI re-check (đăng nhập bằng mật khẩu mới; bản ghi xuất hiện ở màn danh sách); when UI cannot show it, declare an explicit API-based verification step.
+1. **Success UI signals:** message and/or screen transition (message via §3.0 detectors).
+2. **Post-condition — verify the real effect by DATA IDENTITY:** prefer a black-box UI re-check keyed on the record's unique identifier from test data (đăng nhập bằng mật khẩu mới; tìm bản ghi theo id/tên duy nhất trên màn danh sách — qua ô tìm kiếm hoặc quét dòng bảng chứa định danh — rồi mở trang chi tiết và so từng trường với dữ liệu đã nhập: `expectRecord(identity, {fields})`). When the UI cannot show it, declare an explicit API-based verification step.
 
 ### 3.3 Display / init case
 Assert each expected element is visible **with its content** (`toHaveText`/`toContainText`), plus an aria snapshot (§3.4).

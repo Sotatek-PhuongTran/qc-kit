@@ -29,7 +29,6 @@ Run the automation tests and record results. Project root: `docs/qc/automation/`
    - **Has a `check`** (`api:` / `db:` / `ui:`) → execute it read-only against the configured environment (base URL + auth from project-config / `.env`; DB connection from `.env`). Check passes → precondition satisfied. Check fails → precondition MISSING.
    - **`manual` with `check = none`** → `confirmed` filled (`yes — <date> — <name>`) → treat as satisfied; empty → ASK the user (Vietnamese): "Precondition `<key>` — `<required state>` — đã được tạo trên môi trường `<env>` chưa?". Yes → proceed for this run and remind the QC to write `Confirmed` into the data md (this skill NEVER edits data files); No / unattended run → precondition MISSING.
    - **MISSING** → its dependent TCs (the row's `TCs` list) are **Blocked**: exclude them from the run scope (e.g. `--grep-invert "TC_059|TC_060"`), record `Blocked — thiếu precondition <key>` for each. The REST of the suite still runs — never abort the whole run for a missing precondition.
-   - **Empty `TCs` list** (legacy data md format): the row cannot be blocked precisely — WARN the user (Vietnamese) that the missing state puts the WHOLE UC's results at risk, ask whether to proceed, and recommend migrating the data md to the v2 Preconditions schema.
    - Automated seed channels (`ui:`/`api:`/`db:`) are executed by the suite's own setup fixtures during the run — the pre-flight only verifies declared checks, it never seeds.
 
 7. **Run** (scope per the user's ask; default = the named UC, minus Blocked TCs). Inject the resolved URLs as process env vars — `playwright.config.ts` maps them onto per-portal `projects`; specs keep relative routes: `BASE_URL_ORG=<org url> BASE_URL_ADMIN=<admin url> npx playwright test ...`
@@ -48,8 +47,9 @@ Run the automation tests and record results. Project root: `docs/qc/automation/`
 
 ## Failure guidance
 
-- Locator failures on the real UI → suggest `/qc-auto-generate <UC-ID>` (Update mode re-crawls the affected page objects), then re-run.
-- Data validation failures → the QC edits `data/<UC-ID>_testdata_*.md`, then re-run.
+- Locator failures on the real UI → check the getter's stamp in the page object first: **PROVISIONAL** (generated without a DOM channel) → this is locator debt, NOT an app defect — suggest `/qc-auto-generate <UC-ID>` (Update mode re-crawls), then re-run. **verified** → treat as UI drift or a real defect.
+- Message/notification lookup failures → check the portal's channel map (`portals/<portal>/notification-channels.ts`) idiom before touching any spec — one line there fixes every spec using that channel.
+- Data validation failures → the QC edits `data/<UC-ID>_testdata.md`, then re-run.
 - Blocked — thiếu precondition → the QC creates the state described in the data md `Required state` cell (and writes `Confirmed` for manual rows without a check), then re-runs; only the Blocked TCs need re-running.
 
 ## Boundaries

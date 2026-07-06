@@ -19,7 +19,7 @@ type Fixture = {
   config: Record<string, string>;
   accounts: Record<string, { role: string }>;
   variables: Record<string, Record<string, string>>;
-  preconditions: Record<string, { state: string; seed: string }>;
+  preconditions: Record<string, { state: string; channel: string; tcs: string[]; check: string; confirmed: string }>;
 };
 
 // Parse the body rows (cells) of a markdown table under "## <heading>".

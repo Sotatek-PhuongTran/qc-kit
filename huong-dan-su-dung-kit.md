@@ -1,3 +1,10 @@
+# Hướng dẫn nâng version QC Kit
+
+Để nâng version cho QC-kit, công việc cần làm chỉ đơn giản là thay thế folder .claude và bổ sung thêm folder .playwright-mcp. Giữ nguyên các file tài liệu trong docs, về mặt context đã có các file chạy trước đó ở folderl docs/qc-lead nên không cần chạy tổng hợp lại context.
+Trước khi thực hiện, hãy copy cả dự án ra để back-up, sau đó xóa .claude đang có và copy folder .claude và .playwright-mcp từ QC-kit-v3 vào.
+Các skills đã có ở v1, v2 chỉ được tinh gọn và cải tiến ở v3, không thay đổi về cấu trúc hay input, output. Các skills mới liên quan tới automation sẽ được hướng dẫn ở mục chi tiết bên dưới.
+
+
 # Hướng dẫn sử dụng QC Kit v3 — cho người mới
 
 > Tài liệu: Hướng dẫn sử dụng QC Kit v3 | Ngày tạo: 2026-07-03 | Tác giả: Claude (theo yêu cầu của Chris) | Phiên bản: v3

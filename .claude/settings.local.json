@@ -7,7 +7,8 @@
       "Bash(npx playwright *)",
       "Bash(ls /Users/sotatek/Library/Caches/ms-playwright/ 2>/dev/null | head -20)",
       "Read(//Users/sotatek/Library/Caches/ms-playwright/**)",
-      "Bash(npm -v)"
+      "Bash(npm -v)",
+      "Bash(rm /Users/sotatek/Desktop/sotacare/docs/qc/uc-read/UC-DEVICE-001/UC-DEVICE-001_gan-thiet-bi-cho-benh-nhan_audited_20260603_v1.md /Users/sotatek/Desktop/sotacare/docs/qc/uc-read/UC-ORGUSER-001/UC-ORGUSER-001_dang-nhap-org-portal_audited_20260602_v1.md /Users/sotatek/Desktop/sotacare/docs/qc/uc-read/UC-ORGUSER-001/UC-ORGUSER-001_dang-nhap-org-portal_audited_20260602_v2.md /Users/sotatek/Desktop/sotacare/docs/qc/uc-read/UC-ORGUSER-003/UC-ORGUSER-003_doi-mat-khau_audited_20260603_v1.md /Users/sotatek/Desktop/sotacare/docs/qc/uc-read/UC-ORGUSER-003/UC-ORGUSER-003_doi-mat-khau_audited_20260619_v2.md /Users/sotatek/Desktop/sotacare/docs/qc/uc-read/UC-ORGUSER-004/UC-ORGUSER-004_cap-nhat-profile-ca-nhan_audited_20260603_v1.md /Users/sotatek/Desktop/sotacare/docs/qc/uc-read/UC-ORGUSER-004/UC-ORGUSER-004_cap-nhat-profile-ca-nhan_audited_20260619_v2.md /Users/sotatek/Desktop/sotacare/docs/qc/uc-read/UC-ORGUSER-005/UC-ORGUSER-005_org-portal-logout_audited_20260610_v1.md /Users/sotatek/Desktop/sotacare/docs/qc/uc-read/UC-PATIENT-001/UC-PATIENT-001_tao-ho-so-benh-nhan_audited_20260603_v1.md /Users/sotatek/Desktop/sotacare/docs/qc/uc-read/UC-PATIENT-001/UC-PATIENT-001_tao-ho-so-benh-nhan_audited_20260603_v2.md /Users/sotatek/Desktop/sotacare/docs/qc/uc-read/UC-PATIENT-002/UC-PATIENT-002_xem-danh-sach-benh-nhan_audited_20260603_v1.md /Users/sotatek/Desktop/sotacare/docs/qc/uc-read/UC-PATIENT-003/UC-PATIENT-003_xem-chi-tiet-benh-nhan_audited_20260603_v1.md /Users/sotatek/Desktop/sotacare/docs/qc/uc-read/UC-PATIENT-004/UC-PATIENT-004_cap-nhat-ho-so-benh-nhan_audited_20260603_v1.md)"
     ],
     "additionalDirectories": [
       "/Users/sotatek/Desktop/qc-kit-v3/.claude/skills/qc-uc-read/process-logging",

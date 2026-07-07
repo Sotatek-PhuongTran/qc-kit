@@ -16,7 +16,7 @@
 
 ## Phase 1 — Scaffold the automation project (first run only)
 
-If `docs/qc/automation/` lacks the base infra, scaffold from `../templates/` + `../scripts/` + `../helpers/`:
+If `docs/qc/automation/runner/` lacks the base infra, scaffold it there (code root — see SKILL.md Output Contract; `data/`, `triage/`, `crawl-findings/` stay at the automation root) from `../templates/` + `../scripts/` + `../helpers/`:
 
 ```
 playwright.config.ts        (from template; per-portal projects; BASE_URL_<PORTAL> injected by qc-auto-run; json+junit reporters)

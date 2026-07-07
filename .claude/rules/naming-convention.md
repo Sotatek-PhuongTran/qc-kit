@@ -31,6 +31,8 @@ trigger: always_on
 | Test Case         | `testcases`           | `.xlsx`   | qc-tc-design-report       |
 | Extracted Req     | `extracted`           | `.md`     | Any agent          |
 | Question backlog  | `question-backlog`    | `.md`     | qc-qna (xem ngoại lệ bên dưới) |
+| Execution results | `test-results`        | `.md`     | qc-execute-test-report (xem ngoại lệ bên dưới) |
+| Bug report        | `bug-report`          | `.md`     | qc-execute-test-report (xem ngoại lệ bên dưới) |
 
 ## Version Control
 - Files use `v[N]` version suffix — they are **immutable** once created.
@@ -39,3 +41,5 @@ trigger: always_on
 
 ### Exception — living documents (no date, no version)
 - `question-backlog`: exactly ONE file per UC, fixed name `[UC-ID]_[feature-name]_question-backlog.md`, edited **in-place** by `qc-qna` only. Never add a date segment or `v[N]` suffix; history lives in the file's `Update history` block.
+- `test-results` (execution report): exactly ONE file per UC, fixed name `[UC-ID]_[feature-name]_test-results.md`, edited **in-place** by `qc-execute-test-report` / `qc-bug-verify` (QC hand-fills manual-TC cells). Never add a date segment or `v[N]` suffix; history lives in the per-run columns.
+- `bug-report`: exactly ONE file per UC, fixed name `[UC-ID]_[feature-name]_bug-report.md`, edited **in-place**. The user/dev updates ONLY the "Trạng thái" column; history lives in each bug's "Lịch sử" table.

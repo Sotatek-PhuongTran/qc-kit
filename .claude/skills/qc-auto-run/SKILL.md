@@ -5,11 +5,11 @@ description: Runs the Playwright automation suite (by UC, screen, tag, or test c
 
 # Skill: qc-auto-run
 
-Run the automation tests and record results. Project root: `docs/qc/automation/` (resolve via `path-registry.md` if different). Run all commands from that root. This skill ONLY runs tests and reports — it never generates or edits scripts (that is `qc-auto-generate`).
+Run the automation tests and record results. Automation root: `docs/qc/automation/` (user-facing folders); code + raw run output live under the runner root `docs/qc/automation/runner/` (resolve via `path-registry.md` if different). Run ALL npm/npx commands from the runner root. This skill ONLY runs tests and reports — it never generates or edits scripts (that is `qc-auto-generate`).
 
 ## Steps
 
-1. **Go to the project root:** `cd docs/qc/automation`.
+1. **Go to the runner root:** `cd docs/qc/automation/runner`.
 
 2. **Node check:** `node -v`. Missing → tell the user (Vietnamese) to install Node.js ≥ 18, then stop.
 
@@ -25,7 +25,7 @@ Run the automation tests and record results. Project root: `docs/qc/automation/`
 
 5. **Build test data:** `npm run build:testdata -- <UC-ID>`. Validation failure → show the exact error and stop.
 
-6. **Precondition pre-flight (MANDATORY before running):** read `preconditions` from `data/<UC-ID>_testdata.json` (schema: qc-auto-generate `references/data-and-secrets.md`). For each row:
+6. **Precondition pre-flight (MANDATORY before running):** read `preconditions` from `../data/<UC-ID>_testdata.json` (data lives at the automation root) (schema: qc-auto-generate `references/data-and-secrets.md`). For each row:
    - **Has a `check`** (`api:` / `db:` / `ui:`) → execute it read-only against the configured environment (base URL + auth from project-config / `.env`; DB connection from `.env`). Check passes → precondition satisfied. Check fails → precondition MISSING.
    - **`manual` with `check = none`** → `confirmed` filled (`yes — <date> — <name>`) → treat as satisfied; empty → ASK the user (Vietnamese): "Precondition `<key>` — `<required state>` — đã được tạo trên môi trường `<env>` chưa?". Yes → proceed for this run and remind the QC to write `Confirmed` into the data md (this skill NEVER edits data files); No / unattended run → precondition MISSING.
    - **MISSING** → its dependent TCs (the row's `TCs` list) are **Blocked**: exclude them from the run scope (e.g. `--grep-invert "TC_059|TC_060"`), record `Blocked — thiếu precondition <key>` for each. The REST of the suite still runs — never abort the whole run for a missing precondition.
@@ -39,9 +39,9 @@ Run the automation tests and record results. Project root: `docs/qc/automation/`
    - One test case: `npx playwright test --grep "<TC-ID>"` (if that TC is Blocked → report the missing precondition instead of running)
    - Watch: `--headed`; interactive: `--ui`.
 
-8. **Write the run summary** — `reports/summary-latest.md` (overwrite in-place; this file is the versioning exception — history lives in `reports/history/summary_<YYYYMMDD-HHmm>.md`, copied before overwrite). Build it from `test-results/results.json` (titles carry TC IDs) using `templates/run-summary.template.md`. Blocked TCs are listed with their missing precondition — they count in Total but NOT in Pass and NOT as Failed. This file is the source of the dashboard `Execute stt` column (read by `qc-dashboard-sync`).
+8. **Write the run summary** — `../reports/summary-latest.md` at the automation root (overwrite in-place; this file is the versioning exception — history lives in `../reports/history/summary_<YYYYMMDD-HHmm>.md`, copied before overwrite). Trace/result links inside the summary use the `runner/test-results/...` prefix (relative to the automation root). Build it from `test-results/results.json` (titles carry TC IDs) using `templates/run-summary.template.md`. Blocked TCs are listed with their missing precondition — they count in Total but NOT in Pass and NOT as Failed. This file is the source of the dashboard `Execute stt` column (read by `qc-dashboard-sync`).
 
-9. **Report on chat (Vietnamese):** pass/fail/blocked totals per UC; failed TC IDs with one-line reasons; **Blocked TC IDs with the exact missing precondition and how to create it** (from the data md `Required state` cell); point to `test-results/results.json` / `results.xml` and `npx playwright show-trace <trace.zip>` for failure replay.
+9. **Report on chat (Vietnamese):** pass/fail/blocked totals per UC; failed TC IDs with one-line reasons; **Blocked TC IDs with the exact missing precondition and how to create it** (from the data md `Required state` cell); point to `runner/test-results/results.json` / `results.xml` and `npx playwright show-trace <trace.zip>` for failure replay. End by suggesting the next step: `/qc-execute-test-report <UC-ID>` to record official per-TC results and report bugs (that skill has its own crawl-findings gate — this skill stays free to run anytime).
 
 10. **Worklog** per `docs/qc-lead/agent-work-log.local/README.md` (single-phase run: start entry → terminal `Done`/`Stopped`).
 

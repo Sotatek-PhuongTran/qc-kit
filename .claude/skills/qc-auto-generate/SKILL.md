@@ -24,20 +24,26 @@ Resolve via `path-registry.md`:
 
 ## Output Contract (project layout at `docs/qc/automation/`)
 
+Two roots. The **automation root** (`docs/qc/automation/`) holds ONLY user-facing folders; everything the system runs lives under the **runner root** (`docs/qc/automation/runner/`) so the user never digs through code folders. In workflows/references, code paths (`tests/`, `portals/`, `helpers/`, `scripts/`) are relative to the runner root; document paths (`data/`, `triage/`, `crawl-findings/`, `reports/`, `bugs/`) are relative to the automation root.
+
 ```
-playwright.config.ts            scaffolded once (use.baseURL per portal, json+junit reporters)
-package.json                    scaffolded once (build:testdata script)
-helpers/                        base-page.ts, test-data.ts, email.ts (dynamic email data), expect-outcome.ts (channel detectors — expected results are resolved by TYPE at runtime, never pre-crawled)
-portals/<portal>/notification-channels.ts   per-portal channel map (inline/banner/toast/dialog idioms) — learned once at crawl, QC-editable
-scripts/build-test-data.mjs     data md → validated JSON compiler
-scripts/db-seed/                reviewed DB seed scripts (feasibility L4; connection from .env) — only when the project provides DB access
-portals/<portal>/pages/         page objects — SOLE writer; incremental (stamped with audited version + crawl date)
-portals/<portal>/flows/         flow helpers + setup flows (L2 precondition seeding) — incremental
-portals/<portal>/fixtures.ts
-tests/<portal>/<UC-ID>/<screen>.spec.ts   one spec per screen; each test titled with its TC ID
-data/<UC-ID>_testdata.md                  LIVING file (no date/version, edited in-place) — human-editable source (+ compiled .json — gitignored build output, rebuilt by qc-auto-run each run)
+data/<UC-ID>_testdata.md        LIVING file (no date/version, edited in-place) — human-editable source (+ compiled .json — gitignored build output, rebuilt by qc-auto-run each run)
 triage/<UC-ID>_<feature>_automation-triage_<date>_v<N>.md   per-TC feasibility triage (contract: references/automation-feasibility.md §6)
-crawl-findings/<portal>_<page>_crawl-findings.md   LIVING doc (no date/version) — elements not found at crawl; user replies inline, next run re-crawls guided
+crawl-findings/<portal>_<page>_crawl-findings.md   LIVING doc (no date/version) — elements not found at crawl. Row lifecycle: `Chờ trả lời` (this skill writes the question) → `Đã trả lời` (user answers inline) → `Đã giải quyết` (this skill sets it after the guided re-crawl — update.md trigger D). `qc-execute-test-report` gates on ALL rows of the UC's pages being `Đã giải quyết`.
+reports/                        owned by qc-auto-run (run summary + history)
+bugs/                           owned by qc-execute-test-report / qc-bug-verify (bug report per UC; user updates the Status column)
+runner/                         system root — all npm/npx commands run here
+├── playwright.config.ts        scaffolded once (use.baseURL per portal, json+junit reporters)
+├── package.json                scaffolded once (build:testdata script)
+├── helpers/                    base-page.ts, test-data.ts, email.ts (dynamic email data), expect-outcome.ts (channel detectors — expected results are resolved by TYPE at runtime, never pre-crawled)
+├── portals/<portal>/notification-channels.ts   per-portal channel map (inline/banner/toast/dialog idioms) — learned once at crawl, QC-editable
+├── portals/<portal>/pages/     page objects — SOLE writer; incremental (stamped with audited version + crawl date)
+├── portals/<portal>/flows/     flow helpers + setup flows (L2 precondition seeding) — incremental
+├── portals/<portal>/fixtures.ts
+├── scripts/build-test-data.mjs data md → validated JSON compiler (reads/writes ../data/ from the runner root)
+├── scripts/db-seed/            reviewed DB seed scripts (feasibility L4; connection from .env) — only when the project provides DB access
+├── tests/<portal>/<UC-ID>/<screen>.spec.ts   one spec per screen; each test titled with its TC ID
+└── test-results/               raw Playwright output (traces, screenshots, results.json) — gitignored
 ```
 
 Plus `worklog-per-device` per `docs/qc-lead/agent-work-log.local/README.md`.
@@ -64,7 +70,7 @@ Follow `.claude/config/checkpoint-protocol.md` + `workflows/checkpoint-protocol.
 ## Boundaries
 
 - Standalone: never reads `project-context-master`, `qc-site-map`, or `qc-dashboard`. Dashboard visibility comes from `qc-dashboard-sync` reading this skill's `progress.md` + counting specs — read-only on their side.
-- SOLE writer of everything under `docs/qc/automation/` except: `data/*_testdata.md` values (QC edits), `portals/*/notification-channels.ts` (QC may hand-edit), the "Trả lời của QC/dev" column in `crawl-findings/` (user fills), `.env` (user-owned), `reports/` (owned by `qc-auto-run`).
+- SOLE writer of everything under `docs/qc/automation/` except: `data/*_testdata.md` values (QC edits), `portals/*/notification-channels.ts` (QC may hand-edit), the "Trả lời của QC/dev" column in `crawl-findings/` (user fills), `.env` (user-owned), `reports/` (owned by `qc-auto-run`), `bugs/` (owned by `qc-execute-test-report` / `qc-bug-verify`; user updates the Status column).
 - Never crawls or runs against production; never stores passwords in any generated file or checkpoint.
 - Never invents locators or elements — an element not found at crawl NEVER stops the session: it goes to the page's `crawl-findings` living file (with the concrete driven state), the affected specs are deferred, the user replies inline, and the next run re-crawls guided by the answers.
 - Never skips a TC with a grouped one-line reason — every non-automated TC gets its own triage row (feasibility §6).

@@ -15,7 +15,7 @@
 
 | TC ID | Spec | Error (one line) | Trace |
 |---|---|---|---|
-| <TC_010> | <screen>.spec.ts | <message> | test-results/<...>/trace.zip |
+| <TC_010> | <screen>.spec.ts | <message> | runner/test-results/<...>/trace.zip |
 
 ## Blocked — thiếu precondition (không chạy, không tính Failed)
 
@@ -23,4 +23,4 @@
 |---|---|---|---|---|
 | <TC_059> | <suspendedOrgUser> | <một tài khoản Org User đã bị ngưng hoạt động...> | <api check thất bại | chưa có Confirmed | user trả lời chưa tạo> | <tạo trạng thái theo cột bên trái; nếu là dòng manual không có check thì ghi Confirmed vào data md> |
 
-> Raw results: `test-results/results.json` (JSON), `test-results/results.xml` (JUnit) — keyed by test title (TC ID).
+> Raw results: `runner/test-results/results.json` (JSON), `runner/test-results/results.xml` (JUnit) — keyed by test title (TC ID).

@@ -1,10 +1,10 @@
 # QC Kit v3
 
-> Title: QC Kit v3 README | Created: 2026-07-02 | Author: Joy | Version: v1
+> Title: QC Kit v3 README | Created: 2026-07-02 | Updated: 2026-07-07 (tầng automation: +`qc-execute-test-report`, +`qc-bug-verify`, layout `runner/`) | Author: Joy | Version: v2
 
 Bộ skill QC cho quy trình kiểm thử agentic — bản tái cấu trúc v3. Kiến trúc 3 tầng, trong đó tầng automation là **module độc lập, dùng hay không tùy dự án**.
 
-## Kiến trúc 3 tầng (11 skill)
+## Kiến trúc 3 tầng (13 skill)
 
 ### Tầng 1 — Context (khung hiểu dự án)
 
@@ -32,14 +32,16 @@ Dự án manual-only dừng ở tầng này là đủ.
 
 ### Tầng 3 — Automation (module độc lập, opt-in)
 
-Không đọc context/site-map. Input chỉ gồm: audited report + test case md + `project-config` (URL môi trường non-prod, tài khoản test).
+Không đọc context/site-map. Input chỉ gồm: audited report + test case md + `project-config` (URL môi trường non-prod, tài khoản test). Vòng khép kín 4 bước: sinh code → chạy → chốt kết quả + report bug → verify bug.
 
 | Skill | Vai trò | Output |
 |---|---|---|
-| `qc-auto-generate` | Sinh project Playwright + TS (POM, lớp common dùng chung, locator từ live crawl, incremental) | `docs/qc/automation/` (specs, page objects, flows, test data) |
-| `qc-auto-run` | Chạy test, tổng hợp kết quả theo TC-ID | `reports/summary-latest.md` |
+| `qc-auto-generate` | Sinh project Playwright + TS (POM, lớp common dùng chung, locator từ live crawl, incremental); phần tử lệch/không tìm thấy khi crawl ghi vào sổ câu hỏi `crawl-findings/` chờ QC/dev trả lời inline | `runner/` (specs, page objects, flows) + `data/`, `triage/`, `crawl-findings/` |
+| `qc-auto-run` | Chạy test (pre-flight precondition, xác nhận môi trường — từ chối production), tổng hợp kết quả theo TC-ID | `reports/summary-latest.md` |
+| `qc-execute-test-report` | Chốt kết quả chính thức theo từng TC (gồm cả TC thủ công) + report bug ĐÃ kiểm chứng. Gate cứng: mọi dòng `crawl-findings` của các page thuộc UC phải `Đã giải quyết` VÀ đã chạy lại sau đó; TC trượt được phân loại (bug thật / lỗi script / lỗi môi trường / chờ cập nhật UC-TC) trước khi ghi bug | `docs/qc/testcases/<UC-ID>/*_test-results.md` (file sống, mỗi run 1 cột) + `bugs/*_bug-report.md` (file sống, user chỉ update cột "Trạng thái") |
+| `qc-bug-verify` | Đọc trạng thái bug user cập nhật → lập plan re-test + regression (LUÔN chờ user duyệt) → gọi `qc-auto-run` → kết luận `Đã đóng — verified` / `Mở lại` | cập nhật `bug-report` + cột run mới trong `test-results` |
 
-Dashboard tự inject 2 cột `Automation stt` / `Execute stt` khi folder automation tồn tại — dự án manual-only không thấy gì thừa.
+Layout `docs/qc/automation/`: cấp 1 chỉ gồm folder cho user (`data/`, `crawl-findings/`, `triage/`, `reports/`, `bugs/`); toàn bộ code + node_modules + kết quả thô nằm trong `runner/` — user không cần mở. Dashboard tự inject 2 cột `Automation stt` / `Execute stt` khi folder automation tồn tại — dự án manual-only không thấy gì thừa.
 
 ### Tiện ích
 

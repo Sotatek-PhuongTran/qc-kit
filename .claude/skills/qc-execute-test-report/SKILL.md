@@ -1,41 +1,39 @@
 ---
 name: qc-execute-test-report
-description: Records official per-TC execution results into the UC's living test-results file and writes VERIFIED bug reports, hard-gated on every crawl-findings row of the UC's pages being resolved (Đã giải quyết) and on a run executed after resolution. Trigger on "report kết quả test", "ghi kết quả test case", "report bug", "/qc-execute-test-report <UC-ID>". To RUN tests use qc-auto-run; to verify fixed bugs use qc-bug-verify.
+description: "Records official per-TC execution results (UI + API + MIX + manual) into the UC's living test-results file — one row per TC, one column per run — gated on the UC's findings being resolved; auto-invokes qc-bug-report on failures. Trigger: /qc-execute-test-report <UC-ID>, 'ghi kết quả test', 'report kết quả test'. To analyze failures use qc-bug-report."
 ---
 
 # Skill: qc-execute-test-report
 
 ## Purpose
 
-Turn the latest `qc-auto-run` output into two official, per-UC living documents: an **execution report** (one row per TC, one column per run — including manual TCs) and a **bug report** (only verified defects, grouped by root cause). The hard gate guarantees every reported bug has been cross-checked against the answered crawl-findings — so a "bug" is never just an unconfirmed discrepancy between UC text and live UI.
+ONE job (đã thu hẹp — phần phân tích bug tách sang `qc-bug-report`): turn the latest `qc-auto-run` output into the official **execution report** — the per-UC living file where every TC of BOTH branches (and every manual TC) has one row, and every run appends one column. Failures are recorded as plain `Fail` here; classification and Bug IDs are `qc-bug-report`'s job (it stamps the same cells afterwards).
 
-This skill never runs tests and never edits code — it only reads run output and writes the two documents.
+The hard gate guarantees results are only recorded when every findings question (UI crawl-findings + API api-findings) has been resolved AND a run happened after resolution — so recorded results always reflect the post-resolution system.
 
 ## Input Contract (resolve via `path-registry.md`)
 
-- `automation-run-summary` + `runner/test-results/results.json` — the latest run for the UC. No run covering the UC → tell the user to run `/qc-auto-run <UC-ID>` first, STOP.
-- Latest test-cases md of the UC (`func-test-cases-draft`, or the newest `*_testcases_*_v<N>.md`) — clone source for the execution report skeleton + RTM (AC ↔ TC) table.
-- `crawl-findings` files of the UC's pages — THE GATE (see workflows/report.md §2).
-- `automation-triage` latest version — per-TC verdicts (`Thủ công` rows, deferred reasons) + fail-classification aid.
-- `test-data` md — precondition wording for Blocked cells.
-- Existing `execution-report` / `bug-report` — append/update, never recreate.
+- `automation-run-summary` + `runner/test-results/results.json` — the latest run covering the UC. Missing → tell the user to run `/qc-auto-run <UC-ID>` first, STOP.
+- Latest TC mds — skeleton clone sources: `func-test-cases-md` (UI rows) AND/OR `api-test-cases-md` (API/MIX rows), per `project-context-master` §3.0 Phạm vi test.
+- `crawl-findings` files of the UC's pages + `api-findings` files of the UC's resources — THE GATE.
+- `automation-triage` + `api-automation-triage` latest — `Cách chạy` values (Tự động / Thủ công) per TC.
+- `test-data` / `api-testdata` md — precondition wording for Blocked cells.
+- Existing `execution-report` — append, never recreate.
 
 ## Output Contract
 
-- `execution-report` — `docs/qc/testcases/<UC-ID>/<UC-ID>_<feature>_test-results.md`, LIVING file (no date/version). One row per TC (ALL TCs, manual included); each run appends ONE column titled `Run <N> — <DD/MM> — <ENV> — <trình duyệt>`; cell = result (+ Bug ID). Template: `templates/test-results.template.md`.
-- `bug-report` — `docs/qc/automation/bugs/<UC-ID>_<feature>_bug-report.md`, LIVING file. Summary table + one detail section per bug, IDs `BUG-<UC-suffix>-<NN>`. Template: `templates/bug-report.template.md`.
-- Chat report + worklog per `docs/qc-lead/agent-work-log.local/README.md` (single-phase, like qc-auto-run).
+- `execution-report` — `docs/qc/testcases/<UC-ID>/<UC-ID>_<feature>_test-results.md`, LIVING file. Rows = ALL TCs (UI + API + MIX + manual); run column `Run <N> — <DD/MM> — <ENV> — <trình duyệt|API>`; cells: `Pass` / `Fail` (chưa phân loại — qc-bug-report sẽ stamp) / `Blocked — thiếu <key>` / `Chưa chạy` / `—`. Template: `templates/test-results.template.md`.
+- **Hand-off:** run has ≥ 1 `Fail` cell → auto-invoke `/qc-bug-report <UC-ID>` via the Skill tool (đã chốt — chạy thẳng). No Fail → finish with the chat report.
+- Chat report + worklog (single-phase, no checkpoint files).
 
 ## Workflow
 
-One mode. Execute `workflows/report.md` top to bottom: resolve run → HARD GATE on crawl-findings → classify every non-pass TC → write execution report → write bug report → chat summary.
+One mode. Execute `workflows/report.md` top to bottom: resolve run → HARD GATE (both findings) → write the execution report → hand off to `qc-bug-report` when failures exist.
 
 ## Boundaries
 
-- **Hard gate:** any crawl-findings row of the UC's pages not `Đã giải quyết` → print the Vietnamese warning listing every open row and its question, write NOTHING, stop. Run date older than the newest `Đã giải quyết — <date>` mark → demand a fresh run, stop.
-- Never runs tests (that is `qc-auto-run`); never generates or fixes scripts (that is `qc-auto-generate`); never verifies fixed bugs (that is `qc-bug-verify`).
-- Writer of `execution-report` and `bug-report` EXCEPT: manual-TC result cells (QC hand-fills) and the bug "Trạng thái" column once the user/dev has set it — NEVER overwrite either.
-- A failed TC becomes a bug ONLY after classification (workflows/report.md §3); script debt, environment issues, and confirmed requirement changes are never reported as bugs. One bug may group many TCs; every grouped TC is listed on the bug.
-- Reproduction steps are taken from the TC md steps + the observed error — never invented.
-- All file/chat output in Vietnamese per `.claude/rules/qc-writting-rules.md`; system messages quoted verbatim.
-- No checkpoint files (single-phase, re-runnable); worklog only.
+- **Hard gate:** any gated crawl-findings OR api-findings row of the UC not `Đã giải quyết` → print the Vietnamese warning listing every open row and its question, write NOTHING, stop. Gated = every crawl-findings row; api-findings rows only when their UC-qualified `TC bị ảnh hưởng` intersects this UC (report.md §2). Run date older than the newest `Đã giải quyết — <date>` of the gated rows → demand a fresh run, stop.
+- Writes ONLY the execution report (new run column + new TC rows). Does NOT write bugs (that is `qc-bug-report`), does NOT classify failures, NEVER touches previous columns, manual-TC cells the QC filled, or Bug-ID stamps added by `qc-bug-report`.
+- Never runs tests; never generates scripts; never verifies bugs.
+- Auto-invokes ONLY `qc-bug-report`, only when Fail cells exist in the new column.
+- Language (qc-writting-rules two-group law): the execution report (test-results) is an official deliverable → project language per `project-context-master` §3.0 "Project language"; chat reports/warnings always Vietnamese. No checkpoint files, worklog only.

@@ -4,10 +4,10 @@
 >
 > Nguồn gốc: kế thừa `atomic_actions.yaml` của kit v2 (đã chạy thực tế) — chuyển thành chuẩn TĨNH cấp kit, không cần skill collector sinh theo dự án.
 
-**Mục đích:** MỌI test case trong kit dùng chung MỘT bộ động từ hành động — QC review nhất quán, `qc-auto-generate` map sang code tất định. Bảng này là **single source of truth** cho cả hai phía:
+**Mục đích:** MỌI test case trong kit dùng chung MỘT bộ động từ hành động — QC review nhất quán, `qc-func-auto-generate` map sang code tất định. Bảng này là **single source of truth** cho cả hai phía:
 
 - `qc-func-tc-design` viết bước test bằng cột **Canonical VI/EN** (cột Alias chỉ để NHẬN DIỆN khi đọc tài liệu/TC cũ — KHÔNG BAO GIỜ viết ra).
-- `qc-auto-generate` map động từ sang cột **Playwright**.
+- `qc-func-auto-generate` map động từ sang cột **Playwright**.
 
 ## Bảng động từ
 

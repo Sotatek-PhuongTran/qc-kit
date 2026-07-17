@@ -78,7 +78,7 @@
 - Vẽ diagram tổng quan bằng Mermaid `erDiagram` để dễ nhìn toàn cảnh.
 - Bảng chi tiết bên dưới mô tả từng cặp quan hệ — phục vụ Agent đọc parse được, không chỉ con người nhìn.
 - **Chiều phụ thuộc** rất quan trọng: ghi rõ "A phụ thuộc B" nghĩa là không có B thì A không tồn tại; ngược lại có B mà chưa có A thì OK.
-- **Cascade rule** ghi cụ thể: `cascade-delete` / `cascade-soft-delete` / `set-null` / `set-default` / `block` (chặn xoá nếu còn child) / `archive-and-keep` / `custom` (kèm mô tả).
+- **Cascade rule** ghi cụ thể theo danh sách giá trị chuẩn tại `references/qc-data-map-writing-guide.md` §5 (nhà chính duy nhất của danh sách cascade values).
 - Khi có **CR thay đổi quan hệ**, phải update cả diagram lẫn bảng + ghi chú CR-XXX vào cột Ghi chú.
 
 ### 4.1 Diagram tổng quan
@@ -102,7 +102,7 @@ Nếu hệ thống lớn (>20 entity), nên tách thành nhiều diagram theo nh
 
 | Entity A | Entity B | Kiểu quan hệ | Chiều phụ thuộc | Cascade rule khi A bị xoá/archive | Cascade rule khi B bị xoá/archive | Foreign key field | Ghi chú QC |
 |---|---|---|---|---|---|---|---|
-| ENT-XXX-001 | ENT-XXX-002 | 1-n | B phụ thuộc A | [cascade-delete / block / set-null / archive...] | [N/A nếu B là child] | [b.a_id] | [Test cascade scenario nào; CR nào ảnh hưởng] |
+| ENT-XXX-001 | ENT-XXX-002 | 1-n | B phụ thuộc A | [giá trị cascade — guide §5] | [N/A nếu B là child] | [b.a_id] | [Test cascade scenario nào; CR nào ảnh hưởng] |
 
 **Hướng dẫn QC sử dụng bảng này:**
 - Khi thiết kế test xoá/archive entity A: bắt buộc đi xuyên cột "Cascade rule khi A bị xoá" để liệt kê side-effect cần verify.
@@ -302,10 +302,7 @@ stateDiagram-v2
 |---|---|---|---|---|
 | UC-XXX-NNN | [N] | [M] | High / Medium / Low | [Vì sao là hotspot: đụng cả entity gốc và entity con; có sync ra ngoài; cascade rộng...] |
 
-**Quy tắc đề xuất Hotspot rating:**
-- **High**: ≥4 entity tác động, hoặc có U/D entity gốc với cascade ≥2 child, hoặc có sync xuống hệ thống ngoài.
-- **Medium**: 2–3 entity tác động, có ít nhất 1 U/D.
-- **Low**: 1 entity, hoặc chỉ Read.
+**Quy tắc đề xuất Hotspot rating (High / Medium / Low):** theo `references/qc-data-map-writing-guide.md` §9 (nhà chính duy nhất của quy tắc rating).
 
 ### 8.4 Map sang test strategy
 

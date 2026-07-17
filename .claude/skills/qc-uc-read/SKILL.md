@@ -1,28 +1,38 @@
 ---
 name: qc-uc-read
-description: Reviews a use case (UC) document set to determine whether it is ready for test design. Produces a readiness verdict (Ready / Conditionally Ready / Not Ready), a completeness score (0–100), and a detailed gap report with concrete fix suggestions. Trigger when the user says "review uc", "review requirement", "/qc-uc-read <UC-ID>", or shares a UC and asks whether it is testable.
+description: "Reviews a use case document set for test-design readiness — verdict (Ready / Conditionally Ready / Not Ready), 0–100 score, gap report. UI/requirement tier only. Trigger: /qc-uc-read <UC-ID>, 'review uc', 'review requirement', 'UC này test được chưa'. For the API-tier readiness audit use qc-api-read."
 ---
 # Requirements Readiness Review Skill
+
+## Purpose
+
+Analyse **one or more requirement artefacts** (use case docs, design specs, wireframes, business process docs, screen mockups, etc.) **together as a set**, synthesise a unified understanding of the feature, and determine whether QA testers have enough information to begin designing test cases. Raw API docs are NEVER read by this skill — the API branch belongs to `qc-api-read`.
+
+**Multi-language support:** Documents may be in Vietnamese, English, or any language. Read and process all content accurately — preserve original text, terminology, and formatting exactly as provided. Do NOT translate or paraphrase content during extraction or review.
+
+Documentation-quality issues are classified ONLY per the issue types in `references/scoring-rubric.md` §5 — this skill defines no separate audit framework.
 
 ## Input Contract
 
 Read the `path-registry.md` file to find the below file's location:
 
-- `.claude/skills/qc-uc-read/references/input-files-format.md` — for file format description of the input files
+- `.claude/skills/qc-uc-read/references/input-files-format.md` — per-project living description of the input files (the kit ships a skeleton). Its body is written ONLY by this skill via the FORMAT CHECK GATE (first-audit Phase 1 Step 1.4; re-audit reuses it by pointer); the user edits ONLY the flag line `> **Trạng thái khớp thực tế:**` (setting `Cần check lại` when the BA changes the document format).
 - `project-context-master`
 - `qc-site-map`
 - `requirement-common-files` — read first; resolve any code/ID reference (error codes, business rule IDs, common function names) appearing in the UC to its exact text from these files and inline that text into the audit output (see Common Reference Resolution rule in the phase files).
 - `requirement-files`
-- `question-backlog`
+- `question-backlog` (awareness only — first-audit does not read it; re-audit reconciles it via `qc-qna`)
 - `.claude/rules/qc-writting-rules.md`
 - Important: Check the input directory for existing versions, read the highest version of the files.
+- Note: entries starting with `.claude/` (`input-files-format.md`, `qc-writting-rules.md`) are kit-internal files at the literal path shown — read them directly; they are NOT `path-registry.md` lookups, and a missing registry entry for them is not a STOP condition.
 
 ## Output Contract
 
 Read the `path-registry.md` file to find the below file's location:
 
 - `uc-review-report` — versioned artifact: check the output directory for existing versions; if `v[N]` exists, write `v[N+1]`. Never overwrite an existing version.
-- `question-backlog` — ONE living file per UC with the FIXED name `[UC-ID]_[feature-name]_question-backlog.md` (no date, no version), edited in-place. This skill NEVER writes it directly — every backlog edit is delegated to `qc-qna` (first-audit Phase 3 Step 4; re-audit Step 10).
+- `question-backlog` — ONE living file per UC with the FIXED name `[UC-ID]_[feature-name]_question-backlog.md` (no date, no version), edited in-place. This skill NEVER writes it directly — every backlog edit is delegated to `qc-qna` (first-audit Phase 3 Step 6; re-audit Step 10).
+- `.claude/skills/qc-uc-read/references/input-files-format.md` — kit-internal living file (no registry lookup), updated in-place by the FORMAT CHECK GATE when its flag is empty or `Cần check lại`.
 
 ## Checkpoint & Resume
 
@@ -30,9 +40,9 @@ Follow `.claude/config/checkpoint-protocol.md` (shared rules: directory layout, 
 
 ## Shared References
 
-- **Scoring rubric** (10 knowledge areas, max points, auto-cap, auto-fail, thresholds, conflict check, blocked artefact protocol, common gap patterns): `references/scoring-rubric.md`. The rubric is referenced by both first-audit Phase 2 and re-audit Phase 2 — update it ONCE to change scoring rules everywhere.
+- **Scoring rubric** (5 scoring areas, max points, auto-cap, auto-fail, thresholds, conflict check, blocked artefact protocol, common gap patterns): `references/scoring-rubric.md`. The rubric is referenced by both first-audit Phase 2 and re-audit Phase 2 — update it ONCE to change scoring rules everywhere.
 - **UC Readiness Review Template:** `templates/UC_readiness_review_template_v4.md`.
-- **Input file format description:** `references/input-files-format.md`.
+- **Input file format description:** `references/input-files-format.md` (per-project living file — see Input Contract).
 
 ## Workflow
 
@@ -53,7 +63,7 @@ Follow `.claude/config/checkpoint-protocol.md` (shared rules: directory layout, 
 
 4. Generate a new `run_id` per the worklog protocol.
 
-5. **Append a new entry** to the device's worklog JSONL with `status = "Running (Phase 1)"`, `input`/`output` empty, `start = now`. (For resume, follow the resume protocol in §4.)
+5. **Append a new entry** to the device's worklog JSONL with `status = "Running (Phase 1)"`, `input`/`output` empty, `start = now`. (For resume, follow the shared resume protocol in `.claude/config/checkpoint-protocol.md` §3.)
 
 ### Phase 1 — 3 (per workflow)
 
@@ -75,54 +85,10 @@ Dispatch to the appropriate workflow folder based on `mode`:
 
 Each phase file is self-contained: it includes its own Start status update, work steps, end-of-phase checkpoint write, and hand-off pointer to the next phase. After Phase 3 finishes, cleanup runs per shared protocol §5.
 
-## Purpose
-You operate by **YAGNI**, **KISS**, and **DRY**. Requirements should be minimal enough to build what's needed, clear enough to test, and free of duplication.
-
-**Multi-language support:** Documents may be in Vietnamese, English, or any language. Read and process all content accurately — preserve original text, terminology, and formatting exactly as provided. Do NOT translate or paraphrase content during extraction or review.
-
-Analyse **one or more requirement artefacts** (use case docs, design specs, wireframes, API docs, business process docs, screen mockups, etc.) **together as a set**, synthesise a unified understanding of the feature, and determine whether QA testers have enough information to begin designing test cases.
-
-## Core Competencies
-
-- **Zero-Trust Analysis:** Treat all input requirements as incomplete. Your first task is to identify logical contradictions, missing edge cases, and architectural risks.
-- **Multi-Layer Validation:** For every feature, perform a 3-layer assessment:
-  - **Business Layer:** Does it fulfill the "Domain Logic" (e.g., Fintech compliance, Crypto transaction finality)?
-  - **System Layer:** How does it affect Microservices, Kafka events, and Database consistency?
-  - **User Layer:** Is the UX resilient to "chaotic" user behavior?
-- **Shift-Left:** Identify missing requirements and architectural risks early in the SDLC.
-
-### Requirement Analysis & Taxonomy
-
-Distinguish and audit all requirement types:
-
-- **Business Requirements** — the "why" (business goals, objectives)
-- **Functional Requirements** — the "what" (system behaviors, use cases)
-- **Non-Functional Requirements (NFR)** — performance, security, scalability, accessibility constraints
-- **User Stories** — As a [role] / I want [feature] / So that [benefit] — validate each has clear Acceptance Criteria
-- **Transition Requirements** — migration, training, or rollout conditions
-- **Constraints** — regulatory, technical, or budgetary boundaries
-
-Flag any requirement that doesn't fit a recognized type as "Unclassified — requires clarification".
-
-### Audit Framework (5 Pillars)
-
-1. **Completeness** — Missing requirements, undefined behaviors, uncovered edge cases, missing NFRs
-2. **Clarity** — Ambiguous language ("should", "may", "fast", "easy"), single-interpretation validation, undefined terms
-3. **Consistency** — Internal contradictions, conflict between sections, inconsistent terminology
-4. **Testability** — Every requirement must be independently verifiable; reject vague acceptance criteria
-5. **Traceability** — Map each requirement to a business objective; flag orphan requirements with no business justification
-
-### Domain Knowledge
-
-- **SDLC methodology awareness:** Agile (Scrum/Kanban), Waterfall, SAFe, hybrid models
-- **Process modeling:** Read and evaluate BPMN process flows, use case diagrams, data flow diagrams, sequence diagrams
-- **Standards awareness:** IEEE 830 (SRS), BABOK v3 (IIBA), ISO/IEC 25010 (quality model)
-- **API & integration requirements:** Identify integration points, data contracts, and system-to-system dependencies
-- **Regulatory context:** Flag requirements with potential compliance implications (GDPR, PCI-DSS, HIPAA, etc.) for further review
-
 ## Boundaries
 
 - You ONLY review and audit, DO NOT edit the input files.
+- SOLE writer of the BODY of `references/input-files-format.md` (per-project input-format file) — updated only through the FORMAT CHECK GATE; the user edits ONLY its flag line. Kit-internal path — never resolved via `path-registry.md`.
 - Every finding MUST cite the specific source section, page, or paragraph.
 - Do NOT fabricate or assume requirements that are not in the document.
 - When uncertain, explicitly state uncertainty and ask the user — never guess.

@@ -115,7 +115,7 @@ Apply these caps after identifying issues.
 |---|---|
 | Any required / referenced artefact is inaccessible and the affected area cannot be verified. | Affected area = 0 and status = Blocked. |
 | A blocker prevents understanding of a critical function. | Affected area max 40% of its max score. Final verdict = Not Ready. |
-| F.1 groups multiple atomic UI elements into one row, or omits many visible elements from provided design / prototype evidence. | Area 1 max 12/20. If design is referenced but no UI evidence is usable, Area 1 = 0. |
+| F.1 groups multiple atomic UI elements into one row, or omits many visible elements from provided design / prototype evidence. | Area 1 max 12/20. If design is referenced but no UI evidence is usable, Area 1 = 0. **Exception:** when no design/prototype was provided but the UC document itself carries screen/element tables (e.g. a "Màn hình & phần tử UI" section) and F.1 is cataloged from them, do NOT zero or cap Area 1 for missing UI evidence — score the UC-based inventory on its own quality. |
 | F.2 does not cover at least 80% of F.1 elements. | Area 2 max 15/25. |
 | F.3 covers happy path only and omits important alternative / exception paths. | Area 3 max 18/25. |
 | F.4 is generic and does not identify concrete data or function impacts. | Area 4 max 7/15. |

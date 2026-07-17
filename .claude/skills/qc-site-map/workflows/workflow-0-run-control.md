@@ -39,22 +39,30 @@ If no progress exists, continue as a fresh run.
 
 ### 0.3 Resolve paths
 
-Read `path-registry.md` and resolve:
+Read `path-registry.md` and resolve these registry logical names:
 
 - `project-config.md`
 - `project-context-master.md`
 - `qc-site-map.md`
 - `qc-data-map.md`
 - `qc-dashboard.md`
-- high-level BA/source folders
-- requirement/spec folder
-- wireframe folder
-- API/DB/ERD/data folder if available
-- CR/release note folder if available
+- high-level BA/source folders (`High-level-files`)
+- requirement/spec folder (`requirement-files`, `requirement-common-files`)
+
+Fixed inbox paths (kit-defined, not registry rows):
+
 - `.claude/skills/qc-site-map/inbox/dashboard-orphans.md`
 - `.claude/skills/qc-dashboard-sync/inbox/site-map-handoff.md`
 
-If a path cannot be resolved but a conventional location exists, use it and record the fallback. If neither exists for required outputs, STOP before writing.
+Optional evidence sources — these are NOT registry logical names (the registry has no rows for them; NEVER STOP just because they are absent from the registry). Resolve them by convention (look inside the source folders above) or by asking the user; a missing source only reduces coverage and is recorded in 0.8:
+
+- wireframe folder
+- role/permission matrix
+- SRS/spec fallback docs
+- API/DB/ERD/data folder if available
+- CR/release note folder if available
+
+If a registry path cannot be resolved but a conventional location exists, use it and record the fallback. If neither exists for required outputs, STOP before writing.
 
 ### 0.4 Verify hard prerequisite
 

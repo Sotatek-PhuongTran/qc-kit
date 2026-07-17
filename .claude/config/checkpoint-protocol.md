@@ -12,7 +12,7 @@
 
 All checkpoint files live under the invoking skill's folder:
 
-- **Per-UC skills** (qc-uc-read, qc-func-scenario-design, qc-func-tc-design, qc-auto-generate): `.claude/skills/<skill>/process-logging/<UC-ID>/` — one subfolder per UC so multiple UCs can run without conflict.
+- **Per-UC skills** (qc-uc-read, qc-func-scenario-design, qc-func-tc-design, qc-func-auto-generate, qc-api-read, qc-api-scenario-design, qc-api-tc-design, qc-api-auto-generate — danh sách minh họa; NGUỒN CHUẨN về scope là delta file `workflows/checkpoint-protocol.md` của từng skill, skill không có delta = không dùng checkpoint): `.claude/skills/<skill>/process-logging/<UC-ID>/` — one subfolder per UC so multiple UCs can run without conflict.
 - **Singleton skills** (qc-context-master, qc-site-map): `.claude/skills/<skill>/process-logging/` — flat.
 
 Create lazily on first checkpoint write. This folder is internal scratch — never a deliverable, never committed as project output.

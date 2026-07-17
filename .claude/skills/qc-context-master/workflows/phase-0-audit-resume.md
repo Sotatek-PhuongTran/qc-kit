@@ -14,7 +14,7 @@ Goal: determine whether this is a fresh run or a resumed run, and in Update mode
 8. **Version preflight (Update mode only — when the resolved `project-context-master.md` already exists with real content):**
    1. Read the existing `project-context-master.md`.
    2. Parse the `Sources consolidated` table at the top of the file. Build `prevSources = [{ file, version }]`.
-   3. For each entry in `prevSources`, resolve its parent folder (from `path-registry.md` logical names — typically inside `High-level-files`) and scan for the highest version of files with the same base name (regex `_v(\d+)` on filename; if missing, treat as `v1`).
+   3. For each entry in `prevSources`, resolve its parent folder (from `path-registry.md` logical names — typically inside `High-level-files`) and scan for the highest version of files with the same base name (regex `_v(\d+)` on filename; if missing, treat as `no-version` — same rule as Phase 1 and Phase 5).
    4. Classify per source:
       - `same` — current version equals recorded version.
       - `upgraded` — current version higher than recorded.

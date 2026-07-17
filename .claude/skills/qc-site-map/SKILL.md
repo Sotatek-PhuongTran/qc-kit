@@ -1,6 +1,6 @@
 ---
 name: qc-site-map
-description: Generates and updates qc-site-map.md (screen-first) and qc-data-map.md (data-entity-first). Step 2 of the chain qc-context-master -> qc-site-map -> qc-dashboard-sync; requires project-context-master.md. Trigger when the user asks to build or update the site map / data map, map screens to features, analyze navigation or role access, reconcile dashboard orphans (Mode 3), or runs /qc-site-map.
+description: "Generates and updates qc-site-map.md (screen-first) and qc-data-map.md (data-entity-first). Step 2 of the context chain; requires project-context-master.md. Trigger: /qc-site-map, 'xây site map', 'sơ đồ màn hình', 'cập nhật data map', or reconciling dashboard orphans (Mode 3). The dashboard itself is written by qc-dashboard-sync."
 ---
 
 # QC Site Map
@@ -51,33 +51,7 @@ Determine the mode from on-disk state, then ask the user only when multiple mode
 
 ### Mode selection algorithm
 
-1. Resolve paths from `path-registry.md` whenever possible.
-2. Compute:
-   - `siteMapExists` = resolved `qc-site-map.md` exists with non-empty content and at least one markdown header.
-   - `dataMapExists` = resolved `qc-data-map.md` exists with non-empty content and at least one markdown header.
-   - `orphanInboxExists` = `.claude/skills/qc-site-map/inbox/dashboard-orphans.md` exists and parses to at least one non-empty orphan row.
-3. Apply:
-
-| siteMapExists | orphanInboxExists | Action |
-|:-:|:-:|---|
-| No | Any | Mode = Initialization. Orphans cannot be reconciled yet; leave the orphan inbox untouched. |
-| Yes | No | Mode = Update. If `qc-data-map.md` is missing, create it as part of Update. |
-| Yes | Yes | Prompt the user to pick Mode 2, Mode 3, or both. Default = Mode 3. |
-
-Prompt in Vietnamese:
-
-```text
-📋 Phat hien 2 trang thai dong thoi:
-- qc-site-map.md ton tai (mode Update kha dung)
-- .claude/skills/qc-site-map/inbox/dashboard-orphans.md ton tai (<N> orphan UC tu qc-dashboard-sync bottom-up)
-
-Ban muon chay mode nao?
-1. `mode 3` (mac dinh) — Confirm orphans: reconcile <N> orphan UC voi site-map hien tai, update handoff, trigger dashboard-sync.
-2. `mode 2` — Update site map/data map tu source files, KHONG dong cham toi orphans.
-3. `both` — Chay mode 2 truoc roi mode 3.
-```
-
-For `both`, run the Update workflow first, suppress Update's dashboard-sync invocation, then immediately run Mode 3. Mode 3's dashboard-sync invocation fires once at the end.
+Mode signals (`siteMapExists` / `dataMapExists` / `orphanInboxExists`), the selection table, the Vietnamese mode prompt (`📋 Phat hien 2 trang thai dong thoi...`), answer parsing, and the `both` chaining rule are defined ONCE in `workflows/workflow-0-run-control.md` §0.5–§0.6 — follow them there.
 
 ---
 

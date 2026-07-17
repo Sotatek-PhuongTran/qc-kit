@@ -1,6 +1,8 @@
 # Question Backlog
 
-> Generated: {DATE}
+> UC-ID: {UC-ID}
+> Created: {DATE}
+> Author: {AUTHOR}
 > Source files: {FILE_LIST}
 
 ---
@@ -9,9 +11,8 @@
 
 | ID | Priority | Ref | Question | Why It Matters | Status |
 |----|----------|-----|----------|----------------|--------|
-| QA-001 | H | BR-005 | What triggers an order cancellation — user only, or also admin/vendor? | Affects workflow logic and notification design | Open |
-| QA-002 | M | RULE-001 | Is commission rate fixed platform-wide or configurable per vendor? | Impacts data model and calculation engine | Open |
-| QA-003 | L | COMMON-002 | Should foreign currency display be supported for international users? | Scope boundary for i18n | Open |
+
+_(No open questions — all resolved.)_
 
 Priority: H = High (blocks design), M = Medium (affects scope), L = Low (nice to know)
 Status: Open | Answered | Deferred
@@ -22,3 +23,11 @@ Status: Open | Answered | Deferred
 
 | ID | Priority | Ref | Question | Answer | Answered By | Date | Status |
 |----|----------|-----|----------|--------|-------------|------|--------|
+
+---
+
+## Update history
+
+| Date | Change |
+|------|--------|
+| {DATE} | Created from template. |

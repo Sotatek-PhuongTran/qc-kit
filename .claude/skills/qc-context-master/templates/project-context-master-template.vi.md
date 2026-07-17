@@ -57,6 +57,23 @@ Nếu thông tin trong file này mâu thuẫn với spec/wireframe/API chi tiế
 
 ## 3. Phạm vi tổng thể và ranh giới kiểm thử
 
+### 3.0 Phạm vi test, Variant & Ngôn ngữ dự án (kế thừa — nguồn đọc chuẩn cho mọi skill tầng 2/3)
+
+> Mục này do `qc-context-master` COPY NGUYÊN VĂN từ `project-config.md` §6 (Phạm vi & Variant kiểm thử) và §1 (Project language) — không suy diễn, không diễn đạt lại. Đây là **nơi đọc chuẩn duy nhất** cho mọi skill tầng 2/3 khi cần Phạm vi test / Variant / Project language (project-config §6 chỉ là nơi NHẬP qua `/qc-project-onboarding`). Muốn đổi giá trị: chạy `/qc-project-onboarding` để cập nhật project-config, rồi `/qc-context-master` để kế thừa lại vào đây.
+
+| Field | Giá trị (copy nguyên văn) | Nguồn |
+|---|---|---|
+| Phạm vi test | [`Black-box only` / `API only` / `Black-box + API`] | project-config §6 |
+| Kênh verify database (L4) | [Có / Không] | project-config §6 |
+| Project language | [Vietnamese / English] | project-config §1 |
+
+**Variant kiểm thử** (copy nguyên văn bảng project-config §6):
+
+| Nhánh | Variant đang chọn |
+|---|---|
+| UI | [ví dụ: `web-responsive` — trống nếu Phạm vi test = `API only`] |
+| API | [ví dụ: `rest` — trống nếu Phạm vi test = `Black-box only`] |
+
 ### 3.1 In scope cấp project/release
 
 | Area / site / module / capability | Mô tả ngắn | Priority | Ghi chú |
@@ -150,9 +167,11 @@ Chỉ ghi permission tổng quan hoặc rule dùng chung. Permission chi tiết 
 
 ### 8.1 Platform và environment tổng quan
 
+> Variant/scope kiểm thử chính thức nằm ở §3.0 — mục này chỉ mô tả platform & môi trường tổng quan phục vụ NFR.
+
 | Hạng mục | Nội dung | Ghi chú QC |
 |---|---|---|
-| Platform type | web-responsive / web-static / mobile-native / mobile-hybrid / desktop-native / API-only / backend-job / TBD |  |
+| Platform type | web-responsive / web-static / mobile-native / mobile-hybrid / desktop-native / TBD |  |
 | Browser / OS / device cần quan tâm |  |  |
 | Test environment | DEV / QA / STG / PROD-like / TBD |  |
 | Integration mode | Mock / sandbox / real service / TBD |  |

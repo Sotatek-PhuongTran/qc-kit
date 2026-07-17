@@ -123,7 +123,7 @@ Only write `site-map-handoff.md` when:
 
 Do not write handoff when only `qc-data-map.md` changed.
 
-Before writing a new handoff, delete the existing `site-map-handoff.md` if present. This prevents stale handoff from a cancelled prior run.
+Before writing the handoff, create the consumer's inbox folder `.claude/skills/qc-dashboard-sync/inbox/` if it does not exist. Then delete the existing `site-map-handoff.md` if present — this prevents stale handoff from a cancelled prior run.
 
 Handoff schema:
 

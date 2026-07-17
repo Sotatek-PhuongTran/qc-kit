@@ -2,14 +2,16 @@
 
 > **Cách viết (văn phong, chống mã trần, bảng quy đổi thuật ngữ EN→VI, cổng tự kiểm trước khi lưu):** `.claude/rules/qc-writting-rules.md` — đọc BẮT BUỘC trước khi draft.
 > **Mẫu chuẩn ("gold example"):** `references/Testcase-refer-vi.md` (VI) / `references/Testcase-refer-en.md` (EN).
-> File này quy định: chọn ngôn ngữ output, encoding xlsx, layout sheet, và **format từng trường test case** (C1–C5).
+> File này quy định: chọn ngôn ngữ output, encoding xlsx, layout sheet, và **format từng trường test case** (C1–C6).
 
 ## 0. Output Language Selection (READ FIRST)
 
-- **Input UC = Vietnamese** → output **Vietnamese**, dùng `references/Testcase-refer-vi.md` làm mẫu.
-- **Input UC = English (hoặc ngôn ngữ khác)** → output **English**, dùng `references/Testcase-refer-en.md` làm mẫu.
+Test case là **tài liệu chính thức release theo dự án** (nhóm 2 của luật ngôn ngữ 2 nhóm trong `.claude/rules/qc-writting-rules.md`) → viết theo **ngôn ngữ dự án**, đọc từ `project-context-master` §3.0 field **"Project language"** TRƯỚC khi áp dụng bất kỳ rule nào:
 
-Phát hiện ngôn ngữ từ UC nguồn TRƯỚC khi áp dụng bất kỳ rule nào. KHÔNG trộn ngôn ngữ trong cùng file.
+- `Vietnamese` → output **Vietnamese**, dùng `references/Testcase-refer-vi.md` làm mẫu.
+- `English` → output **English**, dùng `references/Testcase-refer-en.md` làm mẫu.
+
+Chỉ chấp nhận **Vietnamese hoặc English**; field thiếu/giá trị khác → DỪNG, hỏi user chọn 1 trong 2. KHÔNG trộn ngôn ngữ trong cùng file.
 
 ---
 
@@ -117,19 +119,19 @@ Phát hiện ngôn ngữ từ UC nguồn TRƯỚC khi áp dụng bất kỳ rule
 - Đối tượng UI luôn gọi bằng tên (`Element name`) trong ngoặc kép.
 
 
-### C6 — Priority (P1–P5)
+### C6 — Priority (Critical / High / Medium / Low)
 
-Gán theo **mức ảnh hưởng nghiệp vụ × tần suất thực tế** — KHÔNG dồn mọi case vào P1/P2. Một bộ TC thực tế phải trải đều các mức.
+Thang priority 4 mức chuẩn của kit — **đây là nhà chính**, mọi file khác (kể cả nhánh API) trỏ về mục này. Gán theo **mức ảnh hưởng nghiệp vụ × tần suất thực tế** — KHÔNG dồn mọi case vào Critical/High. Một bộ TC thực tế phải trải đều các mức (giữ kỷ luật phân bổ: nhóm ca hiếm/UI tĩnh chiếm phần đáng kể ở Low).
 
 | Mức | Khi nào | Ví dụ |
 |---|---|---|
-| **P1 — Nghiêm trọng** | Luồng chính & bảo mật; fail là chặn nghiệp vụ | Gửi liên kết đặt lại thành công; lưu mật khẩu thành công; không công nhận kết quả khi ghi nhật ký kiểm toán lỗi; phản hồi trung lập tránh dò tài khoản; vô hiệu liên kết sau khi dùng |
-| **P2 — Cao** | Validation chính, thông báo lỗi nghiệp vụ, trạng thái nút theo điều kiện | Báo lỗi email trống / sai định dạng; nút Gửi vô hiệu khi email chưa hợp lệ; lỗi xác nhận mật khẩu không trùng |
-| **P3 — Trung bình** | Chức năng phụ / hiển thị có ý nghĩa nghiệp vụ | Chuyển ngôn ngữ VN/EN; nội dung email biến thể A |
-| **P4 — Thấp** | Ca hiếm/biên ít xảy ra; hiển thị tĩnh có nội dung | Giá trị biên độ dài hiếm gặp; hiển thị tiêu đề thẻ / dòng hướng dẫn |
-| **P5 — Rất thấp** | Hành vi người dùng hiếm thực hiện và **KHÔNG ảnh hưởng logic** | Thứ tự tiêu điểm Tab / Shift+Tab; phóng to / thu nhỏ (zoom); F5 / refresh; back / next trình duyệt; con trỏ đổi thành pointer khi rê chuột; hiển thị logo / footer tĩnh |
+| **Critical** | Chặn luồng nghiệp vụ chính / mất-hỏng dữ liệu / lỗ hổng bảo mật. Tập các ca Critical = bộ smoke của UC | Gửi liên kết đặt lại thành công; lưu mật khẩu thành công; không công nhận kết quả khi ghi nhật ký kiểm toán lỗi; phản hồi trung lập tránh dò tài khoản; vô hiệu liên kết sau khi dùng |
+| **High** | Logic nghiệp vụ chính: validation chặn nghiệp vụ, thông báo lỗi nghiệp vụ, trạng thái nút theo điều kiện | Báo lỗi email trống / sai định dạng; nút Gửi vô hiệu khi email chưa hợp lệ; lỗi xác nhận mật khẩu không trùng |
+| **Medium** | Validation phụ / luồng phụ / thông báo — chức năng phụ, hiển thị có ý nghĩa nghiệp vụ | Chuyển ngôn ngữ VN/EN; nội dung email biến thể A |
+| **Low** | UI-cosmetic / ca biên hiếm / hành vi người dùng hiếm thực hiện và **KHÔNG ảnh hưởng logic** | Giá trị biên độ dài hiếm gặp; hiển thị tiêu đề thẻ / dòng hướng dẫn / logo / footer tĩnh; thứ tự tiêu điểm Tab / Shift+Tab; phóng to / thu nhỏ (zoom); F5 / refresh; back / next trình duyệt; con trỏ đổi thành pointer khi rê chuột |
 
-- Nhóm GUI "Ca UI chung" (bàn phím/trình duyệt) và "đối chiếu UI tĩnh" mặc định **P4–P5**, trừ khi tác động trực tiếp nghiệp vụ.
+- Nhóm GUI "Ca UI chung" (bàn phím/trình duyệt) và "đối chiếu UI tĩnh" mặc định **Low**, trừ khi tác động trực tiếp nghiệp vụ.
+- **Migration (file TC cũ dùng thang 5 mức):** P1→Critical, P2→High, P3→Medium, P4 và P5→Low — chỉ áp khi update một file TC cũ; không đổi ID, ghi chú migration trong report.
 
 ---
 
@@ -141,4 +143,4 @@ Ngoài cổng chung `.claude/rules/qc-writting-rules.md` §5, quét thêm:
 - [ ] **Không tham chiếu TC khác** (`như/giống/tương tự TC_...`); mỗi message trích **đủ nguyên văn** (C4).
 - [ ] **Không có mã** (`CRULE-/AC-/BR-/R-/Q-/EF/SCR-/Vùng X`) trong Title / Pre-condition / Step / Expected Result — chỉ nằm ở RTM (C5).
 - [ ] **Tiêu đề có TRẠNG THÁI** (C1).
-- [ ] **Priority trải đều**, các ca bàn phím/zoom/refresh/UI tĩnh để **P4–P5** (C6) — không để tất cả P1/P2.
+- [ ] **Priority trải đều** theo thang Critical/High/Medium/Low, các ca bàn phím/zoom/refresh/UI tĩnh để **Low** (C6) — không để tất cả Critical/High.

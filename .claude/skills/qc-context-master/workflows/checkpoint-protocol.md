@@ -17,7 +17,6 @@ Generic checkpoint/resume rules (directory, `progress.md` format, worklog, resum
 | `04_gap_readiness.md` | Phase 4 | Gap classification, readiness section, open questions. |
 | `05_context_rendered.md` | Phase 5 | Final rendered context (with `Sources consolidated` table) + write status. |
 | `06_sitemap_handoff.md` | Phase 6 | Site-map handoff decision: auto-invoked / suggested / none. |
-| `07_handover.md` | Phase 7 | Final user-facing summary + cleanup status. |
 
 ## Resume load table
 

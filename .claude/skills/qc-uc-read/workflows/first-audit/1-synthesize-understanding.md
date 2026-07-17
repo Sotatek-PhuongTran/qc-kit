@@ -2,7 +2,7 @@
 
 > **Friendly name (for worklog):** `Synthesizing Requirement Understanding` (EN) / `Tổng hợp hiểu biết requirement` (VI).
 >
-> **Inputs:** UC document(s), design images, supporting artefacts (API spec, BPMN, etc.), common reference files.
+> **Inputs:** UC document(s), design images, supporting artefacts (BPMN, etc.), common reference files. Raw API docs are NOT inputs — the API branch belongs to `qc-api-read`.
 >
 > **Output checkpoint:** `process-logging/<UC-ID>/01_synthesis.md` — §A–§E (raw evidence) written at Step 1.7, §F (synthesized 5 sub-sections) appended at Step 2.
 
@@ -74,16 +74,25 @@ If the site-map file is missing, skip it and warn the user once.
 
 ---
 
-### 1.4 Read common input-format rules
+### 1.4 FORMAT CHECK GATE + read the input-format file
 
-Read:
+Open `.claude/skills/qc-uc-read/references/input-files-format.md` — the per-project living description of the BA input artefacts. This skill is the SOLE writer of its body; the user edits ONLY the flag line. Kit-internal path — no `path-registry.md` lookup.
 
-`.claude/skills/qc-uc-read/references/input-files-format.md`
+**FORMAT CHECK GATE (MANDATORY — run BEFORE input identification in Step 1.5):** read the flag line `> **Trạng thái khớp thực tế:**` at the top of the file:
 
-This file lists the structure of all BA input artefacts and — most importantly — the identifier prefixes used across the project (e.g., `COMMON-*`, `BR-*`, `RULE-*`, `BP-*`, `QA-*`, `MSG_*`, `ERR_*`). Use it for two purposes only:
+* **Flag = `Đã khớp — <YYYY-MM-DD> (qc-uc-read xác nhận)`** → use the file as-is as the recognition standard for Steps 1.5–1.6. Do NOT re-check.
+* **Flag EMPTY or = `Cần check lại`** → compare the file's content against REALITY:
+  - `path-registry.md` group-A entries (`requirement-files` / `requirement-common-files` / `High-level-files`) + the folders/files actually on disk;
+  - the reference-code prefixes actually appearing in the documents of the UC being audited AND in `requirement-common-files` (đọc lướt các file này ngay tại bước này để quét prefix — không chờ Step 1.5).
 
-1. **Reference recognition.** Knowing the full prefix list lets Step 1.5 extract every referenced identifier in the UC without missing any prefix family.
-2. **Sub-agent A grounding.** Pass the relevant prefix list and common-file structure into Sub-agent A's prompt at 1.6 so it knows what to scan for and how each common file is organized.
+  Then:
+  - **Content matches reality** → set the flag to `Đã khớp — <YYYY-MM-DD> (qc-uc-read xác nhận)`; no other edit.
+  - **Content deviates / skeleton not yet filled** → UPDATE the file body to match reality (fill the skeleton sections 1–4 with the REAL paths, patterns, file types, and prefixes), append ONE line to its `## Update history`, list the changes in the chat report, then set the flag to `Đã khớp — <YYYY-MM-DD> (qc-uc-read xác nhận)`.
+
+After the gate, use the file for two purposes only:
+
+1. **Reference recognition.** The project prefix table (file §3) lets Step 1.5 extract every referenced identifier in the UC without missing any prefix family.
+2. **Sub-agent A grounding.** Fill the PROJECT GROUNDING slot in Sub-agent A's prompt template (1.6) with the prefix list + common-file structure from `input-files-format.md` §1–§3, so it knows what to scan for and how each common file is organized.
 
 Do not score the UC after reading this file.
 
@@ -133,6 +142,10 @@ Call the `Agent` tool with:
 ```text
 You are a read-only lookup agent. Do not infer, rewrite, translate, or summarize. Extract only verbatim evidence.
 
+PROJECT GROUNDING (fill from `references/input-files-format.md` §1–§3 — Step 1.4):
+   <project reference prefixes actually used, e.g. EF-*, BR-*, SCR-*, CR-*, AC-*>
+   <common-file structure: file list + how each is organized>
+
 1. Read the detailed UC file at:
    <absolute path to the requirement file for UC-ID>
 
@@ -169,38 +182,44 @@ You are a read-only lookup agent. Do not infer, rewrite, translate, or summarize
 
 ---
 
-#### Sub-agent B — Extract UI evidence from HTML prototype
+#### Sub-agents B & C — Extract UI evidence (ONE shared prompt, parameterized by `<input-type>`)
 
-Run this sub-agent if HTML prototype files are provided.
+Sub-agent B (HTML prototype) and Sub-agent C (image designs) are the same extraction role over different design inputs — they share the ONE prompt template below. Launch each applicable one per the Design artefact handling rules, filling the slots:
 
-Call the `Agent` tool with:
+| Slot | Sub-agent B | Sub-agent C |
+|---|---|---|
+| Run when | HTML prototype files are provided | image design files are provided (PNG, JPG, JPEG, screenshots) |
+| `description` | `"Extract UI evidence from prototype for <UC-ID>"` | `"Extract UI evidence from image designs for <UC-ID>"` |
+| `<input-type>` | `HTML prototype` | `image designs` |
+| `<input-path>` | absolute path to prototype files | absolute path to image design files |
 
-* `subagent_type: "Explore"`
-* `description: "Extract UI evidence from prototype for <UC-ID>"`
-* `prompt`:
+Call the `Agent` tool with `subagent_type: "Explore"`, the `description` above, and this `prompt` (fill `<input-type>`, `<input-path>`, and the UC file path; lines marked `[HTML prototype]` / `[image designs]` apply only to that `<input-type>`):
 
 ```text
-You are a UI evidence extraction agent. Do not evaluate quality. Do not infer hidden requirements. Extract only observable UI evidence.
+You are a UI evidence extraction agent. Do not evaluate quality. Do not infer hidden requirements. Extract only observable/visible UI evidence from the <input-type>.
+[image designs] Analyze the provided design images visually.
 
 1. Read the detailed UC file at:
    <absolute path to the requirement file for UC-ID>
 
 2. Identify screens, dialogs, forms, and UI states mentioned by the UC.
 
-3. Inspect the HTML prototype files at:
-   <absolute path to prototype files>
+3. Inspect the <input-type> files at:
+   <input-path>
 
-4. For each relevant screen or state, capture every UI element as raw evidence — **do not classify it**. For each element record these observable facts (the three in **bold** are what later classification depends on, always fill them):
+4. For each relevant screen, state, or image, capture every visible UI element as raw evidence — **do not classify it**. For each element record these observable facts (the three in **bold** are what later classification depends on, always fill them):
    - label / visible text (verbatim)
-   - element type (button, link, input, dropdown, checkbox, toggle, tab, text, image, badge, toast, banner, dialog, spinner, scrollbar, …)
-   - **interactive?** — Y if the user can click / type / toggle / select / focus / navigate it; N otherwise
-   - **content** — `static` (fixed text/asset) or `dynamic` (bound to data: tokens like `{name}`, record values, real-time indicators)
-   - **visibility** — `always` (rendered with the screen) or `conditional` (only in a state, e.g. hidden/disabled by default), plus the trigger/condition
-   - default value, placeholder, options/enum, required — if observable in the prototype, else `—`
+   - element type (button, link, input, dropdown, checkbox, toggle, tab, text, image, badge, toast, banner, dialog, spinner, scrollbar, stepper, breadcrumb, …)
+   - **interactive?** — [HTML prototype] Y if the user can click / type / toggle / select / focus / navigate it; [image designs] Y if it appears actionable (button, link, input, toggle, tab, nav control); N otherwise
+   - **content** — `static` (fixed text/asset) or `dynamic` (bound to data: tokens like `{name}`, record values; [HTML prototype] real-time indicators; [image designs] sample data)
+   - **visibility** — `always` or `conditional`, plus the trigger/condition. [HTML prototype] `always` = rendered with the screen; `conditional` = only in a state (e.g. hidden/disabled by default). [image designs] `always` = part of the base screen; `conditional` = the image depicts a specific state (e.g. error/empty/loading) — record the state/trigger this image represents
+   - default value, placeholder, options/enum, required — if observable in the <input-type>, else `—`
    - belongs to — parent element if nested (e.g. a button inside a banner/dialog)
-Make sure to cover: visible text; buttons and actions; input fields; placeholder text; tooltip/helper text; inline validation messages; error/warning/success/notification messages; empty, loading, disabled, readonly, or selected states; modal/popup/confirmation dialog content; navigation actions; table columns, cards, badges, statuses, or displayed data.
+Make sure to cover: visible text; buttons and actions; input fields; placeholder text; tooltip/helper text; inline validation messages; error/warning/success/notification messages; empty, loading, disabled, readonly, or selected states; modal/popup/confirmation dialog content; navigation actions; table columns, cards, badges, statuses, or displayed data; [image designs] flow indicators such as breadcrumbs, tabs, steppers, or arrows.
 
-5. Return the result as Markdown:
+5. Return the result as Markdown, using the variant for your <input-type>:
+
+[HTML prototype]
 ## Prototype UI Evidence for <UC-ID>
  
 ### Screen: <screen/page name>
@@ -217,47 +236,7 @@ Make sure to cover: visible text; buttons and actions; input fields; placeholder
 |---|---|---|
 | <UC screen/field/action> | <matching prototype source> | FOUND / NOT_FOUND / UNCLEAR |
 
-6. Do not judge whether FOUND or NOT_FOUND is a defect.
-7. Do not suggest improvements.
-8. Do not translate UI text.
-9. Do not invent states that are not present.
-10. Keep the report under 500 lines.
-```
-
----
-
-#### Sub-agent C — Extract UI evidence from image designs
-
-Run this sub-agent if image design files are provided, such as PNG, JPG, JPEG, or screenshots.
-
-Call the `Agent` tool with:
-
-* `subagent_type: "Explore"`
-* `description: "Extract UI evidence from image designs for <UC-ID>"`
-* `prompt`:
-
-```text
-You are a UI evidence extraction agent. Analyze the provided design images visually. Do not evaluate quality. Do not infer hidden requirements. Extract only visible UI evidence.
-
-1. Read the detailed UC file at:
-   <absolute path to the requirement file for UC-ID>
-
-2. Identify screens, dialogs, forms, and UI states mentioned by the UC.
-
-3. Read the image design files at:
-   <absolute path to image design files>
-
-4. For each relevant image, capture every visible UI element as raw evidence — **do not classify it**. For each element record these observable facts (the three in **bold** are what later classification depends on, always fill them):
-   - visible text / label (verbatim)
-   - element type (button, link, input, dropdown, checkbox, toggle, tab, text, image, badge, toast, banner, dialog, stepper, breadcrumb, …)
-   - **interactive?** — Y if it appears actionable (button, link, input, toggle, tab, nav control); N otherwise
-   - **content** — `static` (fixed text/asset) or `dynamic` (looks bound to data: tokens like `{name}`, record values, sample data)
-   - **visibility** — `always` (part of the base screen) or `conditional` (the image depicts a specific state, e.g. error/empty/loading), plus the state/trigger this image represents
-   - default value, placeholder, options/enum, required — if visible in the image, else `—`
-   - belongs to — parent element if nested (e.g. a button inside a banner/dialog)
-Make sure to cover: visible text; buttons and actions; input fields; placeholder text; tooltip/helper text; inline validation messages; error/warning/success/notification messages; empty, disabled, readonly, selected, or loading states; modal/popup/confirmation dialog content; navigation actions; table columns, cards, badges, statuses, or displayed data; flow indicators such as breadcrumbs, tabs, steppers, or arrows.
-
-5. Return the result as Markdown:
+[image designs]
 ## Image UI Evidence for <UC-ID>
  
 ### Image: <file name>
@@ -276,8 +255,8 @@ Make sure to cover: visible text; buttons and actions; input fields; placeholder
 6. Do not judge whether FOUND or NOT_FOUND is a defect.
 7. Do not suggest improvements.
 8. Do not translate UI text.
-9. Do not invent invisible content.
-10. If text is unclear or unreadable, write `UNCLEAR_TEXT`.
+9. Do not invent states or content that are not present.
+10. [image designs] If text is unclear or unreadable, write `UNCLEAR_TEXT`.
 11. Keep the report under 500 lines.
 ```
 
@@ -285,7 +264,7 @@ Make sure to cover: visible text; buttons and actions; input fields; placeholder
 
 #### Design artefact handling rules
 
-* If both HTML prototype and image design files are provided, run both Sub-agent B and Sub-agent C in parallel.
+* If both HTML prototype and image design files are provided, run both Sub-agent B and Sub-agent C in parallel (two `Agent` calls from the SAME prompt template, different slot values).
 * If only HTML prototype is provided, run only Sub-agent B.
 * If only image design files are provided, run only Sub-agent C.
 * If no design or wireframe artefact is provided, skip design extraction and warn the user once.
@@ -317,7 +296,7 @@ Use this exact structure:
 - Input language
 - Source UC file(s)
 - Related feature / module
-- Artefacts detected for this UC: common files / API / BPMN / design / prototype / site-map
+- Artefacts detected for this UC: common files / BPMN / design / prototype / site-map (raw API docs are NOT read here — API branch belongs to `qc-api-read`)
 - Notes for downstream extraction: none / <only routing notes>
 
 ## §C. Resolved common rules & messages (Sub-agent A — verbatim table, includes NOT_FOUND rows)
@@ -357,6 +336,8 @@ Follow `.claude/rules/qc-writting-rules.md` (MANDATORY — văn phong, bảng qu
 ### §F.1 UI Element Extraction, Classification, and Cataloging
  
 Catalog every UI element from the raw evidence reported by Sub-agent B (HTML prototype) and Sub-agent C (image design), reconcile with the use case document, and classify each element. **§F.1 is listing + classification only — no behavior analysis (that is §F.2).** Output goes into Section 4 of the template.
+
+**Fallback — no design evidence:** if neither Sub-agent B nor Sub-agent C ran (no prototype / image design provided), catalog UI elements from the UC document's own screen/element tables instead (e.g. its §6 "Màn hình & phần tử UI") — same granularity and classification rules apply; set each row's source to the UC section. In this case the rubric's Area-1 cap for missing UI evidence does NOT apply (see `references/scoring-rubric.md` §8 exception) — the UC's own element tables count as usable UI evidence.
  
 **Granularity (MANDATORY):** Every basic UI element gets its **own row**. Do not group multiple fields/buttons/columns into one row (DO NOT write "9 API fields" or "(N values)" — list each individually). For each element capture:
 - **Exact label** — verbatim (VN/EN), no paraphrase. On design-vs-UC mismatch, prioritize the design label and flag the discrepancy.
@@ -445,7 +426,7 @@ Per `.claude/config/checkpoint-protocol.md` §4 (checkpoint write):
 
 ## Hand-off to Phase 2
 
-Next file: `workflows/first-audit/2-score-and-identify-gaps.md`. It reads `01_synthesis.md` from the checkpoint folder and scores the 10 knowledge areas using the rubric in `references/scoring-rubric.md`.
+Next file: `workflows/first-audit/2-score-and-identify-gaps.md`. It reads `01_synthesis.md` from the checkpoint folder and scores the 5 scoring areas using the rubric in `references/scoring-rubric.md`.
 
 
 

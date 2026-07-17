@@ -2,222 +2,183 @@
 
 Nâng version = thay folder `.claude` của dự án bằng bản mới từ QC-kit. Toàn bộ tài liệu trong `docs/` giữ nguyên — context đã chạy trước đó (`docs/qc-lead/`) vẫn dùng tiếp, không cần tổng hợp lại.
 
-**Vì sao không thay folder xong là xong?** Vì bảng đường dẫn (`.claude/config/path-registry.md`) có 2 phần thông tin nằm ở 2 nơi: bản của DỰ ÁN chứa các đường dẫn bạn đã khai báo lúc onboarding, còn bản của KIT MỚI có thêm nhiều dòng logical name mới. Chép đè bản cũ lên → mất dòng mới của kit; giữ nguyên bản mới → mất đường dẫn của dự án. Nên cần gộp 2 bản lại — bước 4 dưới đây nhờ Agent làm việc này.
+Bảng đường dẫn vẫn chia 2 nhóm như trước: nhóm **A** (tài liệu đầu vào do BA/dự án tạo: high-level, requirement, API doc...) chép lại từ bản cũ; nhóm **B** (sản phẩm của kit — path cố định) lấy nguyên theo kit mới.
 
 Các bước:
 
-1. Copy cả dự án ra ngoài để back-up.
-2. **Move (không phải copy) file `.claude/config/path-registry.md` hiện tại ra NGOÀI folder `.claude`** — ví dụ đặt tạm ở gốc dự án, đổi tên thành `path-registry-cu.md` cho khỏi nhầm.
-3. Xóa folder `.claude` cũ, copy folder `.claude` từ QC-kit mới vào.
+1. Copy cả dự án ra ngoài để back-up (hoặc commit git một mốc sạch).
+2. **Move (không phải copy) file `.claude/config/path-registry.md` hiện tại ra NGOÀI folder `.claude`** — đặt tạm ở gốc dự án, đổi tên thành `path-registry-cu.md`.
+3. Xóa folder `.claude` cũ, copy folder `.claude` từ QC-kit mới vào. Skill nào đang chạy dở thì hoàn tất trước khi nâng — checkpoint không mang sang được.
 4. Nhờ Agent gộp bảng đường dẫn — mở chat và gửi prompt như sau:
 
-   > Đọc file `path-registry-cu.md` ở gốc dự án (bảng đường dẫn cũ, đã điền path riêng của dự án) và file `.claude/config/path-registry.md` (bản mới của kit). Copy các đường dẫn dự án đang dùng từ file cũ vào đúng dòng logical name tương ứng trong file mới; giữ nguyên mọi dòng logical name mới của kit. Xong liệt kê cho tôi 2 danh sách: (1) các dòng đã điền lại từ file cũ, (2) các dòng logical name MỚI mà tôi cần khai báo đường dẫn. Cuối cùng xóa file `path-registry-cu.md`.
+   > Đọc file `path-registry-cu.md` ở gốc dự án và file `.claude/config/path-registry.md` (bản mới của kit). Chép giá trị Path của các dòng NHÓM A (Nguồn = BA) từ file cũ vào đúng dòng logical name tương ứng trong file mới; toàn bộ dòng nhóm B giữ nguyên theo bản mới. Xong liệt kê: (1) các dòng nhóm A đã chép, (2) các dòng nhóm A MỚI tôi cần khai path (vd `api-doc-files`). Cuối cùng xóa file `path-registry-cu.md`.
 
-5. Xem 2 danh sách Agent trả về: với các logical name MỚI, dòng nào là ĐẦU VÀO (tài liệu BA, thư mục dự án...) thì bạn khai báo path thật; dòng nào là OUTPUT thì kit đã quy định sẵn, để nguyên. Còn ô nào dạng `docs/???` thì chạy `/qc-project-onboarding` chế độ cập nhật để skill tự rà và hỏi bạn.
+5. Chạy `/qc-project-onboarding` (chế độ update): skill tự rà `project-config.md` và hỏi bổ sung các mục v4 — mục 6 giờ chọn thêm Kênh verify database (L4) + bảng Variant kiểm thử UI/API, mục 1 có field Project language, mục 7 Auth API khi có nhánh API.
+6. Chạy `/qc-context-master` (update) để sinh mục **§3.0** trong `project-context-master.md` — BẮT BUỘC: mọi skill tầng 2/3 của v4 đọc Phạm vi test / Variant / Ngôn ngữ dự án từ §3.0; thiếu §3.0 là skill dừng lại hỏi.
+7. File test case cũ đặt theo naming cũ (chưa có `<variant>` trong tên, bản md còn chữ "draft"): KHÔNG cần đổi tay — lần `/qc-func-tc-design <UC>` / `/qc-api-tc-design <UC>` update kế tiếp tự ghi `v[N+1]` theo naming mới (md + xlsx cùng base name). Muốn gọn ngay thì tự đổi tên CẢ 2 file theo mẫu `<UC>_<feature>_testcases_<variant>_<YYYYMMDD>_v<N>.(md|xlsx)`.
+8. Thang priority: file TC cũ dùng P1–P5 → lần update đầu tiên tự chuyển sang 4 mức (P1→Critical, P2→High, P3→Medium, P4 và P5→Low), không đổi ID, có ghi chú migration trong report — bạn không phải làm gì.
 
-Các skills đã có ở version trước chỉ được tinh gọn và cải tiến, không thay đổi về cấu trúc hay input, output. Các skill tầng automation — mới nhất là `qc-execute-test-report` (chốt kết quả + report bug) và `qc-bug-verify` (verify bug) — được hướng dẫn ở mục 4 bên dưới.
+# Hướng dẫn sử dụng QC Kit v4 — cho người mới
 
+> Tài liệu: Hướng dẫn sử dụng QC Kit v4 | Ngày tạo: 2026-07-03 | Cập nhật: 2026-07-17 | Tác giả: Joy | Phiên bản: v6
 
-# Hướng dẫn sử dụng QC Kit v3 — cho người mới
+Bộ kit gồm **19 skill** (18 skill quy trình + skill khởi động `qc-start`) giúp QC làm việc theo quy trình: hiểu dự án → thiết kế test → (tùy chọn) chạy tự động và quản lý bug. Bạn chỉ cần gõ lệnh `/tên-skill`, skill sẽ tự hỏi thêm khi thiếu thông tin.
 
-> Tài liệu: Hướng dẫn sử dụng QC Kit v3 | Ngày tạo: 2026-07-03 | Cập nhật: 2026-07-07 | Tác giả: Joy | Phiên bản: v4
->
-> Thay đổi so với v3: tầng automation lên 4 bước — thêm chốt kết quả + report bug (`/qc-execute-test-report`) và verify bug (`/qc-bug-verify`); vòng hỏi-đáp sổ crawl-findings; quy hoạch lại thư mục automation (phần hệ thống gom vào `runner/`); cập nhật sơ đồ thư mục (mục 5), bảng thay đổi (mục 6) và hướng dẫn nâng version.
+> 🚀 **Cách bắt đầu nhanh nhất:** gõ **"Hi qc-kit"** (hoặc `/qc-start`). Skill `qc-start` chào theo trạng thái dự án và hỏi bạn cần gì: (1) làm quen với kit — tour 3 tầng, đi sâu từng skill; (2) việc cần làm tiếp theo — tự chạy `/qc-dashboard-sync` nếu dashboard cũ rồi gợi ý lệnh per UC; (3) transfer dự án — tổng quan từ project-context-master + dashboard cho người mới. Có thể hỏi tự do bất kỳ điều gì về kit/dự án, không cần theo kịch bản.
 
-Bộ kit gồm 13 skill giúp QC làm việc theo quy trình: hiểu dự án → thiết kế test → (tùy chọn) chạy tự động và quản lý bug. Bạn chỉ cần gõ lệnh `/tên-skill`, skill sẽ tự hỏi thêm khi thiếu thông tin.
+## Thay đổi so với kit v3 — 9 nhóm
+
+1. **Nhánh API "req-first thuần"** (kiến trúc 3 tầng GIỮ NGUYÊN; thêm skill khởi động `qc-start` → 19 skill): `qc-api-read` KHÔNG đọc API doc nữa — audit thuần nghiệp vụ, kế thừa audited UC đạt ngưỡng; binding + đối chiếu doc dồn DUY NHẤT về `qc-api-tc-design` (Step 1.4); artifact mới `qc-api-coverage.md` — bản đồ sở hữu operation toàn dự án, `qc-api-read` rebuild mỗi lần chạy; sổ câu hỏi API tách riêng theo PORTAL (`<PORTAL>_api-question-backlog.md`, 2 tầng A/B, dedup nội dung — sổ per-UC chỉ còn nhánh UI); `api-baseline` ghi status/message thực tế ở lần chạy đầu per TC (QC/BE confirm) thay cho việc pin cứng expected ở tầng thiết kế.
+2. **Nguồn cấu hình runtime**: nhập ở `project-config` §6 (+ §1 Project language) tại onboarding; `qc-context-master` kế thừa nguyên văn vào `project-context-master` **§3.0** — mọi skill tầng 2/3 đọc Phạm vi test / Variant / Ngôn ngữ từ §3.0, không hỏi lại bạn.
+3. **Naming test case mới**: bản md là BẢN CHÍNH THỨC (không còn "draft"), md + xlsx CÙNG BASE NAME `<UC>_<feature>_[api-]testcases_<variant>_<YYYYMMDD>_v<N>.(md|xlsx)`, cả 2 versioned + immutable, update ghi v[N+1] cho cả 2.
+4. **Priority 4 mức**: Critical / High / Medium / Low (nhà chính: `testcase-instruction-rules.md` C6); file cũ P1–P5 tự migration khi update.
+5. **Luật ngôn ngữ 2 nhóm** (`qc-writting-rules.md`): tài liệu review nội bộ (audited, api-audited, sổ câu hỏi, triage, summary, plan) LUÔN tiếng Việt; deliverable release (scenarios, test cases, spec, bug report, execution report) theo ngôn ngữ dự án (VI/EN, đọc từ §3.0).
+6. **Scenario 2 nhánh có UPDATE MODE**: TS ID ổn định, Change log Added/Modified/Removed; RTM trong file TC có cột `TS liên quan` (truy vết TS→TC).
+7. **`qc-uc-read`**: file `input-files-format.md` per-project mô tả format tài liệu đầu vào — skill tự đối chiếu + cập nhật, bạn CHỈ sửa dòng cờ thành `Cần check lại` khi BA đổi format; rubric chấm điểm 5 vùng.
+8. **Tầng automation**: page object CHỈ sinh từ live crawl (chưa có kênh DOM → skill hướng dẫn cài + chờ, không sinh tạm); API variant hỗ trợ `rest` (variant khác → kit báo cần bổ sung technical reference); scaffold `.env.example`; tự bootstrap worklog (README từ template trong kit); triage → cột `Cách chạy` (`Đã có script`/`Trùng` → `Tự động`, còn lại → `Thủ công`); gate api-findings tính theo giao-UC (`UC-101/TC_API_001`).
+9. **Vận hành**: mọi SKILL.md giờ là router gọn (thuật toán ở `workflows/`); cột `API stt` của dashboard hiển thị `<verdict> v<N> · <score>/100 · scen v<M> · TC v<K>`.
 
 ---
 
-## 1. Bức tranh tổng thể — 3 tầng
+## 1. Bức tranh tổng thể — 3 tầng, 2 nhánh
 
 ```
 TẦNG 1 — CONTEXT (chạy 1 lần khi vào dự án, chạy lại khi tài liệu chung thay đổi)
 /qc-project-onboarding → /qc-context-master → /qc-site-map → /qc-dashboard-sync
-   (cấu hình dự án)        (tri thức dự án)     (sơ đồ màn hình    (bảng theo dõi
-                                                 + dữ liệu)         trạng thái)
+   (cấu hình §6 + §7)      (tri thức + §3.0)    (sơ đồ màn hình+dữ liệu)  (bảng theo dõi)
 
 TẦNG 2 — TEST DESIGN (chạy lặp lại cho TỪNG UC)
-/qc-uc-read <UC-ID> → /qc-func-scenario-design <UC-ID> → /qc-func-tc-design <UC-ID>
-  (review yêu cầu,        (thiết kế test scenario)          (thiết kế test case
-   chấm điểm sẵn sàng)                                       chi tiết, xuất Excel)
+ Nhánh UI :  /qc-uc-read → /qc-func-scenario-design → /qc-func-tc-design
+                  │ (audited đạt ngưỡng điểm)
+                  ▼
+ Nhánh API:  /qc-api-read → /qc-api-scenario-design → /qc-api-tc-design
+             (audit nghiệp vụ,  (scenario API)          (test case API — nơi DUY NHẤT
+              KHÔNG cần doc)                              đối chiếu API doc)
 
-TẦNG 3 — AUTOMATION (tùy chọn — dự án test thủ công có thể bỏ qua hoàn toàn)
-/qc-auto-generate <UC-ID> → /qc-auto-run <UC-ID> → /qc-execute-test-report <UC-ID> → /qc-bug-verify <UC-ID>
-  (sinh code test              (chạy test,           (chốt kết quả theo TC            (chạy xác nhận bug
-   tự động)                     báo kết quả)           + report bug đã kiểm chứng)      dev đã fix)
+TẦNG 3 — AUTOMATION (tùy chọn — dự án test thủ công bỏ qua hoàn toàn)
+ /qc-func-auto-generate (UI)  ┐
+ /qc-api-auto-generate  (API) ┴→ /qc-auto-run ──tự động──→ /qc-execute-test-report
+                                                                  │ (có TC fail — tự động)
+                                                                  ▼
+                                              /qc-bug-verify ←── /qc-bug-report
+                                              (bạn duyệt plan)    (bạn gửi dev + cập nhật Trạng thái)
 ```
 
-| Tầng | Trả lời câu hỏi | Bắt buộc? |
-|---|---|---|
-| 1 — Context | "Dự án này là gì, có những màn hình và tính năng nào?" | Có — nền cho tầng 2 |
-| 2 — Test design | "UC này test những gì, các bước ra sao?" | Có — sản phẩm chính của QC |
-| 3 — Automation | "Cho máy chạy lại các test case này được không?" | Không — bật khi dự án cần |
+**Chuỗi lệnh chạy chuẩn cho dự án mới** (câu hỏi của sổ được BA/BE trả lời xen giữa các bước): `/qc-project-onboarding` → `/qc-context-master` → `/qc-site-map` → `/qc-dashboard-sync` (3 bước sau thường tự nối nhau) → per UC: `/qc-uc-read UC-x` (tự kéo `qc-qna`) → `/qc-func-scenario-design UC-x` → `/qc-func-tc-design UC-x` → [khi có API: `/qc-api-read UC-x` → `/qc-api-scenario-design UC-x` → `/qc-api-tc-design UC-x`] → (automation) `/qc-func-auto-generate UC-x` + `/qc-api-auto-generate UC-x` → `/qc-auto-run UC-x` → tự động `/qc-execute-test-report` → tự động `/qc-bug-report` → `/qc-bug-verify UC-x` sau khi dev fix.
 
-**Cơ chế đầu vào / đầu ra — nắm 1 lần, dùng cả kit:**
+**Phạm vi test** — khai MỘT lần ở onboarding: `Black-box only` / `API only` / `Black-box + API` (Both có thêm test case MIX đối chiếu 2 tầng). Chỉ được đổi MỘT CHIỀU sang `Black-box + API`. BE xong trước FE vẫn là Both — nhánh API cứ chạy trước, vì cả 3 bước thiết kế API đều không cần hệ thống chạy.
 
-- **Đầu vào:** kit KHÔNG bắt buộc bạn đặt tài liệu ở vị trí cố định nào. Bạn khai báo đường dẫn thực tế của từng loại tài liệu vào bảng đường dẫn (`.claude/config/path-registry.md`) theo tên gọi logic (logical name) — việc này làm một lần ở bước onboarding. Từ đó mọi skill tự tra bảng để tìm file.
-- **Đầu ra:** vị trí và tên file output đã được kit quy định sẵn trong cùng bảng đường dẫn — bạn không cần (và không nên) tự đổi.
+**Cơ chế đầu vào / đầu ra — nắm 1 lần, dùng cả kit:** đầu vào bạn khai path vào bảng đường dẫn (`.claude/config/path-registry.md`) — chỉ các dòng **nhóm A**; đầu ra kit quy định sẵn (**nhóm B** — chưa chạy skill thì để nguyên, không xóa trống). Cấu hình runtime (Phạm vi test / Variant / Ngôn ngữ) nhập ở `project-config` §6 rồi mọi skill đọc qua `project-context-master` §3.0 — bạn không phải khai lại lần hai.
 
 ---
 
 ## 2. Tầng 1 — Context: dựng khung hiểu dự án
 
-**Đầu vào chung của cả tầng — chỉ cần chuẩn bị 1 lần:** bộ tài liệu high-level của dự án do BA cung cấp (bản tóm tắt dự án, kiến trúc hệ thống, danh sách tính năng, quy tắc nghiệp vụ chung...). Tài liệu để ở đâu cũng được — bạn khai báo đường dẫn vào bảng đường dẫn tại bước 1 (dòng `High-level-files` và `requirement-common-files`).
+Như trước: bước 1 phỏng vấn cấu hình → bước 2 tổng hợp tri thức → bước 3 sơ đồ → bước 4 bảng theo dõi; bước 2 xong tự kéo bước 3, 4.
 
-Các bước nối đầu vào như dây chuyền: **bước 1 và 2 đọc tài liệu high-level → bước 3 đọc lại output của bước 2 → bước 4 đọc lại output của bước 3.** Bước 2 xong sẽ tự kéo bước 3, 4 chạy theo.
+### Bước 1 — `/qc-project-onboarding` — các mục cần để ý
 
-### Bước 1 — Khai báo dự án: `/qc-project-onboarding`
+- **Mục 6 — Phạm vi & Variant kiểm thử (BẮT BUỘC):** chọn phạm vi (3 giá trị trên) + Kênh verify database (L4) + variant từ danh mục chuẩn (UI: `web-responsive` / `web-static` / `mobile-native` / `mobile-hybrid` / `desktop-native`; API: `rest` — variant khác kit sẽ từ chối kèm hướng dẫn bổ sung technical reference) — CHỌN chứ không điền chữ tự do.
+- **Mục 1 — Project language:** ngôn ngữ deliverable của dự án (Vietnamese / English) — quyết định ngôn ngữ scenario/test case/bug report theo luật 2 nhóm.
+- **Mục 3 — Environments:** dự án có API khai thêm mỗi môi trường 1 dòng `<ENV> - API`. **Mục 7 — Auth API:** endpoint login + vị trí token, HOẶC "user tự cấp token" (khai `API_TOKEN_<ROLE>` vào `.env` — kit scaffold sẵn `.env.example`).
+- Bước 2 của onboarding chỉ hỏi dòng nhóm A; dự án có API khai thêm `api-doc-files` (Swagger/OpenAPI/Postman JSON) — cần đến TRƯỚC bước `/qc-api-tc-design`, hai bước API đầu chưa cần.
 
-- **Chạy:** gõ `/qc-project-onboarding`. Skill phỏng vấn bạn 2 bước: thông tin dự án, rồi khai báo đường dẫn từng loại tài liệu vào bảng đường dẫn.
-- **Nhận được:** file cấu hình dự án (`docs/qc-lead/project-config.md`) và bảng đường dẫn đã điền (`.claude/config/path-registry.md`).
-- **Review:** kiểm tra URL môi trường test, tài khoản test trong file cấu hình dự án — tầng 3 sẽ dùng đến; xác nhận không còn ô đường dẫn nào để trống dạng `docs/???`.
+### Bước 2–4 — như trước
 
-### Bước 2 — Tổng hợp tri thức: `/qc-context-master`
-
-- **Đầu vào:** tài liệu high-level đã khai báo ở bước 1 (nếu thư mục rỗng skill sẽ dừng và báo).
-- **Chạy:** gõ `/qc-context-master` (bước 1 thường tự kích hoạt bước này).
-- **Nhận được:** file tri thức dự án (`docs/qc-lead/project-context-master.md`) — bản tóm tắt mức dự án mà mọi skill tầng 2 đọc trước tiên.
-- **Review:** đọc lướt toàn file, sửa tay chỗ tóm tắt sai; phần bạn đã sửa sẽ được giữ nguyên ở lần cập nhật sau.
-
-### Bước 3 — Sơ đồ màn hình & dữ liệu: `/qc-site-map`
-
-- **Đầu vào:** file tri thức dự án — output của bước 2 (bắt buộc); có thêm wireframe, ma trận phân quyền càng tốt.
-- **Chạy:** lần đầu được bước 2 tự gọi; về sau gõ `/qc-site-map` khi cần cập nhật.
-- **Nhận được:** sơ đồ màn hình (`docs/qc-lead/qc-site-map.md`) và sơ đồ dữ liệu (`docs/qc-lead/qc-data-map.md`).
-- **Review:** đối chiếu danh sách màn hình với hệ thống thật — thiếu màn hình nào thì báo skill bổ sung; xem mục điều hướng và phân quyền có đúng thực tế không.
-
-### Bước 4 — Bảng theo dõi: `/qc-dashboard-sync`
-
-- **Đầu vào:** danh sách tính năng do bước 3 bàn giao — tự động, bạn không cần chuẩn bị gì.
-- **Chạy:** lần đầu được bước 3 tự gọi; về sau gõ `/qc-dashboard-sync` (toàn bộ) hoặc `/qc-dashboard-sync <UC-ID>` (một UC).
-- **Nhận được:** bảng trạng thái (`docs/qc-lead/qc-dashboard.md`) — mỗi tính năng một dòng, cho biết UC nào đã review, đã có scenario, đã có test case.
-- **Review:** cột phạm vi (`In scope?`) — chỉ bạn được sửa tay giá trị này; skill KHÔNG tự quyết định.
-- **Lưu ý:** chỉ skill này được ghi vào bảng trạng thái. Đừng chờ skill khác cập nhật giúp.
+`/qc-context-master` → `project-context-master.md` (mục **§3.0** kế thừa nguyên văn §6 + Project language — nguồn đọc chuẩn của mọi skill phía sau); `/qc-site-map` → sơ đồ màn hình + dữ liệu; `/qc-dashboard-sync` → bảng theo dõi. Dashboard: khi có nhánh API, cột **`API stt`** hiển thị `<verdict> v<N> · <score>/100 · scen v<M> · TC v<K>` — nhìn 1 ô biết audit API đạt bao nhiêu điểm.
 
 ---
 
 ## 3. Tầng 2 — Test design: làm theo từng UC
 
-Với mỗi UC, chạy lần lượt 3 bước. UC nào cũng đi qua đủ 3 bước trước khi chuyển UC khác (hoặc chạy song song nhiều UC nếu đã quen).
+### Nhánh UI — 3 bước, có thêm 2 điểm mới
 
-### Bước 1 — Review yêu cầu: `/qc-uc-read <UC-ID>`
+`/qc-uc-read UC-101` (review yêu cầu, chấm điểm theo rubric 5 vùng — §4 báo cáo là bảng kiểm kê phần tử UI) → `/qc-func-scenario-design UC-101` → `/qc-func-tc-design UC-101`. BA trả lời câu hỏi → đưa vào chat → `/qc-uc-read` tự re-audit.
 
-- **Đầu vào:** tài liệu UC gốc và file quy tắc chung của BA — đường dẫn đã khai báo trong bảng đường dẫn từ lúc onboarding (dòng `requirement-files` và `requirement-common-files`); nếu dự án đổi cấu trúc thư mục, cập nhật lại bảng này trước.
-- **Chạy:** gõ `/qc-uc-read UC-101` (thay mã UC của bạn).
-- **Nhận được:**
-  - Báo cáo độ sẵn sàng (file có đuôi `_audited_..._v1.md`): kết luận Ready / Conditionally Ready / Not Ready, điểm 0–100, danh sách lỗ hổng yêu cầu. Mục §4 của báo cáo là bảng kiểm kê phần tử giao diện — nguồn từ vựng cho cả 2 bước sau và tầng 3.
-  - Sổ câu hỏi cho BA (file `_question-backlog.md`, do skill `qc-qna` tự tạo): các câu hỏi mở cần BA trả lời.
-- **Review:** đọc phần kết luận + danh sách câu hỏi; gửi sổ câu hỏi cho BA. Nếu kết quả Not Ready — dừng, chờ BA bổ sung, đừng thiết kế test vội.
+- **Format tài liệu đầu vào tự kiểm:** kit giữ file `input-files-format.md` (trong `.claude/skills/qc-uc-read/references/`) mô tả cấu trúc tài liệu BA của dự án. Skill tự đối chiếu và tự cập nhật; việc DUY NHẤT của bạn: khi BA đổi format tài liệu, sửa dòng cờ `> **Trạng thái khớp thực tế:**` thành `Cần check lại` — lần audit sau skill tự rà lại.
+- **Chạy lại scenario khi audited đổi:** `/qc-func-scenario-design` giờ có update mode — giữ nguyên TS ID cũ, thêm Change log Added/Modified/Removed ở đầu file; scenario bị bỏ vẫn giữ block, đánh dấu `[Removed]`. Test case md có bảng RTM với cột `TS liên quan` — soi được TS nào chưa có TC.
+- **Test case:** bản md là BẢN CHÍNH THỨC (máy đọc cho automation), md + xlsx cùng base name `<UC>_<feature>_testcases_<variant>_<YYYYMMDD>_v<N>`, update ghi v[N+1] cho CẢ 2. Priority 4 mức Critical/High/Medium/Low — Critical = bộ smoke của UC.
 
-### Bước 2 — Thiết kế scenario: `/qc-func-scenario-design <UC-ID>`
+### Nhánh API — 3 bước (chỉ khi Phạm vi test có API)
 
-- **Đầu vào:** báo cáo review ở bước 1 — output có sẵn, skill tự tìm phiên bản mới nhất.
-- **Chạy:** gõ `/qc-func-scenario-design UC-101`.
-- **Nhận được:** file scenario (đuôi `_scenarios_..._v1.md`) — mỗi scenario là một ý định test, đánh mã `TS_<UC-ID>_NNN`.
-- **Review:** kiểm tra độ phủ — đủ luồng thành công, luồng ngoại lệ, tích hợp chưa; phần nào yêu cầu còn thiếu sẽ nằm ở mục ngoài phạm vi kèm gợi ý hỏi BA — không được bịa scenario cho phần đó.
+Nguyên tắc v4: **req-first thuần** — 2 bước đầu đi hoàn toàn từ requirement, KHÔNG đụng API doc; doc chỉ cần ở bước 3.
 
-### Bước 3 — Thiết kế test case: `/qc-func-tc-design <UC-ID>`
+#### Bước 1 — Audit API: `/qc-api-read UC-101`
 
-- **Đầu vào:** báo cáo review (bắt buộc) + file scenario (nên có) — đều là output có sẵn của 2 bước trước.
-- **Chạy:** gõ `/qc-func-tc-design UC-101`. Skill chạy 2 pha: viết bản md → tự chuyển thành Excel.
-- **Nhận được:** test case ở 2 định dạng cùng nội dung — bản md (cho máy đọc, tầng 3 dùng) và bản Excel (để bàn giao, review).
-- **Review:** mở file Excel, soát theo: mỗi test case tự chạy độc lập được không, message lỗi có trích nguyên văn không, đã đủ giá trị biên và phân vùng tương đương chưa.
+- **Đầu vào:** audited UC đã ĐẠT NGƯỠNG (Ready / Conditionally Ready — skill tự kiểm tra). KHÔNG cần API doc — có cũng không đọc.
+- **Nhận được:** `*_api-audited_*_v<N>.md` — suy diễn "BE cần làm gì": danh mục operation (khoá `resource · action` + vai trò `Owner`/`Reuse` để 2 UC không thiết kế trùng một endpoint), validation matrix từng param, luồng + chuyển trạng thái, ma trận phân quyền, AC hướng API (mức hành vi — không pin status/message), điểm readiness /100. Cuối MỖI lần chạy skill rebuild `qc-api-coverage.md` (`docs/qc-lead/`) — bản đồ sở hữu operation toàn dự án, KHÔNG sửa tay.
+- **Câu hỏi API** đi vào sổ theo PORTAL: `<PORTAL>_api-question-backlog.md` (2 tầng: mục A câu hỏi chung + mục B theo UC; đã dedup với sổ UI per-UC — không hỏi BA/BE trùng). Các câu dạng "status code/message chính xác là gì" bị chặn từ gốc — hệ thống chạy sẽ tự trả lời qua baseline.
 
-> **Khi BA trả lời câu hỏi:** đưa câu trả lời vào chat cho Agent (không cần tự viết vào sổ câu hỏi) rồi chạy lại `/qc-uc-read <UC-ID>` — skill tự nhận diện chế độ review lại (re-audit), cập nhật báo cáo và đồng bộ trạng thái câu hỏi. Sau đó chạy lại bước 2, 3 nếu nội dung thay đổi.
+#### Bước 2 — Scenario API: `/qc-api-scenario-design UC-101`
 
----
+- **Nhận được:** `*_api-scenarios_*_v<N>.md` — mỗi scenario 1 ý định test (`TS_API_*`), phủ **9 vùng**: contract, validation, luồng nghiệp vụ, chuyển trạng thái, phân quyền, toàn vẹn dữ liệu, hành vi giao thức, MIX (chỉ khi Both), và vùng 9 MỚI — an toàn & chống lạm dụng (input hiểm, spam/double-submit, lộ dữ liệu nhạy cảm). Vùng endpoint-level chỉ thiết kế cho operation UC này là `Owner`; operation `Reuse` tham chiếu sang UC chủ. Có update mode như nhánh UI.
 
-## 4. Tầng 3 — Automation: module độc lập, bật khi cần
+#### Bước 3 — Test case API: `/qc-api-tc-design UC-101`
 
-Tầng này KHÔNG đọc tài liệu context — chỉ cần 3 thứ: báo cáo review UC, file test case định dạng md (bản chính thức, cùng nội dung với file Excel — dùng md vì máy đọc được), và file cấu hình dự án (URL môi trường test + tài khoản test). Tuyệt đối không chạy trên môi trường vận hành thật (production) — skill sẽ tự từ chối.
+- **Đầu vào BẮT BUỘC:** API doc (khai ở `api-doc-files`). Thiếu → skill DỪNG chờ. Đây là nơi DUY NHẤT của kit đối chiếu doc: **Step 1.4 binding** operation nghiệp vụ ↔ endpoint thật (đọc bảng digest qua script `parse-api-doc.mjs` — agent không đọc raw doc). Lệch phát hiện tại đây thành finding qua `qc-qna`: thiếu endpoint (`UNDOCUMENTED_OPERATION`), doc mâu thuẫn requirement (`DOC_REQ_MISMATCH`), endpoint thừa không ai nhận (`ORPHAN_ENDPOINT`).
+- **Nhận được:** test case md + xlsx cùng base name (`TC_API_NNN`, `TC_MIX_NNN` khi Both); prelude có bảng "Binding OP ↔ endpoint" + bảng link "TC UI liên quan" (dùng phân định lỗi FE/BE về sau). Expected viết mức HÀNH VI (thành công + side-effect / bị từ chối + không ghi dữ liệu); status/message chính xác KHÔNG bịa, không hỏi BE — để `api-baseline` ghi ở lần chạy đầu.
+- **Review:** mở Excel soát như TC UI; để ý nhóm phân quyền (đúng role / sai role / không token / token hỏng) và nhóm verify side-effect (tạo xong GET lại kiểm tra).
 
-Tầng này gồm 4 bước nối thành vòng khép kín: sinh code → chạy → chốt kết quả + report bug → verify bug. Mục tiêu của 2 bước cuối: mọi bug được report đều ĐÃ kiểm chứng — không lẫn bug thật với sai lệch tài liệu, lỗi script hay lỗi môi trường.
-
-### Bước 1 — Sinh code test: `/qc-auto-generate <UC-ID>`
-
-- **Đầu vào:** UC đã xong tầng 2; file cấu hình dự án đã điền URL môi trường test và tài khoản test theo vai trò; hệ thống đang chạy để skill dò tìm phần tử giao diện thật.
-- **Chạy:** gõ `/qc-auto-generate UC-101`.
-- **Nhận được:** project Playwright + TypeScript tại `docs/qc/automation/`.
-- **Review sau khi chạy — 3 chỗ:**
-  - **File dữ liệu test** (`data/<UC-ID>_testdata.md` — file sống, không version): chỉnh giá trị theo môi trường của bạn; file KHÔNG bao giờ chứa mật khẩu (mật khẩu chỉ nằm trong file cấu hình dự án, đọc lúc chạy test).
-  - **Bảng triage** (`triage/<UC-ID>_..._automation-triage_..._v<N>.md`): test case nào tự động được, test case nào phải chạy tay và vì sao — mỗi TC một dòng verdict.
-  - **Sổ câu hỏi crawl** (`crawl-findings/<portal>_<page>_crawl-findings.md` — file sống): các phần tử giao diện KHÔNG tìm thấy hoặc LỆCH so với tài liệu khi dò hệ thống thật. Bạn/dev trả lời inline vào cột "Trả lời của QC/dev", rồi chạy lại `/qc-auto-generate <UC-ID>` — skill dò lại đúng chỗ theo câu trả lời và đánh dấu dòng đó `Đã giải quyết`. Trả lời hết là ĐIỀU KIỆN BẮT BUỘC trước khi chốt kết quả ở bước 3.
-
-**Project được dựng chuyên nghiệp như thế nào?** Skill xây theo mô hình đối tượng trang (Page Object Model) với lớp dùng chung, sinh tăng dần:
-
-1. **Khung project — dựng 1 lần duy nhất** ở lần chạy đầu: cấu hình Playwright, `package.json`, lớp helper nền (trang cơ sở, dữ liệu test, email động).
-2. **Lớp dùng chung theo portal — tái sử dụng giữa các UC:** page object (gom locator + thao tác của một màn hình) và flow helper (chuỗi bước lặp lại như đăng nhập, tạo bản ghi). Chỉ sinh phần còn thiếu hoặc đã lỗi thời — UC chạy sau dùng lại của UC trước, nên càng về sau càng nhanh.
-3. **Locator lấy từ hệ thống thật:** skill dò trực tiếp giao diện đang chạy (live crawl) thay vì đoán, và đóng dấu phiên bản báo cáo review + ngày dò lên từng page object để biết khi nào cần dò lại.
-4. **Phần riêng mỗi UC rất mỏng:** chỉ gồm file spec ngắn theo màn hình (mỗi test gắn mã test case) + 1 file dữ liệu test cho bạn chỉnh.
-
-### Bước 2 — Chạy test: `/qc-auto-run <UC-ID>`
-
-- **Đầu vào:** project ở bước 1; máy có Node.js ≥ 18 (thiếu thư viện khác skill tự cài).
-- **Chạy:** gõ `/qc-auto-run UC-101` — hoặc yêu cầu chạy một màn hình, một mã test case, một nhóm ưu tiên.
-- **Nhận được:** báo cáo kết quả (`docs/qc/automation/reports/summary-latest.md`) — đậu/rớt theo từng mã test case; bảng trạng thái tầng 1 tự hiện thêm 2 cột automation.
-- **Khi test rớt:** rớt do giao diện đổi → chạy lại `/qc-auto-generate <UC-ID>` để dò lại phần tử; rớt do dữ liệu → sửa file dữ liệu test rồi chạy lại.
-- **Chạy xong:** summary chỉ là bản tổng hợp của MỘT lần chạy — muốn chốt kết quả chính thức theo từng test case và report bug, chạy tiếp bước 3.
-
-### Bước 3 — Chốt kết quả + report bug: `/qc-execute-test-report <UC-ID>`
-
-- **Đầu vào:** kết quả lần chạy gần nhất (bước 2) + MỌI câu hỏi trong sổ crawl-findings của các màn hình thuộc UC đã `Đã giải quyết`. Đây là gate cứng — còn câu chưa trả lời, skill liệt kê từng câu và dừng, không ghi gì; đã trả lời nhưng chưa chạy lại, skill yêu cầu chạy `/qc-auto-generate` + `/qc-auto-run` trước.
-- **Chạy:** gõ `/qc-execute-test-report UC-101`.
-- **Nhận được:**
-  - **File kết quả thực thi** (`docs/qc/testcases/<UC-ID>/*_test-results.md` — file sống): mỗi test case một dòng (gồm CẢ test case thủ công), MỖI lần chạy thêm một cột — header cột ghi số run + ngày + môi trường + trình duyệt, ô ghi kết quả + mã bug nếu có.
-  - **Bug report** (`docs/qc/automation/bugs/<UC-ID>_..._bug-report.md` — file sống): chỉ chứa bug ĐÃ kiểm chứng. Test case trượt vì lỗi script, lỗi môi trường hay vì tài liệu đã lỗi thời sẽ KHÔNG bị ghi thành bug — chúng được đánh `Chưa chốt` kèm việc cần làm. Nhiều test case trượt cùng nguyên nhân được gộp thành MỘT bug.
-- **Việc của bạn:** điền tay kết quả các test case thủ công vào file kết quả; gửi bug report cho dev; khi dev xử lý xong, cập nhật cột "Trạng thái" của từng bug (`Dev đã fix — chờ verify` / `Không tái hiện được` / `Không còn` / `Không phải bug`) — KHÔNG sửa cột nào khác.
-
-### Bước 4 — Verify bug: `/qc-bug-verify <UC-ID>`
-
-- **Đầu vào:** bug report có ít nhất 1 bug được bạn/dev cập nhật cột "Trạng thái".
-- **Chạy:** gõ `/qc-bug-verify UC-101`. Skill trình **plan chạy để bạn duyệt TRƯỚC** — gồm: test case chạy lại (re-test), test case chạy kèm để bảo đảm fix không làm vỡ chỗ khác (regression — cùng màn hình hoặc chung tiêu chí chấp nhận, kèm lý do chọn), data và tài khoản sẽ dùng, môi trường + trình duyệt. Bạn thêm/bớt được trước khi OK — skill KHÔNG bao giờ tự chạy khi chưa duyệt.
-- **Nhận được:** từng bug được kết luận — chạy lại pass hết → `Đã đóng — verified <ngày> — <môi trường>`; còn trượt → `Mở lại` kèm bằng chứng mới; file kết quả thực thi có thêm một cột run mới. Bug regression làm lộ lỗi mới → được phân loại và ghi bug mới nếu là lỗi thật.
+> **Lưu ý phủ 2 tầng:** validation test Ở CẢ 2 NHÁNH có chủ đích (UI kiểm tra message chặn ở FE; API kiểm tra BE từ chối + không ghi dữ liệu). Logic nghiệp vụ sâu dồn về nhánh API; nhánh UI giữ luồng người dùng đại diện + hiển thị/tương tác.
 
 ---
 
-## 5. Output nằm ở đâu — diễn giải thư mục `docs/qc-lead/` và `docs/qc/`
+## 4. Tầng 3 — Automation: chuỗi 6 skill, 2 điểm tự động
 
-Toàn bộ output của kit đổ về 2 thư mục, chia theo tính chất:
+Không đọc tài liệu context (trừ §3.0). Cần: TC md của nhánh tương ứng, `project-config` (URL + tài khoản + Auth API), hệ thống non-prod đang chạy. Tuyệt đối không chạy production — mọi skill tự từ chối.
 
-- **`docs/qc-lead/`** — góc nhìn TOÀN DỰ ÁN của QC Lead: file cố định, sửa tại chỗ, không đánh version.
-- **`docs/qc/`** — output THEO TỪNG UC: mỗi UC một thư mục con, file đánh version `v<N>`, không bao giờ ghi đè.
+### Sinh test script — mỗi nhánh một skill
+
+- **`/qc-func-auto-generate UC-101`** (nhánh UI — tên cũ `qc-auto-generate`, gõ lệnh cũ vẫn được): POM, live crawl locator, sổ `crawl-findings/`. Điểm v4: page object CHỈ sinh từ live crawl — chưa kết nối được kênh DOM thì skill hướng dẫn bạn cài và CHỜ, không sinh locator tạm.
+- **`/qc-api-auto-generate UC-101`** (nhánh API): spec gọi HTTP trực tiếp — service theo resource, token theo role, assert status + schema + side-effect; MIX spec dùng cả page object lẫn service; scaffold `.env.example` cho token. Probe endpoint tùy chọn; lệch → sổ **`api-findings/`** (bạn/BE trả lời inline → chạy lại skill). Lần chạy đầu mỗi TC, helper ghi status/message thực tế vào **`api-baselines/<UC>_api-baseline.json`** — bạn/BE duyệt thì đặt `confirmed: true`; từ đó về sau lệch baseline = tín hiệu regression.
+- **Review sau khi chạy:** file data test (`data/<UC>_testdata.md` / `<UC>_api_testdata.md`), bảng triage per-TC (verdict `Đã có script` / `Sẽ bổ sung` / `Cần điều kiện` / `Trùng` / `Thủ công`), 2 sổ findings.
+
+### Chạy test: `/qc-auto-run UC-101`
+
+- **Phase 0 tự kiểm tra:** phạm vi test → UC có TC API chưa → script đủ 2 nhánh chưa (thiếu 1 → HỎI bạn) → đã từng chạy chưa (→ HỎI rerun scope). Bạn chỉ định rõ trong lệnh ("chạy API của UC-101") thì khỏi hỏi.
+- Chạy chung 1 lệnh cả UI + API + MIX; xác nhận môi trường trước khi chạy; precondition thiếu → TC bị Blocked chứ không Fail; summary nhóm UI/API/MIX + mục baseline mới ghi cần bạn duyệt.
+- **Điểm tự động 1:** mọi câu hỏi crawl-findings + api-findings liên quan UC đã `Đã giải quyết` → tự chạy tiếp `/qc-execute-test-report`. (Gate api-findings tính theo giao-UC: chỉ dòng có `TC bị ảnh hưởng` dạng `UC-101/TC_API_001` chạm UC này mới chặn.)
+
+### Chốt kết quả: `/qc-execute-test-report UC-101` (thường tự chạy)
+
+- MỘT việc: điền kết quả thô vào `*_test-results.md` (mỗi TC 1 dòng cả 2 nhánh + TC thủ công; mỗi run 1 cột). Cột `Cách chạy` lấy từ triage: `Đã có script`/`Trùng` → `Tự động`; còn lại → `Thủ công`.
+- **Điểm tự động 2:** có ô Fail → tự chạy tiếp `/qc-bug-report`. **Việc của bạn:** điền tay ô `Chưa chạy` của TC thủ công.
+
+### Phân tích bug: `/qc-bug-report UC-101` (thường tự chạy)
+
+- Phân loại TC Fail theo **7 nhóm root cause** bằng ĐỐI CHỨNG 2 nhánh (TC UI fail + TC API cùng rule pass → lỗi FE; ngược lại → lỗi BE; cả 2 fail → gộp 1 bug BE): `Lỗi BE` / `Lỗi FE` / `Lỗi tích hợp` → ghi bug; `Lỗi script` / `Lỗi môi trường` / `Lỗi data test` / `Tài liệu lỗi thời` → `Chưa chốt — <lý do>` kèm việc cần làm. Lệch với baseline CHƯA `confirmed` → `Chưa chốt — baseline chưa confirm` (xác nhận baseline hoặc hỏi BE), không thành bug oan.
+- **Việc của bạn:** gửi bug cho dev; dev xong thì cập nhật cột "Trạng thái" (`Dev đã fix — chờ verify` / `Không tái hiện được` / `Không còn` / `Không phải bug`) — KHÔNG sửa cột khác. TC thủ công Fail: bạn TỰ viết bug vào mục "Bug từ TC thủ công".
+
+### Verify bug: `/qc-bug-verify UC-101`
+
+- Đọc Trạng thái bạn cập nhật → plan re-test + regression (**scope theo Root cause**) → **LUÔN trình plan chờ bạn duyệt** → gọi `qc-auto-run` → `Đã đóng — verified` / `Mở lại`. Bug mới lộ từ regression → đẩy qua `qc-bug-report`.
+
+---
+
+## 5. Output nằm ở đâu
 
 ```
 docs/qc-lead/                        ← góc nhìn toàn dự án (tầng 1)
-├── project-config.md                  Cấu hình dự án: thông tin chung, URL môi trường,
-│                                      tài khoản test — bước 1 tầng 1 tạo, tầng 3 đọc
-├── project-context-master.md          Tri thức dự án — output bước 2 tầng 1
-├── qc-site-map.md                     Sơ đồ màn hình — output bước 3 tầng 1
-├── qc-data-map.md                     Sơ đồ dữ liệu — output bước 3 tầng 1
-├── qc-dashboard.md                    Bảng theo dõi trạng thái từng UC — output bước 4 tầng 1
-├── agent-work-log.md                  Nhật ký làm việc tổng hợp các máy — output /qc-get-work-log
-└── agent-work-log.local/              Nhật ký thô từng máy (file JSONL) — mọi skill tự ghi
+├── project-config.md                  §6 Phạm vi & Variant (NƠI NHẬP), §7 Auth API
+├── project-context-master.md          §3.0 = nguồn đọc chuẩn của mọi skill tầng 2/3
+└── qc-api-coverage.md                 MỚI: bản đồ sở hữu operation API — máy rebuild, không sửa tay
 
-docs/qc/                             ← output theo từng UC (tầng 2 + 3)
-├── uc-read/<UC-ID>/                   Bước 1 tầng 2:
-│   ├── *_audited_*_v<N>.md              báo cáo độ sẵn sàng UC (đánh version)
-│   └── *_question-backlog.md            sổ câu hỏi cho BA (1 file sống, KHÔNG version)
-├── scenarios/<UC-ID>/                 Bước 2 tầng 2:
-│   └── *_scenarios_*_v<N>.md            test scenario theo UC
-├── testcases/<UC-ID>/                 Bước 3 tầng 2 (+ kết quả thực thi của tầng 3):
-│   ├── *_testcases_*.md                 test case bản md (nguồn cho tầng 3)
-│   ├── *_testcases_*_v<N>.xlsx          test case bản Excel (bàn giao, review)
-│   ├── *_testcases_summary_*_v<N>.md    tóm tắt đợt thiết kế
-│   └── *_test-results.md                kết quả thực thi theo TC — file sống, mỗi run 1 cột
-│                                        (ô test case thủ công do BẠN điền tay)
-└── automation/                        Tầng 3 — cấp 1 chỉ gồm folder cho BẠN:
-    ├── data/                            dữ liệu test: bản md (BẠN chỉnh) + bản json
-    │                                    (máy tự build — không sửa tay)
-    ├── crawl-findings/                  sổ câu hỏi phần tử giao diện lệch / không tìm thấy khi
-    │                                    dò hệ thống — BẠN/dev trả lời inline; gate của bước 3
-    ├── triage/                          bảng report tự động hoá theo từng TC mỗi lần sinh script (verdict, lý do, điều kiện gỡ khoá) — có version
-    ├── reports/                         kết quả chạy: summary-latest.md + history/
-    ├── bugs/                            bug report từng UC — file sống, BẠN chỉ sửa cột "Trạng thái"
-    └── runner/                          phần hệ thống: code Playwright (spec, page object, flow,
-                                         helper), node_modules, kết quả thô — không cần mở tới
+docs/qc/                             ← output theo từng UC
+├── uc-read/<UC-ID>/                   audited UC + api-audited (cùng folder) + sổ câu hỏi UI per-UC
+│                                      + digest endpoint; sổ API đặt ở uc-read/: <PORTAL>_api-question-backlog.md
+├── scenarios/<UC-ID>/                 scenario UI + scenario API (đều có Change log khi update)
+├── testcases/<UC-ID>/                 TC md + xlsx CÙNG BASE NAME (có <variant> trong tên, cả 2 nhánh)
+│                                      + *_test-results.md (file sống, cả 2 nhánh)
+└── automation/
+    ├── data/                          <UC>_testdata.md (UI) + <UC>_api_testdata.md (API) — file sống
+    ├── crawl-findings/                sổ hỏi-đáp phần tử UI (gate chốt kết quả)
+    ├── api-findings/                  sổ hỏi-đáp endpoint (gate chốt kết quả — theo giao-UC)
+    ├── api-baselines/                 MỚI: <UC>_api-baseline.json — bạn/BE chỉ sửa field `confirmed`
+    ├── triage/                        bảng triage per-TC (cả 2 nhánh) → cột Cách chạy
+    ├── reports/                       summary-latest.md + history/
+    ├── bugs/                          bug report per UC — bạn chỉ sửa cột "Trạng thái"
+    └── runner/                        code cả 2 nhánh — không cần mở
 ```
-
-**Cần nhớ:** trong `docs/qc/`, thứ bạn mở thường xuyên nhất là file Excel test case (bàn giao) và sổ câu hỏi BA; trong `docs/qc-lead/`, là bảng theo dõi (`qc-dashboard.md`) — nhìn 1 phát biết dự án đang tới đâu.
 
 ---
 
@@ -225,30 +186,30 @@ docs/qc/                             ← output theo từng UC (tầng 2 + 3)
 
 | Điều thay đổi | Việc cần làm |
 |---|---|
-| Tài liệu tổng quan của BA có bản mới | `/qc-context-master` → nếu có thay đổi, chạy tiếp `/qc-site-map` → `/qc-dashboard-sync` |
-| Thêm màn hình / đổi luồng điều hướng | `/qc-site-map` |
-| Tài liệu UC có bản mới, hoặc BA trả lời câu hỏi | `/qc-uc-read <UC-ID>` (tự vào chế độ review lại) → chạy lại scenario, test case nếu nội dung đổi |
-| Cần sửa / bổ sung test case | `/qc-func-tc-design <UC-ID>` (tự vào chế độ cập nhật, có bước chờ bạn duyệt) |
-| Giao diện hệ thống đổi làm test tự động rớt | `/qc-auto-generate <UC-ID>` rồi `/qc-auto-run <UC-ID>` |
-| Trả lời xong câu hỏi trong sổ crawl-findings | `/qc-auto-generate <UC-ID>` (dò lại theo câu trả lời) → `/qc-auto-run <UC-ID>` → `/qc-execute-test-report <UC-ID>` |
-| Chạy test xong, cần chốt kết quả + report bug | `/qc-execute-test-report <UC-ID>` (yêu cầu sổ crawl-findings đã trả lời hết) |
-| Dev báo đã fix / không tái hiện được bug | Cập nhật cột "Trạng thái" trong bug report → `/qc-bug-verify <UC-ID>` (duyệt plan rồi mới chạy) |
-| Đổi URL môi trường / tài khoản test | Sửa file cấu hình dự án `docs/qc-lead/project-config.md` (hoặc chạy `/qc-project-onboarding` chế độ cập nhật) |
-| Dự án đổi cấu trúc thư mục tài liệu | Cập nhật đường dẫn trong `.claude/config/path-registry.md` (qua `/qc-project-onboarding` chế độ cập nhật) |
-| Bảng theo dõi lệch với file trên đĩa | `/qc-dashboard-sync` (toàn bộ) hoặc `/qc-dashboard-sync <UC-ID>` (một UC) |
-| Cần gom nhật ký làm việc các máy | `/qc-get-work-log` (thường chạy sau khi nhận code mới từ đồng đội qua git) |
+| Tài liệu tổng quan BA có bản mới | `/qc-context-master` → `/qc-site-map` → `/qc-dashboard-sync` |
+| Tài liệu UC mới / BA trả lời câu hỏi | `/qc-uc-read <UC>` (re-audit) → scenario/TC chạy update nếu đổi; chạm nhánh API → `/qc-api-read <UC>` |
+| BA đổi FORMAT tài liệu (không phải nội dung) | Sửa dòng cờ trong `input-files-format.md` thành `Cần check lại` → lần audit sau tự rà |
+| **API doc mới về / đổi endpoint** | `/qc-api-tc-design <UC>` (update — binding lại ở Step 1.4); chỉ re-audit `/qc-api-read <UC>` khi câu trả lời làm ĐỔI NGHIỆP VỤ |
+| **BE trả lời sổ `<PORTAL>_api-question-backlog`** | Câu đổi nghiệp vụ → `/qc-api-read <UC>` (re-audit); còn lại → `/qc-api-tc-design <UC>` (update) |
+| Trả lời xong sổ api-findings / crawl-findings | `/qc-api-auto-generate <UC>` / `/qc-func-auto-generate <UC>` → `/qc-auto-run <UC>` |
+| Giao diện đổi làm test UI rớt | `/qc-func-auto-generate <UC>` rồi `/qc-auto-run <UC>` |
+| **Baseline lệch (status/message đổi)** | `confirmed=true` → là bug, để `qc-bug-report` xử; `confirmed=false` → xác nhận baseline hoặc hỏi BE rồi chạy lại |
+| Dev báo đã fix bug | Cập nhật cột "Trạng thái" trong bug report → `/qc-bug-verify <UC>` |
+| Dự án muốn bật thêm nhánh API | `/qc-project-onboarding` (update) → `Black-box + API` (một chiều) + khai mục 3/7 + `api-doc-files` → `/qc-context-master` (update — §3.0 mới) |
+| Đổi URL / tài khoản / token | `project-config.md` (URL, account) hoặc `.env` (`API_TOKEN_<ROLE>`) |
+| Bảng theo dõi lệch với đĩa | `/qc-dashboard-sync` (toàn bộ) hoặc `/qc-dashboard-sync <UC>` |
 
 ---
 
-## 7. Mười quy tắc sống còn cho quy trình mới với QC-kit
+## 7. Mười quy tắc sống còn (bản cập nhật)
 
-1. **Luôn đọc phiên bản mới nhất** — khi tự mở file, chọn file có số `v` cao nhất trong thư mục.
-2. **Đường dẫn tra ở một chỗ** — `.claude/config/path-registry.md`: đầu vào do bạn khai báo, đầu ra kit đã quy định sẵn. Gặp ô `docs/???` nghĩa là chưa cấu hình, cần chạy lại onboarding.
-3. **Không sửa tay file do skill sở hữu.** Bảng theo dõi (`qc-dashboard.md`): chỉ sửa cột phạm vi. Bug report: chỉ sửa cột "Trạng thái". File kết quả thực thi: chỉ điền ô test case thủ công. Sổ crawl-findings: chỉ điền cột "Trả lời của QC/dev". Mọi phần khác do skill ghi, sửa tay sẽ bị ghi đè.
-4. **Skill dừng giữa chừng thì cứ chạy lại lệnh cũ** — mọi skill dài đều có điểm lưu tiến độ (checkpoint), sẽ hỏi bạn muốn tiếp tục từ chỗ dừng hay làm mới.
-5. **Muốn cập nhật output theo feedback — nói qua chat, đừng tự sửa file output.** Ví dụ: BA trả lời câu hỏi (không cần tự viết vào sổ câu hỏi), muốn sửa test case, sửa test script... Hãy đưa vào chat: nội dung cần cập nhật + phạm vi ảnh hưởng. Agent sẽ phân tích lại ảnh hưởng và (với test case) trình kế hoạch cập nhật để bạn duyệt trước khi sửa.
-6. **Không biết cần cập nhật template hay nội dung gì ở đâu — cứ hỏi qua chat.** Agent sẽ review lại bộ kit và chỉ đúng chỗ cần sửa.
-7. **Không sửa phần lõi của skill.** File `SKILL.md` và thư mục `workflows/` là phần chỉ dẫn cốt lõi — không nên tự sửa. Khi cần tùy biến cho dự án, sửa ở phần `references/`, `templates/` hoặc các file technical.
-8. **Agent là AI và có thể sai sót** — mọi output quan trọng (sổ câu hỏi BA, test case, test script, kế hoạch test, test plan, test design, test scenario...) **đều cần bạn tự review (đọc/kiểm tra)** trước khi dùng. Đừng tin tuyệt đối.
-9. **Luôn phải manual test lại hệ thống** - AI chỉ hỗ trợ giảm tải công việc, không thể chỉ 1 vài skills có thể đảm bảo chất lượng của 1 dự án, **bắt buộc phả manual test** lại.
-10. **Làm mới bản thân** với quy trình công việc có sử dụng AI, đừng stress hãy smart, có nhiều nguồn để bạn có thể học hỏi và phát triển bản thân, và trị được AI.
+1. **Luôn đọc phiên bản mới nhất** — file có số `v` cao nhất; bản md của test case là BẢN CHÍNH THỨC ngang xlsx.
+2. **Đường dẫn tra một chỗ** — path-registry; bạn chỉ khai nhóm A; ô nhóm B chưa chạy skill thì để nguyên. Phạm vi/Variant/Ngôn ngữ khai một lần ở §6, skill đọc qua §3.0.
+3. **Không sửa tay file do skill sở hữu.** Phần của BẠN: dòng cờ `input-files-format.md` (khi BA đổi format), cột "Trạng thái" + mục "Bug từ TC thủ công" (bug report), ô TC thủ công (test-results), cột "Trả lời" (crawl-findings + api-findings), field `confirmed` (api-baseline), giá trị data test, `.env`, `api-conventions.ts`, `notification-channels.ts`, cột phạm vi (dashboard).
+4. **Skill dừng giữa chừng cứ chạy lại lệnh cũ** — có checkpoint, skill hỏi tiếp tục hay làm mới.
+5. **Muốn cập nhật output theo feedback — nói qua chat, đừng tự sửa file output.**
+6. **Không biết sửa ở đâu — hỏi qua chat.**
+7. **Không sửa phần lõi skill** (`SKILL.md`, `workflows/`, `rules/`, `config/`); tùy biến dự án ở `references/`, `templates/`, file technical, `api-conventions.ts`.
+8. **Agent có thể sai** — mọi output quan trọng cần bạn review trước khi dùng; bug report cũng vậy (nhất là kết luận "dựa trên 1 phía đối chứng" và baseline chưa confirm).
+9. **Luôn phải manual test lại hệ thống** — AI giảm tải, không thay thế; TC thủ công và bug từ chúng là phần của BẠN.
+10. **Làm mới bản thân** với quy trình có AI — smart, đừng stress; trị được AI.

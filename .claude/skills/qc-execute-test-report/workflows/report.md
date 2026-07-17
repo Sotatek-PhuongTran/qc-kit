@@ -1,63 +1,59 @@
-# Workflow — Report execution results + verified bugs
+# Workflow — Record execution results
 
-> Title: qc-execute-test-report Report Workflow | Created: 2026-07-07 | Author: Claude | Version: v1
-> Single phase. Steps run strictly in order; §2 is a HARD GATE — on failure print the warning and STOP without writing.
+> Title: qc-execute-test-report Report Workflow | Created: 2026-07-07 | Updated: 2026-07-10 (v2 — thu hẹp vai trò: chỉ ghi kết quả; phân loại + bug tách sang qc-bug-report; gate mở rộng api-findings; hàng TC 2 nhánh) | Version: v2
+> Single phase. §2 is a HARD GATE — on failure print the warning and STOP without writing.
 
 ## §0 — Setup
 
-1. Scope = the UC named in the command (`/qc-execute-test-report <UC-ID>`). No UC → ask.
-2. Resolve all paths via `path-registry.md`. Worklog: append `Running (Phase 1)` entry.
-3. Load: `automation-run-summary` (`docs/qc/automation/reports/summary-latest.md`) + `docs/qc/automation/runner/test-results/results.json`; latest test-cases md; latest triage; `test-data` md; existing `execution-report` / `bug-report` if present.
+1. Scope = the UC named in the command / hand-off from `qc-auto-run`. No UC → ask.
+2. Resolve paths via `path-registry.md`. Worklog: append `Running (Phase 1)`.
+3. Load: `automation-run-summary` + `runner/test-results/results.json`; latest TC md of EACH branch in scope (`func-test-cases-md`, `api-test-cases-md` — highest version per the canonical pattern `<UC>_<feature>_[api-]testcases_<variant>_<YYYYMMDD>_v<N>.md`; branches per `project-context-master` §3.0 Phạm vi test — file missing or field blank → STOP and ask); latest triage file(s); data md(s); existing `execution-report` if present.
+4. **Triage file(s) missing → STOP:** the latest triage of EVERY branch in scope is required for the `Cách chạy` mapping (§3). Thiếu triage của nhánh nào → STOP và yêu cầu user chạy skill generate tương ứng trước: `/qc-func-auto-generate <UC-ID>` (nhánh UI — `automation-triage`) / `/qc-api-auto-generate <UC-ID>` (nhánh API — `api-automation-triage`).
 
 ## §1 — Resolve the run
 
-- The summary must cover this UC. Missing / different UC / results.json absent → tell the user (Vietnamese) to run `/qc-auto-run <UC-ID>` first, STOP.
-- Extract run metadata for the new column header: run date (`Run at`), environment (env name only, e.g. `DEV`), browser per Playwright project (portal project → engine, e.g. `Chromium`). Run number `<N>` = number of existing run columns in the execution report + 1 (first run = 1).
+- The summary must cover this UC; else → `/qc-auto-run <UC-ID>` first, STOP.
+- New column header: run number `<N>` (existing run columns + 1), date, env, browser per Playwright project — API-only scope ghi `API` thay cho trình duyệt; mixed scope ghi `<trình duyệt>+API`.
 
-## §2 — HARD GATE (crawl-findings resolved + fresh run)
+## §2 — HARD GATE (findings resolved + fresh run)
 
-1. UC pages = spec files under `runner/tests/<portal>/<UC-ID>/` → screen names → matching `crawl-findings/<portal>_<page>_crawl-findings.md` files.
-2. Every row in every matching file must have Trạng thái = `Đã giải quyết — <YYYY-MM-DD>`.
-   - Rows `Chờ trả lời` → warning (Vietnamese): for each row print file, mã `D<x>`, phần tử, trạng thái đã lái, and the exact question awaiting an answer; ask the user to fill "Trả lời của QC/dev" + set `Đã trả lời`. STOP.
-   - Rows `Đã trả lời` (answered but not yet processed) → instruct: run `/qc-auto-generate <UC-ID>` (Update mode, trigger D re-crawls per the answers and marks `Đã giải quyết`), then `/qc-auto-run <UC-ID>`. STOP.
-3. Freshness: run date (§1) must be ≥ the newest `Đã giải quyết — <date>` across the UC's pages — the recorded results must reflect the POST-resolution system. Otherwise → demand `/qc-auto-run <UC-ID>` and re-invoke this skill. STOP.
+1. UC pages = spec files under `runner/tests/<portal>/<UC-ID>/` → matching `crawl-findings/<portal>_<page>_crawl-findings.md`. UC resources = spec files under `runner/tests/api/<UC-ID>/` + `runner/tests/mix/<UC-ID>/` → matching `api-findings/<resource>_api-findings.md`.
+2. Determine the GATED rows per finding kind:
+   - **crawl-findings (UI):** EVERY row in every matching file is gated (unchanged — pages belong to the UC).
+   - **api-findings (API):** a row is gated ONLY when its `TC bị ảnh hưởng` cell INTERSECTS this UC — the cell is UC-qualified per `api-findings-contract` (`UC-xxx/TC_API_NNN`, nhiều TC phân cách `, `); gated = it lists ≥ 1 TC qualified with THIS UC-ID. Rows listing only other UCs' TCs do NOT block (resources are shared across UCs).
+   Every gated row must be `Đã giải quyết — <YYYY-MM-DD>`:
+   - Rows `Chờ trả lời` → warning (Vietnamese): per row print file, `#`, phần tử/endpoint, phát hiện, and the question awaiting an answer; ask the user to answer inline + set `Đã trả lời`. STOP.
+   - Rows `Đã trả lời` → instruct: run `/qc-func-auto-generate <UC-ID>` (trigger D) và/hoặc `/qc-api-auto-generate <UC-ID>` (trigger D) để xử lý câu trả lời, rồi `/qc-auto-run <UC-ID>`. STOP.
+   - **Vacuous pass:** findings file(s) missing, or the matching files contain NO gated rows → the gate is CLEAN for that side (NOT a block) — continue. Only existing gated rows can block.
+3. Freshness: run date (§1) ≥ the newest `Đã giải quyết — <date>` across the GATED rows only (all crawl-findings rows + the intersecting api-findings rows; resolution dates of non-intersecting api-findings rows are ignored; no gated rows → freshness check is vacuously satisfied). Otherwise → demand `/qc-auto-run <UC-ID>`, STOP.
 
-## §3 — Classify every non-pass TC
+## §3 — Write the execution report
 
-For each TC in the run that is not Pass, assign exactly ONE class using results.json error + summary line + triage + the answered crawl-findings:
+- Missing → create from `../templates/test-results.template.md`. Rows cloned from the TC mds of EVERY branch in scope: TC ID, tiêu đề, ưu tiên, `Loại` (GUI / FUNC / API / MIX — theo section + tiền tố TC-ID), `Cách chạy` mapped from the branch's triage verdict per this table (sole home of the mapping — feasibility references point here):
 
-| Class | Signals | Consequence |
-|---|---|---|
-| **Bug thật** | Expected result per TC md is confirmed correct (crawl-findings answer upholds the UC, or failure is unrelated to any D-item); actual behavior deviates | Bug row (§5) + cell `Fail — BUG-<...>` |
-| **Chờ cập nhật UC/TC** | The crawl-findings answer says the UC/TC text is outdated (requirement changed) but audited/TC not yet updated | NO bug. Cell `Chưa chốt — chờ cập nhật UC/TC`; add follow-up: update audited (`qc-uc-read`) + TC (`qc-func-tc-design`) |
-| **Lỗi script** | PROVISIONAL locator stamp, first-run snapshot baseline, channel-map idiom miss, selector drift | NO bug. Cell `Chưa chốt — lỗi script`; follow-up: `/qc-auto-generate <UC-ID>` (Update) |
-| **Lỗi môi trường/data** | Wrong/missing test data, env outage, flaky external service | NO bug. Cell `Chưa chốt — lỗi môi trường/data`; name the concrete cause |
-| **Blocked** | Already Blocked in the summary (missing precondition) | Cell `Blocked — thiếu <key>` (wording from the data md `Required state`) |
+  | Triage verdict | `Cách chạy` |
+  |---|---|
+  | `Đã có script` | `Tự động` |
+  | `Trùng` | `Tự động` (ghi chú `cover bởi <TC>` — TC phủ lấy từ triage) |
+  | `Sẽ bổ sung` / `Cần điều kiện` / `Thủ công` | `Thủ công` |
 
-Group TCs failing from the SAME root cause into ONE bug (e.g. one wrong `maxlength` → all boundary TCs it breaks). Uncertain class → ask the user, never guess silently.
+  > Match verdicts by PREFIX — suffixed forms like `Đã có script (chờ precondition manual: <key>)` map by their prefix (here: `Đã có script` → `Tự động`).
 
-## §4 — Write the execution report
+- Language: the execution report (test-results) is an OFFICIAL deliverable → written in the project language per `project-context-master` §3.0 "Project language" (qc-writting-rules two-group law). Chat reports/warnings stay Vietnamese.
+- Append the new run column. Cells: `Pass` / **`Fail`** (plain — KHÔNG phân loại, KHÔNG mã bug; `qc-bug-report` sẽ stamp) / `Blocked — thiếu <key>` (wording from the data md) / `Chưa chạy` (manual TC — QC điền tay) / `—` (ngoài phạm vi lần chạy).
+- Update the header "Cập nhật lần cuối". NEVER touch previous columns, QC-filled manual cells, or existing Bug-ID stamps.
+- TC set changed vs the mds (new versions) → add missing rows, keep old rows.
 
-- Missing → create from `../templates/test-results.template.md`: one row per TC cloned from the test-cases md (TC ID, tiêu đề, ưu tiên, loại GUI/FUNC), `Cách chạy` from the triage verdict (`Tự động` / `Thủ công`).
-- Append the new run column `Run <N> — <DD/MM> — <ENV> — <trình duyệt>`. Cells: `Pass` / `Fail — BUG-<...>` / `Blocked — thiếu <key>` / `Chưa chốt — <lý do>` / `Chưa chạy` (manual TC, QC hand-fills later) / `—` (outside the run's scope).
-- Update the header's "Cập nhật lần cuối" line. NEVER touch cells of previous columns; NEVER overwrite a QC-hand-filled manual cell.
-- Existing TC set changed vs the md (new version added TCs) → add the missing rows, keep old rows.
+## §4 — Hand off to qc-bug-report (đã chốt — chạy thẳng)
 
-## §5 — Write the bug report
+New column has ≥ 1 `Fail` cell (automation rows) → invoke `/qc-bug-report <UC-ID>` via the Skill tool immediately. No Fail → skip.
 
-- Missing → create from `../templates/bug-report.template.md`.
-- New defects → next sequential ID `BUG-<UC-suffix>-<NN>`, one summary row + one detail section each, all fields self-contained per `qc-writting-rules` (verbatim expected/actual messages; evidence = `runner/test-results/<...>` paths; "Căn cứ đã kiểm chứng" = the crawl-findings answer or run evidence that proves it is a real bug).
-- Defect already reported and still failing → append ONE history row (`vẫn tái hiện ở Run <N>`); do NOT change its Trạng thái.
-- NEVER edit a Trạng thái the user/dev has set (`Dev đã fix — chờ verify`, `Không tái hiện được`, `Không còn`, `Không phải bug`) — that is `qc-bug-verify` input.
+## §5 — Chat report (Vietnamese) + worklog
 
-## §6 — Chat report (Vietnamese) + worklog
-
-Report: pass/fail/blocked/chưa chốt totals; bug mới (ID + 1 dòng mô tả) và bug cũ còn tái hiện; các TC `Chưa chốt` kèm lý do + follow-up; nhắc: cập nhật cột "Trạng thái" trong bug report khi dev xử lý xong, rồi chạy `/qc-bug-verify <UC-ID>`. Worklog terminal `Done` (or `Stopped (<reason>)` when gated).
+Totals per branch (Pass/Fail/Blocked/Chưa chạy); nhắc QC điền tay các ô `Chưa chạy` (và tự viết bug thủ công vào mục riêng của bug report nếu manual Fail); nếu đã hand-off → nói rõ "qc-bug-report đang phân tích các TC Fail". Worklog terminal `Done` (or `Stopped (<reason>)` when gated).
 
 ## Self-check before saving (qc-writting-rules §5)
 
-- [ ] No bare codes in reader-facing sentences (TC/BUG/D/SCR names carry a human-readable name first).
-- [ ] All system messages quoted verbatim in `"..."`.
-- [ ] Every bug's steps + expected + actual readable standalone without opening the UC.
-- [ ] No English jargon outside verbatim UI labels (translate per the §3 table of qc-writting-rules).
-- [ ] Vietnamese diacritics intact.
+- [ ] Đúng 1 cột run mới; không ô cũ nào bị đổi.
+- [ ] Mọi TC của run có đúng 1 giá trị ô; TC ngoài phạm vi = `—`.
+- [ ] Header cột đủ số run + ngày + env + trình duyệt/API; tiếng Việt đủ dấu.

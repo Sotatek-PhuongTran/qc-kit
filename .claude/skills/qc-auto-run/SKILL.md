@@ -1,61 +1,42 @@
 ---
 name: qc-auto-run
-description: Runs the Playwright automation suite (by UC, screen, tag, or test case), auto-installing Node/Playwright dependencies if missing, with a precondition pre-flight that blocks (not fails) tests whose required data-state is missing, then writes a run summary mapping pass/fail/blocked back to each TC ID. Trigger on "run test", "chạy test", "chạy automation", "/qc-auto-run <UC-ID>". To GENERATE or fix test scripts, use qc-auto-generate.
+description: "Runs the Playwright suite across UI / API / MIX branches (by UC, screen, resource, tag or TC) with scope pre-checks and a precondition pre-flight that Blocks missing data-states; TC-mapped run summary; auto-triggers qc-execute-test-report when gates are clean. Trigger: /qc-auto-run <UC-ID>, 'chạy test', 'chạy automation'. To GENERATE scripts use qc-func-auto-generate / qc-api-auto-generate."
 ---
 
 # Skill: qc-auto-run
 
-Run the automation tests and record results. Automation root: `docs/qc/automation/` (user-facing folders); code + raw run output live under the runner root `docs/qc/automation/runner/` (resolve via `path-registry.md` if different). Run ALL npm/npx commands from the runner root. This skill ONLY runs tests and reports — it never generates or edits scripts (that is `qc-auto-generate`).
+## Purpose
 
-## Steps
+Run the automation tests and record results. Automation root: `docs/qc/automation/` (user-facing folders); code + raw run output live under the runner root `docs/qc/automation/runner/` (resolve via `path-registry.md` if different). Run ALL npm/npx commands from the runner root. This skill ONLY runs tests and reports — it never generates or edits scripts (that is `qc-func-auto-generate` / `qc-api-auto-generate`).
 
-1. **Go to the runner root:** `cd docs/qc/automation/runner`.
+## Input / Output Contract
 
-2. **Node check:** `node -v`. Missing → tell the user (Vietnamese) to install Node.js ≥ 18, then stop.
+**Inputs** (resolve via `path-registry.md`):
 
-3. **Playwright check + AUTO-INSTALL:**
-   - `node_modules/@playwright/test` missing OR `npx playwright --version` fails → `npm install`.
-   - Browsers → `npx playwright install`. On Linux missing system libs → `npx playwright install-deps` (needs sudo — if it fails, tell the user to run it manually).
-   - Tell the user what is being installed before doing it.
+- `project-context-master` §3.0 Phạm vi test — decides the branch scope (file missing / field blank → STOP, ask the user to run `/qc-context-master` first).
+- `project-config` — §3 env URLs per portal + `<ENV> - API`, §4 accounts per role, §7 Auth API. URLs and accounts are NEVER read from `.env` — the single source is `project-config`; `.env` holds only external-service secrets + optional `API_TOKEN_<ROLEKEY>` (user-filled; ROLEKEY = Key trong bảng `## Accounts` của data md — existence check only, values never read).
+- Test-case md globs + `tests/` dirs + prior `reports/` — Phase 0 cheap checks only (never open spec/TC contents).
+- `data/<UC-ID>_testdata.md` / `data/<UC-ID>_api_testdata.md` (+ compiled json) — test-data build + precondition pre-flight.
+- `crawl-findings` / `api-findings` living files — the auto-trigger gate (run.md step 10).
 
-4. **Environment resolve + CONFIRM (every run):** URLs and accounts are NEVER read from `.env` — the single source is `project-config` (`.env` holds only external-service secrets, user-filled).
-   - **Target env**: taken from the user's command ("chạy trên QA/DEV/STG" — must match an env name in `project-config §3`); not stated → default to the `Environment` in the UC's data md, and say so.
-   - **Resolve**: from §3 collect the `<ENV> - <portal>` rows of the target env → one URL per portal; from §4 the accounts for the roles the UC's fixture uses. Missing row → ask the user to fill `project-config`, then stop. REFUSE production (env name or URL matching prod).
-   - **Confirm before running (Vietnamese)**: print target env, URL per portal, account usernames per role — NEVER print passwords — and wait for the user's OK. Skip the prompt only if the user already named the env AND asked to run without confirmation in the same message.
+**Outputs**: `reports/summary-latest.md` (overwrite in-place; prior copy → `reports/history/summary_<YYYYMMDD-HHmm>.md`; built from `templates/run-summary.template.md`), Vietnamese chat report, worklog entry. Auto-invokes `/qc-execute-test-report <UC-ID>` per UC when its findings gates are clean (run.md step 10).
 
-5. **Build test data:** `npm run build:testdata -- <UC-ID>`. Validation failure → show the exact error and stop.
+## Phase 0 — Scope & branch check (summary)
 
-6. **Precondition pre-flight (MANDATORY before running):** read `preconditions` from `../data/<UC-ID>_testdata.json` (data lives at the automation root) (schema: qc-auto-generate `references/data-and-secrets.md`). For each row:
-   - **Has a `check`** (`api:` / `db:` / `ui:`) → execute it read-only against the configured environment (base URL + auth from project-config / `.env`; DB connection from `.env`). Check passes → precondition satisfied. Check fails → precondition MISSING.
-   - **`manual` with `check = none`** → `confirmed` filled (`yes — <date> — <name>`) → treat as satisfied; empty → ASK the user (Vietnamese): "Precondition `<key>` — `<required state>` — đã được tạo trên môi trường `<env>` chưa?". Yes → proceed for this run and remind the QC to write `Confirmed` into the data md (this skill NEVER edits data files); No / unattended run → precondition MISSING.
-   - **MISSING** → its dependent TCs (the row's `TCs` list) are **Blocked**: exclude them from the run scope (e.g. `--grep-invert "TC_059|TC_060"`), record `Blocked — thiếu precondition <key>` for each. The REST of the suite still runs — never abort the whole run for a missing precondition.
-   - Automated seed channels (`ui:`/`api:`/`db:`) are executed by the suite's own setup fixtures during the run — the pre-flight only verifies declared checks, it never seeds.
+Cheap checks ONLY (one project-context-master section + file globs — never open spec/TC contents): §3.0 Phạm vi test decides the branch(es); a Both-scope UC without API TCs runs UI only. Scripts missing for BOTH branches → STOP and send the user to the generate skills first; missing for ONE → confirm with the user (run the existing branch, or generate the missing one then run both). Prior run results exist → confirm the rerun scope. The user's own explicit scope in the invocation always wins and skips the confirm stops — Phase 0 then only validates that the requested branch has scripts. Full decision tree (0.1–0.4, incl. the THIẾU CẢ 2 stop): `workflows/run.md` Phase 0.
 
-7. **Run** (scope per the user's ask; default = the named UC, minus Blocked TCs). Inject the resolved URLs as process env vars — `playwright.config.ts` maps them onto per-portal `projects`; specs keep relative routes: `BASE_URL_ORG=<org url> BASE_URL_ADMIN=<admin url> npx playwright test ...`
-   - All: `npx playwright test`
-   - One UC: `npx playwright test tests/**/<UC-ID>/`
-   - One screen: `npx playwright test <spec path>`
-   - By priority: `npx playwright test --grep "@P1"`
-   - One test case: `npx playwright test --grep "<TC-ID>"` (if that TC is Blocked → report the missing precondition instead of running)
-   - Watch: `--headed`; interactive: `--ui`.
+## Routing
 
-8. **Write the run summary** — `../reports/summary-latest.md` at the automation root (overwrite in-place; this file is the versioning exception — history lives in `../reports/history/summary_<YYYYMMDD-HHmm>.md`, copied before overwrite). Trace/result links inside the summary use the `runner/test-results/...` prefix (relative to the automation root). Build it from `test-results/results.json` (titles carry TC IDs) using `templates/run-summary.template.md`. Blocked TCs are listed with their missing precondition — they count in Total but NOT in Pass and NOT as Failed. This file is the source of the dashboard `Execute stt` column (read by `qc-dashboard-sync`).
-
-9. **Report on chat (Vietnamese):** pass/fail/blocked totals per UC; failed TC IDs with one-line reasons; **Blocked TC IDs with the exact missing precondition and how to create it** (from the data md `Required state` cell); point to `runner/test-results/results.json` / `results.xml` and `npx playwright show-trace <trace.zip>` for failure replay. End by suggesting the next step: `/qc-execute-test-report <UC-ID>` to record official per-TC results and report bugs (that skill has its own crawl-findings gate — this skill stays free to run anytime).
-
-10. **Worklog** per `docs/qc-lead/agent-work-log.local/README.md` (single-phase run: start entry → terminal `Done`/`Stopped`).
-
-## Failure guidance
-
-- Locator failures on the real UI → check the getter's stamp in the page object first: **PROVISIONAL** (generated without a DOM channel) → this is locator debt, NOT an app defect — suggest `/qc-auto-generate <UC-ID>` (Update mode re-crawls), then re-run. **verified** → treat as UI drift or a real defect.
-- Message/notification lookup failures → check the portal's channel map (`portals/<portal>/notification-channels.ts`) idiom before touching any spec — one line there fixes every spec using that channel.
-- Data validation failures → the QC edits `data/<UC-ID>_testdata.md`, then re-run.
-- Blocked — thiếu precondition → the QC creates the state described in the data md `Required state` cell (and writes `Confirmed` for manual rows without a check), then re-runs; only the Blocked TCs need re-running.
+| When | Read |
+|---|---|
+| Every run (single mode) | `workflows/run.md` — Phase 0 decision tree + steps 1–11 (env checks & auto-install, environment resolve + CONFIRM, test-data build, precondition pre-flight, run with env-var injection, run summary incl. baseline section, chat report, gate check + auto-trigger, worklog) + failure guidance |
 
 ## Boundaries
 
-- Never runs against production.
-- Never stores URLs or accounts in `.env` (single source = `project-config`); never prints passwords when confirming the run target.
-- SOLE writer of `reports/`. Never edits specs, page objects, or data files (the `Confirmed` mark is the QC's edit, not this skill's).
+- Never runs against production (any of BASE_URL_* / API_BASE_URL matching prod → refuse).
+- Never stores URLs or accounts in `.env` (single source = `project-config`); never prints passwords or tokens.
+- SOLE writer of `reports/`. Never edits specs, services, page objects, or data files (the `Confirmed` mark is the QC's edit, not this skill's).
 - Pre-flight checks are READ-ONLY — this skill never seeds or mutates environment data.
+- Phase 0 confirm stops are skipped only by an explicit user scope in the same message; the env CONFIRM (run.md step 4) has its own skip rule.
+- Auto-trigger: ONLY `qc-execute-test-report`, ONLY when the findings gates are clean; never `qc-bug-report`; never for verify-scoped runs invoked by `qc-bug-verify` (run.md step 10 exception).
 - No checkpoint files (single-phase, re-runnable); worklog only.

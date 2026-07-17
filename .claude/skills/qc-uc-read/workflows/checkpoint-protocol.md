@@ -11,8 +11,8 @@ Generic checkpoint/resume rules live in `.claude/config/checkpoint-protocol.md`.
 | File | Owner phase | Content |
 |---|---|---|
 | `progress.md` | all | Resume state (shared format). |
-| `01_synthesis.md` | First-audit Phase 1 | 5 synthesis sections + Section 4 inventory with `Delta = 0` coverage verified. |
-| `02_scoring.md` | First-audit Phase 2 | Scoring table (10 KA) + cross-artefact conflicts + blocker list. |
+| `01_synthesis.md` | First-audit Phase 1 | §A–§E raw evidence + §F synthesis (5 sub-sections), with the §F.1 self-verification passed (rows mapped per design source ≥ visible element count). |
+| `02_scoring.md` | First-audit Phase 2 | Scoring table (5 scoring areas per `references/scoring-rubric.md`) + cross-artefact conflicts + blocker list. |
 
 Phase 3 writes the real deliverable (`uc-review-report v[N].md`) — that IS the final checkpoint; no `03_*.md` file.
 

@@ -14,7 +14,12 @@ applies_to_skills:
 
 **Mục tiêu:** output để QC đọc-hiểu và thực thi NGAY — không phải mở lại tài liệu nguồn, không phải dùng công cụ dịch.
 
-**Ngôn ngữ:** theo ngôn ngữ tài liệu nguồn (UC tiếng Việt → output tiếng Việt). KHÔNG trộn ngôn ngữ trong cùng một file.
+**Ngôn ngữ output (luật 2 nhóm — nguồn chuẩn duy nhất, mọi skill trỏ về đây):**
+
+1. **Tài liệu review nội bộ** (user cần đọc-hiểu để review): audited report (`qc-uc-read`), api-audited (`qc-api-read`), question backlog / api-question-backlog (`qc-qna`), triage, run summary, review/verify plan và mọi báo cáo trung gian → **LUÔN tiếng Việt**.
+2. **Tài liệu chính thức release theo dự án**: test scenarios, test cases (md + xlsx), test script/spec, bug report, execution report (test-results) → theo **ngôn ngữ dự án** — xác định theo ngôn ngữ document BA cung cấp, đọc từ `project-context-master` §3.0 (field "Project language").
+3. Chỉ chấp nhận **tiếng Việt hoặc tiếng Anh**. Document BA bằng ngôn ngữ khác → DỪNG, hỏi user chọn 1 trong 2.
+4. KHÔNG trộn ngôn ngữ trong cùng một file.
 
 ---
 

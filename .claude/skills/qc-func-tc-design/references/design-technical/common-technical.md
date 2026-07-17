@@ -36,23 +36,9 @@ Chỉ giữ nguyên tiếng Anh khi đó là **nhãn/nội dung hệ thống** (
 
 ---
 
-## Recommended test case fields
+## Test case fields
 
-| Field | Description |
-|---|---|
-| Test Case ID | Unique ID, follow Rule 2 — Content Logic - `testcase-instruction-rules` |
-| Platform Type | `web-static`, `web-responsive`, `mobile-native`, `mobile-hybrid`, `desktop-native` |
-| Phase | Phase 1 to Phase 6 |
-| Feature / Screen | Screen, module, or workflow under test |
-| Test Objective | What the test case validates |
-| Preconditions | Describe required User role/state, system/page state, test data/environment requirement |
-| Test Data | Inputs, files, accounts, API mocks, boundary values |
-| Steps | Clear execution steps |
-| Expected Result | Observable and measurable expected behavior |
-| Matrix | Browser, device, OS, breakpoint, permission, network condition |
-| Priority | P0 / P1 / P2 |
-| Test Type | Functional, UI, Integration, Security, Performance, Accessibility |
-| Notes | Assumptions, constraints, out-of-scope items |
+Test case layout/columns follow `rules/testcase-instruction-rules.md` Part B (Sheet Layout & Section Headers); Priority follows its C6 scale (Critical / High / Medium / Low).
 
 ---
 
@@ -250,16 +236,13 @@ Apply to fields such as:
 - Maximum length.
 - Special handling for decimal, negative number, zero, and large number.
 
-### Boundary Value Analysis
+### Test design techniques — áp dụng ở tầng TC (EP / BVA / Decision Table / State Transition / Use Case / Error Guessing)
 
-For every field with a defined boundary, include at least:
+Canonical home for all 6 techniques: `qc-func-scenario-design/references/scenario-rules.md` § "MANDATORY test design techniques" — apply them from there; do not re-derive them here. TC-tier application notes (atomic test cases, beyond the scenario-level home):
 
-- Min - 1.
-- Min.
-- Min + 1 if relevant.
-- Max - 1 if relevant.
-- Max.
-- Max + 1.
+- **BVA** — for every field with a defined boundary (numeric / date / length / size), include at least: Min - 1, Min, Min + 1 if relevant, Max - 1 if relevant, Max, Max + 1.
+- **State Transition** — at TC tier cover EVERY valid and EVERY invalid transition (the home's "at least one invalid-transition attempt" is the scenario-level minimum).
+- **Decision Table** — typical business-rule combinations at this tier: Role x status x action; Customer type x product type x approval level; Payment method x currency x country; Permission x data ownership x workflow state.
 
 ### Cross-field validation
 
@@ -270,17 +253,6 @@ Examples:
 - Confirm password must match password.
 - Selected role must be compatible with selected department.
 - Status transition must match the current workflow state.
-
-### Decision table and business rule combinations
-
-Use when behavior depends on multiple conditions.
-
-Examples:
-
-- Role x status x action.
-- Customer type x product type x approval level.
-- Payment method x currency x country.
-- Permission x data ownership x workflow state.
 
 ### Exception and error handling
 

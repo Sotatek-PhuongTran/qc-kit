@@ -33,7 +33,7 @@ For first-time generation, read available sources in this order:
 1. `path-registry.md` and `project-config.md`.
 2. `High-level-files`.
 3. `requirement-common-files` if needed for feature inventory fallback or high-level confirmation.
-4. Existing site map / feature list / `qc-dashboard.md` if available.
+4. Existing site map / feature list if available.
 5. Change log / release note if available.
 
 For Update mode, read the existing `project-context-master.md` first to preserve QC Lead edits and previously reviewed content. Then read current sources to update, supplement, or mark conflicts.

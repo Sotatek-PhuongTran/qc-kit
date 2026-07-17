@@ -1,6 +1,12 @@
 # -*- coding: utf-8 -*-
-"""Convert QC test case markdown drafts (*.md, possibly multi-part) into the
-test case xlsx template (`templates/Testcase_template.xlsx`).
+"""Convert QC test case markdown deliverables (*.md, possibly multi-part) into
+the test case xlsx template (`templates/Testcase_template.xlsx`).
+
+Naming (naming-convention.md, same-base-name rule): the output xlsx base name
+equals the source md base name (a trailing `_partN` is stripped), so the xlsx
+version always matches the md version. `--output-name` overrides explicitly.
+Legacy unversioned `_draft`-style md names fall back to auto-picking the next
+`_v{N}` in the output dir.
 
 Usage:
     python md_to_xlsx.py --input-glob "docs/QC/test-cases/functional-test/UC161-166/UC161-166_*_v2_part*.md" --uc-id UC161-166
@@ -40,12 +46,15 @@ EXPECTED_HEADER_FIRST_CELL = "TC ID"
 PART_NUM_RE = re.compile(r"part(\d+)", re.IGNORECASE)
 TABLE_HEADER_RE = re.compile(r"^\|\s*TC\s*ID\s*\|", re.IGNORECASE)
 TABLE_SEP_RE = re.compile(r"^\|\s*[:\- ]+\s*\|")
-TC_ROW_RE = re.compile(r"^\|\s*TC[_\-]?\d", re.IGNORECASE)
+# Matches UI rows (TC_001) and API-branch rows (TC_API_001, TC_MIX_012) - shared
+# converter for qc-func-tc-design AND qc-api-tc-design.
+TC_ROW_RE = re.compile(r"^\|\s*TC(?:[_\-](?:API|MIX))?[_\-]?\d", re.IGNORECASE)
 ANNOTATION_RE = re.compile(r"\s*\[(NEW|UPDATED|DELETED|MOVED)[^\]]*\]", re.IGNORECASE)
 VERSION_SUFFIX_RE = re.compile(r"_v(\d+)\.xlsx$", re.IGNORECASE)
-DRAFT_PART_SUFFIX_RE = re.compile(
-    r"_(?:draft|draft_v\d+)?_?part\d+\.md$", re.IGNORECASE
-)
+PART_SUFFIX_RE = re.compile(r"_part\d+$", re.IGNORECASE)
+# Legacy tolerance: old living-draft md names carried a `_draft` token
+# (e.g. `..._testcases_draft_part1.md`). Stripped so legacy files still convert.
+LEGACY_DRAFT_TOKEN_RE = re.compile(r"_draft(_v\d+)?$", re.IGNORECASE)
 BASENAME_VERSION_SUFFIX_RE = re.compile(r"_v\d+$", re.IGNORECASE)
 VIET_DIACRITIC_RE = re.compile(
     "[àáâãèéêìíòóôõùúýăđĩũơưạảấầẩẫậắằẳẵặẹẻẽếềểễệỉịọỏốồổỗộớờởỡợụủứừửữựỳỵỷỹ"
@@ -147,20 +156,21 @@ def parse_md_files(paths: Iterable[str]) -> list[Item]:
 
 
 def derive_output_basename(first_md_path: str) -> str:
-    name = os.path.basename(first_md_path)
-    base = DRAFT_PART_SUFFIX_RE.sub("", name)
-    if base == name:
-        base = os.path.splitext(name)[0]
-    # Strip an existing trailing `_v{N}` so the version is not duplicated when
-    # the new `_v{N}.xlsx` suffix is appended downstream.
-    base = BASENAME_VERSION_SUFFIX_RE.sub("", base)
+    """Same-base-name rule: xlsx base name = source md base name, keeping the
+    md's `_v{N}` so the xlsx version matches the md. Strips only a trailing
+    `_partN` (multi-part sources) and a legacy `_draft` token."""
+    base = os.path.splitext(os.path.basename(first_md_path))[0]
+    base = PART_SUFFIX_RE.sub("", base)
+    base = LEGACY_DRAFT_TOKEN_RE.sub(lambda m: m.group(1) or "", base)
     return base
 
 
 def next_version(output_dir: str, uc_id: str) -> int:
-    """Highest existing version + 1, scanning all xlsx in output_dir whose name
-    contains the UC id and ends with `_v{N}.xlsx`. Tolerates extra tokens (e.g.
-    date stamps) between the UC id and the version suffix."""
+    """LEGACY fallback only (unversioned md names): highest existing version + 1,
+    scanning all xlsx in output_dir whose name contains the UC id and ends with
+    `_v{N}.xlsx`. Tolerates extra tokens (e.g. date stamps) between the UC id
+    and the version suffix. Versioned md names never use this — their xlsx
+    version matches the md version."""
     versions = []
     for path in glob.glob(os.path.join(output_dir, "*.xlsx")):
         name = os.path.basename(path)
@@ -251,10 +261,10 @@ def verify_diacritics(output_path: str, sample_target: int = 5) -> None:
 
 def main(argv: list[str] | None = None) -> int:
     p = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
-    p.add_argument("--input-glob", required=True, help="Glob for md draft files (sorted by partN).")
+    p.add_argument("--input-glob", required=True, help="Glob for source md files (sorted by partN).")
     p.add_argument("--uc-id", required=True, help="UC identifier, e.g. UC161-166.")
     p.add_argument("--output-dir", default=None, help="Default: directory of the first md file.")
-    p.add_argument("--output-name", default=None, help="Override output filename (without dir). Default: derived from first md, suffixed _v{N}.xlsx.")
+    p.add_argument("--output-name", default=None, help="Override output filename (without dir). Default: source md base name (strip _partN) + .xlsx — version matches the md; legacy unversioned names get the next _v{N}.")
     p.add_argument("--template", default=DEFAULT_TEMPLATE, help=f"Default: {DEFAULT_TEMPLATE}")
     p.add_argument("--dry-run", action="store_true", help="Parse and report counts without writing the xlsx.")
     args = p.parse_args(argv)
@@ -279,8 +289,15 @@ def main(argv: list[str] | None = None) -> int:
         output_name = args.output_name
     else:
         base = derive_output_basename(inputs[0])
-        version = next_version(output_dir, args.uc_id)
-        output_name = f"{base}_v{version}.xlsx"
+        if BASENAME_VERSION_SUFFIX_RE.search(base):
+            # Canonical naming: the md carries `_v{N}` — the xlsx shares the
+            # SAME base name, so its version matches the md (never auto-bumped).
+            output_name = f"{base}.xlsx"
+        else:
+            # Legacy tolerance: unversioned (old draft-style) md name — fall
+            # back to auto-picking the next version in the output dir.
+            version = next_version(output_dir, args.uc_id)
+            output_name = f"{base}_v{version}.xlsx"
 
     output_path = os.path.join(output_dir, output_name)
     print(f"Output: {output_path}")

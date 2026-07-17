@@ -1,0 +1,13 @@
+{
+  "name": "<project>-automation",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build:testdata": "node scripts/build-test-data.mjs",
+    "test": "playwright test"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.49.0",
+    "ajv": "^8"
+  }
+}

@@ -1,6 +1,6 @@
 ---
 name: qc-context-master
-description: Generates and updates project-context-master.md — the compact project-level context that downstream QC skills read first. Step 1 of the chain qc-context-master -> qc-site-map -> qc-dashboard-sync. Trigger when the user asks to initialize or update project context, summarize high-level BA documents, or runs /qc-context-master.
+description: "Generates and updates project-context-master.md — the compact project context downstream skills read first (§3.0 = scope/variant/language source). Step 1 of qc-context-master → qc-site-map → qc-dashboard-sync. Trigger: /qc-context-master, 'khởi tạo context dự án', 'cập nhật project context', or summarizing high-level BA docs."
 ---
 # QC Context Master
 
@@ -27,25 +27,7 @@ In Update mode, always read the existing `project-context-master.md` before extr
 
 ## Version preflight (Update mode only)
 
-Before re-running the full pipeline, parse the `Sources consolidated` table from the existing `project-context-master.md`. For each source, scan its parent folder for the latest version (`_v<N>` suffix in filename) and compare with the recorded version.
-
-- If at least one source has a new version, a new file, or a deleted file -> proceed with the full pipeline.
-- If no version change is detected on any source, ask the user:
-
-```text
-Khong phat hien version moi cua cac source files da consolidated lan truoc:
-- <file 1>: v<N> (khong doi)
-- <file 2>: v<N> (khong doi)
-...
-
-Luu y: co che nay chi detect version qua ten file (regex _v<N>).
-Neu ban da sua content ma khong tang version, hay tra loi yes de chay lai.
-
-Ban co muon chay lai khong? [yes/no]
-```
-
-- User answers `no` -> exit early without changes, log the skip in the worklog.
-- User answers `yes` -> continue with the full pipeline.
+Before re-running the full pipeline, compare the `Sources consolidated` table of the existing `project-context-master.md` against the source files on disk. The full algorithm, the Vietnamese no-change prompt (`Khong phat hien version moi...`), and the yes/no handling (`no` → jump to Phase 7 cleanup, `Mode: Skipped`) are defined ONCE in `workflows/phase-0-audit-resume.md` §8 — follow them there.
 
 ## Inputs
 
@@ -138,6 +120,7 @@ Stop and ask the user only when:
 5. A required existing file path changed in a way that may overwrite user work.
 6. A conflict blocks safe writing of `project-context-master.md`.
 7. Version preflight returned no detected changes and the user answered `no`.
+8. `project-config.md` §6 (Phạm vi & Variant kiểm thử) is missing, blank, or still placeholder — Section 3.0 cannot be inherited verbatim (Phase 3 extraction rule 0). Ask the user to run `/qc-project-onboarding` first.
 
 Otherwise, continue with available information, mark gaps, and report what needs confirmation.
 

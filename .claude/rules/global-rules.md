@@ -4,8 +4,8 @@
 - SKIP all other knowledge, histories that not stored in this project.
 
 ## Language & Communication
-- Communication language: Vietnamese is the default language for all exchanges, reports, and explanations.
-- All outputs of any "skill" MUST be written in Vietnamese.
+- Communication language: Vietnamese is the default language for all chat exchanges and explanations.
+- Output-file language follows the two-group law in `rules/qc-writting-rules.md` (§ Ngôn ngữ output): internal review documents (audited reports, api-audited, question backlogs, triage, plans, summaries) are ALWAYS Vietnamese; official project deliverables (test scenarios, test cases, test scripts, bug reports, execution reports) follow the project language (Vietnamese or English only, per `project-context-master` §3.0).
 - All skill.md files MUST be written in English.
 - All outputs MUST be written in a way that Junior QC readers can easily understand the content.
 - All output file MUST follow the writting rules definded in `rules/qc-writting-rules.md`
@@ -48,4 +48,4 @@ Minimum code that solves the problem. Nothing speculative.
 
 ## Agent Work Log
 
-- Every skill MUST log to its device's JSONL file under `worklog-per-device` (resolve path via `path-registry.md`). If the file does not exist yet, create it. Schema and lifecycle: see the README at the same folder (`docs/qc-lead/agent-work-log.local/README.md`). Do NOT write directly to the master `agent-work-log` — that is owned exclusively by `qc-get-work-log`.
+- Every skill (EXCEPTION: `qc-start` — read-only concierge, writes nothing incl. worklog) MUST log to its device's JSONL file under `worklog-per-device` (resolve path via `path-registry.md`). If the folder / README / JSONL file does not exist yet, BOOTSTRAP them: create the folder and copy the README from the kit template `.claude/skills/qc-get-work-log/templates/agent-work-log.local-README.template.md`, then create the JSONL. Schema and lifecycle: see that README (`docs/qc-lead/agent-work-log.local/README.md`). Do NOT write directly to the master `agent-work-log` — that is owned exclusively by `qc-get-work-log`.

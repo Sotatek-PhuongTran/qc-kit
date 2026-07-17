@@ -13,7 +13,9 @@ Referenced by `workflows/design.md`. Single source for techniques, template, cov
 
 ## MANDATORY test design techniques (scenario level)
 
-Applied at scenario granularity — one technique application typically produces one scenario; `qc-func-tc-design` later expands each into atomic cases.
+> **NHÀ CHÍNH (canonical home)** của 6 kỹ thuật test design — `qc-func-tc-design` và các file khác trỏ về đây, không chép lại định nghĩa.
+
+Applied at scenario granularity — one technique application typically produces one scenario; `qc-func-tc-design` later expands each into atomic cases (TC tier: every partition, every boundary value, every branch listed under each technique below becomes its own atomic case).
 
 1. **Equivalence Partitioning (EP)** — one scenario per valid/invalid partition. Never bundle (allowed `.png .jpg .svg` → one scenario per valid extension + one per representative invalid; never "all valid extensions" in one).
 2. **Boundary Value Analysis (BVA)** — for any numeric/length/size constraint: `Limit`, `Limit − 1`, `Limit + 1` (255-char max → 1, 255, 256; 1MB max → 1.00MB, 1.01MB).
@@ -30,7 +32,7 @@ Applied at scenario granularity — one technique application typically produces
 ### Scenario ID: TS_[UC-ID]_[SequenceNo]
 **Scenario Title:** [Short, clear description]
 **UC Reference:** [UC ID and UC Name]
-**Req-ID:** [Requirement ID(s) traced — e.g., UC-001-FR-003]
+**Req-ID:** [Requirement ID(s) traced — use the project's REAL reference IDs as cited in the audited report (e.g. EF-xx / BR-xx / AC-xx / CR-xx); do not invent `FR`-style codes]
 **Test Type:** [Functional | Integration | UI | End-to-End | Acceptance]
 **Description:** [1–2 sentences — what condition or flow is verified]
 **Test Focus:** [Happy path | Alternative flow | Error/Exception | Boundary | Permission/Role | UI State | API contract]
@@ -53,6 +55,8 @@ For each UC, cover ALL that apply:
 | Acceptance criteria verification | Acceptance Criteria (audited §8) |
 
 Do not skip a coverage area just because the UC is brief.
+
+> Mapping to the 5 scoring areas: Happy/Alternative/Exception flows + role/permission → scoring area 3 (F.3); business rules/validation + boundary values → area 2 (F.2); UI state transitions → areas 1–2 (F.1/F.2); API contract/integration → area 4 (F.4); acceptance criteria → audited §8 (non-scored).
 
 ## Output file structure
 
@@ -91,4 +95,4 @@ Do not skip a coverage area just because the UC is brief.
 ## Out-of-scope handling
 
 - **Performance / security beyond functional auth / load:** do NOT generate scenarios; add an Out-of-Scope row with reason + recommended action.
-- **Blocked by audited gap (⚠️ Missing / ⚡ Partial KA):** do NOT fabricate; add row with reason `BLOCKED: <KA name> — needs BA answer`, action `Resolve via qc-qna + re-audit before designing`.
+- **Blocked by audited gap:** a matrix cell is `blocked` ONLY when a SPECIFIC open gap/question/issue in the audited report (an open §10.1 row or §10.2 dependency) directly touches the content that cell would cover (the exact flow, rule, field, role, or state). A ⚠️/❌/🚫 status on a related scoring area (markers per `qc-uc-read/references/scoring-rubric.md` §3) is only a signal to check §10.1/§10.2 — it does NOT by itself block the whole coverage area; design the unaffected content normally. For each blocked cell: do NOT fabricate; add row with reason `BLOCKED: <§10.1 question ID / gap> — needs BA answer`, action `Resolve via qc-qna + re-audit before designing`.

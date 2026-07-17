@@ -1,23 +1,29 @@
 {
   "permissions": {
     "allow": [
-      "Bash(git mv *)",
-      "Edit(.claude/**)",
-      "Write(.claude/**)",
-      "PowerShell($claude = Get-Item \"c:\\\\Users\\\\Admin\\\\Desktop\\\\qc-kit\\\\.claude\"; $agent = Get-Item \"c:\\\\Users\\\\Admin\\\\Desktop\\\\qc-kit\\\\.agent\"; \"$\\($claude.LinkType\\) $\\($claude.Target\\)\"; \"$\\($agent.LinkType\\) $\\($agent.Target\\)\")",
-      "Bash(rm .claude/skills/**)",
-      "Bash(rm .agent/skills/**)",
-      "Bash(xargs wc *)",
-      "Bash(cp .claude/skills/**)",
-      "Bash(mkdir -p \".claude/skills/**\")",
-      "Bash(mv \".claude/skills/**\")",
+      "Edit(.claude/skills/**)",
+      "Write(.claude/skills/**)",
+      "Edit(.claude/config/path-registry.md)",
       "Edit(docs/qc-lead/**)",
       "Write(docs/qc-lead/**)",
       "Edit(docs/qc/**)",
-      "Write(docs/qc/**)"
-    ],
-    "additionalDirectories": [
-      "c:\\Users\\Admin\\Desktop\\qc-kit\\docs\\qc-lead"
+      "Write(docs/qc/**)",
+      "Bash(git rev-parse *)",
+      "Bash(git config *)",
+      "Bash(hostname*)",
+      "Bash(sed *)",
+      "Bash(cat *)",
+      "Bash(printf *)",
+      "Bash(mkdir -p *)",
+      "Bash(ls *)",
+      "Bash(wc *)",
+      "Bash(python3 .claude/skills/qc-func-tc-design/scripts/md_to_xlsx.py *)",
+      "Bash(pip install openpyxl*)",
+      "Bash(node .claude/config/api-shared/scripts/parse-api-doc.mjs *)",
+      "Bash(node scripts/build-test-data.mjs *)",
+      "Bash(npm run *)",
+      "Bash(npm install*)",
+      "Bash(npx playwright test*)"
     ]
   }
 }

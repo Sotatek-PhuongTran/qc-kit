@@ -80,6 +80,8 @@ Do not read all raw artefacts by default.
 
 Read only the source related to the change.
 
+**FORMAT CHECK GATE (pointer):** when the selected mode reads requirement/source artefacts (`document update`, `design update`, `mixed update`), first run the FORMAT CHECK GATE on `references/input-files-format.md` exactly per `workflows/first-audit/1-synthesize-understanding.md` Step 1.4 — flag `Đã khớp` → use the file as-is; flag empty / `Cần check lại` → reconcile the file with reality, update its body + Update history, then set the flag.
+
 ---
 
 ## Step 2 — Load baseline audited report
@@ -285,6 +287,8 @@ Section 10.1 remains the canonical source for question backlog sync.
 ---
 
 ## Step 9 — Write new audited report version
+
+> **BẮT BUỘC trước khi ghi:** chạy Cổng tự kiểm §5 của `.claude/rules/qc-writting-rules.md` trên toàn bộ nội dung report v[N+1] và sửa hết vi phạm.
 
 Create a new report:
 

@@ -1,0 +1,455 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>QC-Kit × Roles — Sơ đồ vận hành BA · QC · DEV</title>
+<style>
+  :root{
+    --ba:#b45309; --ba-bg:#fffbeb; --ba-line:#f59e0b;
+    --qc:#1d4ed8; --qc-bg:#eff6ff; --qc-line:#3b82f6;
+    --dev:#047857; --dev-bg:#ecfdf5; --dev-line:#10b981;
+    --ink:#1f2937; --muted:#6b7280; --border:#e5e7eb; --bg:#f8fafc;
+    --gate:#be123c; --gate-bg:#fff1f2;
+    --infra:#6d28d9; --infra-bg:#f5f3ff;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:-apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;background:var(--bg);color:var(--ink);padding:28px 20px 60px;line-height:1.45}
+  .wrap{max-width:1180px;margin:0 auto}
+  h1{font-size:24px;letter-spacing:-.3px}
+  .sub{color:var(--muted);font-size:13.5px;margin:6px 0 26px}
+  h2{font-size:17px;margin:34px 0 4px;display:flex;align-items:center;gap:8px}
+  h2 .num{display:inline-flex;align-items:center;justify-content:center;width:24px;height:24px;border-radius:7px;background:var(--ink);color:#fff;font-size:13px}
+  .h2sub{color:var(--muted);font-size:12.5px;margin-bottom:14px}
+  .card{background:#fff;border:1px solid var(--border);border-radius:14px;padding:16px}
+  code{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:.92em;background:#f1f5f9;border:1px solid #e2e8f0;border-radius:4px;padding:0 4px;white-space:nowrap}
+  /* ===== Section 1: role lanes ===== */
+  .lanes{display:grid;grid-template-columns:1fr 2.1fr 1fr;gap:14px;align-items:stretch}
+  .lane{border-radius:14px;border:1.5px solid;padding:14px}
+  .lane.ba{background:var(--ba-bg);border-color:var(--ba-line)}
+  .lane.qc{background:var(--qc-bg);border-color:var(--qc-line)}
+  .lane.dev{background:var(--dev-bg);border-color:var(--dev-line)}
+  .lane h3{font-size:15px;margin-bottom:2px}
+  .lane .role-tag{font-size:11px;font-weight:700;letter-spacing:.5px;text-transform:uppercase}
+  .lane.ba h3,.lane.ba .role-tag{color:var(--ba)}
+  .lane.qc h3,.lane.qc .role-tag{color:var(--qc)}
+  .lane.dev h3,.lane.dev .role-tag{color:var(--dev)}
+  .lane ul{list-style:none;margin-top:10px;display:flex;flex-direction:column;gap:7px}
+  .lane li{background:#fff;border:1px solid var(--border);border-radius:9px;padding:7px 9px;font-size:12.5px}
+  .lane li .where{display:block;color:var(--muted);font-size:11.5px;margin-top:1px}
+  .exchange{display:grid;grid-template-columns:1fr 2.1fr 1fr;gap:14px;margin-top:10px}
+  .arrowbox{font-size:11.5px;text-align:center;color:var(--muted);border:1px dashed #cbd5e1;border-radius:10px;padding:6px 8px;background:#fff}
+  .arrowbox b{color:var(--ink)}
+  /* ===== Section 2: pipeline ===== */
+  .stage-title{font-size:12px;font-weight:800;letter-spacing:.7px;text-transform:uppercase;color:var(--infra);margin:18px 0 8px;display:flex;align-items:center;gap:8px}
+  .stage-title:before{content:"";width:10px;height:10px;border-radius:3px;background:var(--infra)}
+  .stage-title.run-t{color:var(--gate)} .stage-title.run-t:before{background:var(--gate)}
+  .row{display:grid;gap:10px}
+  .row.g4{grid-template-columns:repeat(4,1fr)}
+  .row.g2{grid-template-columns:1fr 1fr}
+  .skill{background:#fff;border:1.5px solid var(--qc-line);border-radius:12px;padding:10px 12px;position:relative}
+  .skill.infra{border-color:#c4b5fd;background:var(--infra-bg)}
+  .skill.run{border-color:#fda4af;background:#fff}
+  .skill h4{font-size:13px;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;color:var(--qc)}
+  .skill.infra h4{color:var(--infra)} .skill.run h4{color:var(--gate)}
+  .skill .io{font-size:11.5px;margin-top:6px;display:grid;grid-template-columns:14px 1fr;gap:2px 6px}
+  .skill .io .k{font-weight:800;color:var(--muted)}
+  .skill .note{margin-top:6px;font-size:11px;color:var(--muted);border-top:1px dashed var(--border);padding-top:5px}
+  .gate-chip{display:inline-block;background:var(--gate-bg);color:var(--gate);border:1px solid #fecdd3;border-radius:6px;font-size:10.5px;font-weight:700;padding:1px 6px;margin-top:5px}
+  .ba-chip{display:inline-block;background:var(--ba-bg);color:var(--ba);border:1px solid #fde68a;border-radius:6px;font-size:10.5px;font-weight:700;padding:1px 6px;margin-top:5px}
+  .dev-chip{display:inline-block;background:var(--dev-bg);color:var(--dev);border:1px solid #a7f3d0;border-radius:6px;font-size:10.5px;font-weight:700;padding:1px 6px;margin-top:5px}
+  .pass{margin-top:7px;border-top:1px dashed var(--border);padding-top:5px;font-size:11px}
+  .pass b{display:block;color:#047857;font-size:10px;text-transform:uppercase;letter-spacing:.5px;margin-bottom:2px}
+  .pass ul{margin:0 0 0 14px;padding:0}
+  .pass li{margin:2px 0;color:#374151;font-size:11px;list-style:disc}
+  .down{text-align:center;color:#94a3b8;font-size:16px;line-height:1;padding:4px 0}
+  .split-label{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:6px}
+  .branch-h{font-size:12px;font-weight:800;color:var(--qc);text-align:center;background:#dbeafe;border-radius:8px;padding:4px}
+  /* ===== Section 3 ===== */
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+  .anatomy li,.upd li{font-size:12.5px;padding:7px 9px;border:1px solid var(--border);border-radius:9px;background:#fff;list-style:none}
+  .anatomy ul,.upd ul{display:flex;flex-direction:column;gap:7px;margin-top:8px}
+  .ok{color:#047857;font-weight:700}.no{color:#be123c;font-weight:700}
+  table{width:100%;border-collapse:collapse;font-size:12.5px;background:#fff;border-radius:12px;overflow:hidden}
+  th,td{border:1px solid var(--border);padding:8px 10px;text-align:left;vertical-align:top}
+  th{background:#f1f5f9;font-size:11.5px;text-transform:uppercase;letter-spacing:.4px;color:#475569}
+  .legend{display:flex;flex-wrap:wrap;gap:14px;font-size:11.5px;color:var(--muted);margin-top:8px}
+  .legend span{display:inline-flex;align-items:center;gap:5px}
+  .dot{width:10px;height:10px;border-radius:3px;display:inline-block}
+  @media(max-width:900px){.lanes,.exchange,.row.g4,.row.g2,.grid2,.split-label{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<h1>QC-Kit × Roles — Sơ đồ vận hành BA · QC · DEV</h1>
+<p class="sub">Dự án <b>sotacare</b> · 18 skills tại <code>.claude/skills/qc-*</code> · Sổ tay bàn giao: bất kỳ QC nào đọc sơ đồ này đều có thể tiếp quản bộ kit.</p>
+
+<!-- ============ 1. ROLE MAP ============ -->
+<h2><span class="num">1</span> Bản đồ 3 role quanh QC-Kit</h2>
+<p class="h2sub">QC là người vận hành chính. BA và DEV không chạy pipeline nhưng <b>dùng kit theo role của mình</b> qua các file sống (living docs) được kit quy định chỗ đọc/ghi.</p>
+
+<div class="lanes">
+  <div class="lane ba">
+    <span class="role-tag">Đầu vào — Requirement</span>
+    <h3>👩‍💼 BA dùng kit như thế nào</h3>
+    <ul>
+      <li><b>Cung cấp tài liệu nguồn</b><span class="where">High-level docs, UC spec, wireframe, API doc → khai path tại <code>path-registry.md</code> (nhóm A — "Nguồn: BA")</span></li>
+      <li><b>Trả lời Sổ câu hỏi</b><span class="where">Ghi trực tiếp câu trả lời vào Question Backlog (sổ UI per-UC + sổ API portal) do <code>qc-qna</code> tạo</span></li>
+      <li><b>Chốt xung đột doc ↔ requirement</b><span class="where">3 loại finding từ <code>qc-api-tc-design</code>: endpoint thiếu doc, doc mâu thuẫn, endpoint mồ côi</span></li>
+      <li><b>Theo dõi tiến độ</b><span class="where">Đọc <code>qc-dashboard.md</code>, <code>project-context-master.md</code>, uc-review-report (verdict + gap)</span></li>
+    </ul>
+  </div>
+
+  <div class="lane qc">
+    <span class="role-tag">Vận hành chính</span>
+    <h3>🧪 QC vận hành toàn bộ pipeline</h3>
+    <ul>
+      <li><b>QC Lead:</b> onboarding cấu hình dự án, xác nhận môi trường chạy, duyệt kế hoạch verify bug, tổng hợp work-log</li>
+      <li><b>QC member:</b> chạy chuỗi per-UC — audit UC → thiết kế scenario/TC → sinh automation → run → report → bug</li>
+      <li><b>Nguyên tắc:</b> kit <u>không tự sửa requirement hay code</u> — chỉ phát hiện gap → đẩy BA, phát hiện defect → đẩy DEV; không đoán, không bịa</li>
+      <li><b>Chi tiết đầy đủ ở mục 2–4 bên dưới ⬇</b></li>
+    </ul>
+  </div>
+
+  <div class="lane dev">
+    <span class="role-tag">Đầu ra — Fix &amp; xác nhận</span>
+    <h3>👨‍💻 DEV dùng kit như thế nào</h3>
+    <ul>
+      <li><b>Nhận bug đã phân loại root cause</b><span class="where"><code>bug-report</code>: Lỗi BE / Lỗi FE / Lỗi tích hợp, kèm đối chứng UI↔API — biết ngay sửa ở tầng nào</span></li>
+      <li><b>Báo fix qua cột "Trạng thái"</b><span class="where">Set <code>Dev đã fix — chờ verify</code> (hoặc Không tái hiện / Không phải bug) — tín hiệu kích hoạt <code>qc-bug-verify</code></span></li>
+      <li><b>Trả lời findings</b><span class="where">Điền cột "Trả lời của QC/dev" trong <code>crawl-findings</code> / <code>api-findings</code></span></li>
+      <li><b>BE xác nhận baseline API</b><span class="where">Chỉ sửa field <code>confirmed</code> trong <code>api-baselines/*.json</code>; cung cấp Swagger/OpenAPI/Postman</span></li>
+    </ul>
+  </div>
+</div>
+
+<div class="exchange">
+  <div class="arrowbox">BA ⟶ QC: tài liệu + câu trả lời trong sổ<br>QC ⟶ BA: câu hỏi qua <b>qc-qna</b> (đã lọc qua Question Gate + Dedup Gate)</div>
+  <div class="arrowbox">Quy tắc chung: mọi trao đổi đi qua <b>file sống có cột trạng thái</b> — không trao đổi miệng ngoài luồng; câu trả lời chỉ "có hiệu lực" khi QC re-audit / re-run</div>
+  <div class="arrowbox">QC ⟶ DEV: bug + root cause, findings<br>DEV ⟶ QC: cột Trạng thái bug, câu trả lời findings, <b>confirmed</b> baseline</div>
+</div>
+
+<!-- ============ 2. QC PIPELINE ============ -->
+<h2><span class="num">2</span> Pipeline chi tiết cho QC — skill nào, input gì, output gì</h2>
+<p class="h2sub">Mỗi ô = 1 skill (gọi bằng <code>/tên-skill</code>). <b>I</b> = input, <b>O</b> = output, <b style="color:#047857">✅</b> = các đầu mục QC phải review / giải quyết xong thì gate của bước sau mới mở. Mọi đường dẫn resolve qua <code>path-registry.md</code>, không hard-code.</p>
+
+<div class="card">
+  <div class="stage-title">Giai đoạn 0 — Bootstrap (chạy 1 lần khi vào dự án, tự gọi dây chuyền)</div>
+  <div class="row g4">
+    <div class="skill infra"><h4>/qc-project-onboarding</h4>
+      <div class="io"><span class="k">I</span><span>Interview QC Lead (7 mục config + path nhóm A)</span>
+      <span class="k">O</span><span><code>project-config.md</code> + <code>path-registry.md</code></span></div>
+      <span class="gate-chip">⛔ Mục 1 &amp; 6 bắt buộc · scope chỉ được mở rộng</span>
+      <div class="pass"><b>✅ Để qua gate bước sau</b><ul>
+        <li>Mục 1 (overview) &amp; Mục 6 (phạm vi + variant) đã điền — thiếu là mọi skill khác không chạy</li>
+        <li>Path nhóm A trỏ folder thật trên đĩa (High-level-files, requirement-common-files…)</li>
+        <li>Scope có API → khai Mục 7 Auth API + row <code>api-doc-files</code></li>
+      </ul></div></div>
+    <div class="skill infra"><h4>qc-context-master</h4>
+      <div class="io"><span class="k">I</span><span>High-level-files + requirement-common-files (từ BA)</span>
+      <span class="k">O</span><span><code>project-context-master.md</code></span></div>
+      <span class="ba-chip">Gap kiến trúc/data → "Needs BA/Tech Lead source", không suy đoán</span></div>
+    <div class="skill infra"><h4>qc-site-map</h4>
+      <div class="io"><span class="k">I</span><span>context-master + evidence BA</span>
+      <span class="k">O</span><span><code>qc-site-map.md</code> · <code>qc-data-map.md</code> · handoff (In-scope?)</span></div></div>
+    <div class="skill infra"><h4>qc-dashboard-sync</h4>
+      <div class="io"><span class="k">I</span><span>site-map handoff + progress.md các UC</span>
+      <span class="k">O</span><span><code>qc-dashboard.md</code> (writer duy nhất)</span></div>
+      <div class="note">Mode per-UC: <code>/qc-dashboard-sync &lt;UC-ID&gt;</code>; folder lạ → trả "orphan" về site-map</div></div>
+  </div>
+
+  <div class="down">▼</div>
+  <div class="split-label">
+    <div class="branch-h">NHÁNH UI / FUNCTIONAL (per-UC)</div>
+    <div class="branch-h">NHÁNH API (per-UC — khi scope có API)</div>
+  </div>
+
+  <div class="row g2" style="margin-top:10px">
+    <div class="skill"><h4>/qc-uc-read</h4>
+      <div class="io"><span class="k">I</span><span>UC spec + wireframe (BA)</span>
+      <span class="k">O</span><span><code>uc-review-report</code>: verdict Ready / Conditionally / Not Ready + điểm 0–100 + bảng gap &amp; question</span></div>
+      <span class="gate-chip">⛔ Not Ready → chặn toàn bộ design phía sau</span>
+      <span class="ba-chip">Tự gọi qc-qna đẩy câu hỏi cho BA · BA trả lời → phải re-audit</span>
+      <div class="pass"><b>✅ Để qua gate bước sau</b><ul>
+        <li>Verdict = Ready / Conditionally Ready (Not Ready → BA bổ sung UC → re-audit)</li>
+        <li>Bảng Gap &amp; Question đã sync sang sổ qc-qna, không còn câu hỏi "kẹt" ngoài sổ</li>
+        <li>Câu BA đã trả lời trong sổ phải được hấp thụ bằng re-audit (kit cảnh báo nếu lệch)</li>
+        <li>Mục đánh dấu Gap / "Dự đoán" chốt rõ — bước sau KHÔNG được design trên phần này</li>
+      </ul></div></div>
+    <div class="skill"><h4>/qc-api-read</h4>
+      <div class="io"><span class="k">I</span><span><code>uc-review-report</code> ĐÃ PASS (kế thừa, không đọc API doc)</span>
+      <span class="k">O</span><span><code>api-audited</code> (operations, params, permission, AC) + <code>qc-api-coverage</code> (Owner/Reuse)</span></div>
+      <span class="gate-chip">⛔ Hard gate: chưa có audited UC pass → STOP</span>
+      <div class="pass"><b>✅ Để qua gate bước sau</b><ul>
+        <li>Mọi operation gắn nhãn Owner / Reuse; coverage không còn dòng "⚠ Xung đột"</li>
+        <li>Gap nghiệp vụ đã đẩy vào sổ API của qc-qna (đã qua Question Gate §7 + Dedup §8)</li>
+        <li>Câu trả lời BE/BA mới → re-audit để cập nhật api-audited trước khi design</li>
+      </ul></div></div>
+  </div>
+  <div class="down">▼</div>
+  <div class="row g2">
+    <div class="skill"><h4>/qc-func-scenario-design</h4>
+      <div class="io"><span class="k">I</span><span>uc-review-report</span>
+      <span class="k">O</span><span><code>func-test-scenarios</code> (TS_[UC]_NNN, mức intent)</span></div>
+      <div class="note">Gap / "Dự đoán" → Out-of-scope flag + khuyến nghị hỏi BA, không bịa scenario</div>
+      <div class="pass"><b>✅ Để qua gate bước sau</b><ul>
+        <li>Mọi scenario trace ngược được về audited report (không có TS "mồ côi")</li>
+        <li>Out-of-scope flags ghi đủ lý do + khuyến nghị qc-qna</li>
+        <li>Review độ phủ: đủ luồng chính / hợp lệ / lỗi-ngoại lệ trước khi xuống mức TC</li>
+      </ul></div></div>
+    <div class="skill"><h4>/qc-api-scenario-design</h4>
+      <div class="io"><span class="k">I</span><span>api-audited</span>
+      <span class="k">O</span><span><code>api-test-scenarios</code> (TS_API_[UC]_NNN) — chỉ cho operation Owner</span></div>
+      <div class="pass"><b>✅ Để qua gate bước sau</b><ul>
+        <li>Chỉ sinh scenario cho operation Owner; operation Reuse chỉ tham chiếu UC chủ</li>
+        <li>Không fabricate cho nội dung audited đánh dấu gap — chuyển thành câu hỏi BA</li>
+      </ul></div></div>
+  </div>
+  <div class="down">▼</div>
+  <div class="row g2">
+    <div class="skill"><h4>/qc-func-tc-design</h4>
+      <div class="io"><span class="k">I</span><span>func-test-scenarios</span>
+      <span class="k">O</span><span><code>func-test-cases-draft.md</code> (nguồn máy đọc) + <code>.xlsx</code> (bàn giao người đọc)</span></div>
+      <div class="note">Kỹ thuật: EP / BVA / decision table · luôn sửa từ bản .md, xlsx chỉ là export</div>
+      <div class="pass"><b>✅ Để qua gate bước sau (Phase-2 verification gate)</b><ul>
+        <li>TC viết đúng văn phong <code>qc-writting-rules.md</code> + gold example <code>Testcase-refer-vi/en.md</code>: tiêu đề có TRẠNG THÁI, pre-condition mỗi dòng một điều kiện, không mã trần (CRULE-/AC-/SCR-), TC tự chứa, message trích nguyên văn</li>
+        <li>Số TC + section header của md khớp scratch trong <code>progress.md</code> (lệch → auto-recovery / STOP)</li>
+        <li>xlsx sinh từ script chung: số dòng TC khớp md, spot-check ≥3 dòng không mất dấu tiếng Việt</li>
+        <li>Priority hợp lý (ca bàn phím/zoom/refresh → P4–P5)</li>
+      </ul></div></div>
+    <div class="skill"><h4>/qc-api-tc-design</h4>
+      <div class="io"><span class="k">I</span><span>api-test-scenarios + <b>API doc (bắt buộc)</b></span>
+      <span class="k">O</span><span><code>api-test-cases-draft.md</code> + bảng Binding OP ↔ endpoint + <code>.xlsx</code></span></div>
+      <span class="gate-chip">⛔ Gate M2: thiếu api-doc-files → STOP</span>
+      <span class="ba-chip">Doc ↔ req mismatch / endpoint mồ côi → hỏi BA qua qc-qna</span>
+      <div class="pass"><b>✅ Để qua gate bước sau (M2)</b><ul>
+        <li>Bảng "Binding OP ↔ endpoint" đủ 100% operation Owner — endpoint/method verbatim từ doc</li>
+        <li>3 loại finding (UNDOCUMENTED / DOC_REQ_MISMATCH / ORPHAN_ENDPOINT) đã ghi sổ chờ BA — TC liên quan bị defer, không bịa endpoint</li>
+        <li>xlsx convert bằng script chung, verify count + encoding như nhánh UI</li>
+      </ul></div></div>
+  </div>
+  <div class="down">▼</div>
+  <div class="row g2">
+    <div class="skill"><h4>/qc-func-auto-generate</h4>
+      <div class="io"><span class="k">I</span><span>TC .md + crawl hệ thống đang chạy (lấy locator)</span>
+      <span class="k">O</span><span>Playwright POM: page objects + specs (title mang TC ID) + <code>crawl-findings/</code></span></div>
+      <span class="dev-chip">crawl-findings: cột "Trả lời của QC/dev" do user/DEV điền</span>
+      <div class="pass"><b>✅ Để qua gate bước sau</b><ul>
+        <li>Hệ thống test đang chạy để crawl locator; locator không tìm thấy → ghi crawl-findings, spec bị defer (không bịa selector)</li>
+        <li>Mọi row crawl-findings tiến về "Đã giải quyết" — điều kiện gate M4 ở qc-auto-run</li>
+      </ul></div></div>
+    <div class="skill"><h4>/qc-api-auto-generate</h4>
+      <div class="io"><span class="k">I</span><span>API TC .md (đã bind endpoint) + probe non-prod (tuỳ chọn)</span>
+      <span class="k">O</span><span>APIRequestContext specs: <code>services/</code> + <code>helpers/api/</code> + <code>schemas/</code> + tests/api &amp; tests/mix + <code>api-findings/</code></span></div>
+      <span class="dev-chip">api-baselines/*.json — BE chỉ sửa field <code>confirmed</code></span>
+      <div class="pass"><b>✅ Để qua gate bước sau</b><ul>
+        <li>Probe non-prod (nếu chạy) khớp binding; mismatch → api-findings, spec defer</li>
+        <li>Mọi row api-findings tiến về "Đã giải quyết"; baseline chờ BE <code>confirmed</code></li>
+      </ul></div></div>
+  </div>
+
+  <div class="down">▼ hai nhánh hội tụ về MỘT runner ▼</div>
+
+  <div class="stage-title run-t">Giai đoạn Run — Report — Bug loop (chung cho cả 2 nhánh)</div>
+  <div class="row g4">
+    <div class="skill run"><h4>/qc-auto-run</h4>
+      <div class="io"><span class="k">I</span><span>Specs UI + API + MIX (1 runner, 1 lệnh chạy)</span>
+      <span class="k">O</span><span><code>reports/summary-latest.md</code>; precondition thiếu → TC Blocked (không Fail)</span></div>
+      <span class="gate-chip">⛔ Confirm env mỗi lần chạy · từ chối URL prod</span>
+      <span class="gate-chip">⛔ Gate M4: mọi findings "Đã giải quyết" mới auto-gọi report</span>
+      <div class="pass"><b>✅ Để qua gate M4</b><ul>
+        <li>Env non-prod đã confirm; data precondition seed đủ (thiếu → TC Blocked, phải seed rồi re-run)</li>
+        <li>100% row crawl-findings + api-findings = "Đã giải quyết" — còn 1 row là dừng, kit liệt kê row cần trả lời</li>
+      </ul></div></div>
+    <div class="skill run"><h4>/qc-execute-test-report</h4>
+      <div class="io"><span class="k">I</span><span>run summary + TC list</span>
+      <span class="k">O</span><span><code>execution-report</code> sống: 1 dòng/TC, 1 cột/run</span></div>
+      <span class="gate-chip">⛔ Hard gate: findings resolved + run SAU thời điểm resolve</span>
+      <div class="note">Có Fail → tự gọi qc-bug-report</div>
+      <div class="pass"><b>✅ Để qua gate bước sau</b><ul>
+        <li>Run được ghi phải MỚI hơn thời điểm resolve finding cuối cùng (kết quả cũ không tính)</li>
+        <li>Mỗi Fail cell phải được phân loại ở bug-report — không để Fail "trôi" không giải trình</li>
+      </ul></div></div>
+    <div class="skill run"><h4>/qc-bug-report</h4>
+      <div class="io"><span class="k">I</span><span>Fail cells + ma trận đối chứng UI↔API</span>
+      <span class="k">O</span><span><code>bug-report</code>: BUG-&lt;UC&gt;-NN + root cause <b>Lỗi BE / FE / tích hợp</b>; false-positive → "Chưa chốt"</span></div>
+      <span class="dev-chip">Bàn giao DEV · không bao giờ sửa cột Trạng thái do DEV set</span>
+      <div class="pass"><b>✅ Để qua gate bước sau</b><ul>
+        <li>Root cause có đối chứng UI↔API (không blame DEV thiếu bằng chứng)</li>
+        <li>False-positive (script/env/data/doc cũ) để "Chưa chốt" — không đẩy sang DEV</li>
+        <li>Bug ID đã stamp ngược vào execution-report</li>
+      </ul></div></div>
+    <div class="skill run"><h4>/qc-bug-verify</h4>
+      <div class="io"><span class="k">I</span><span>DEV set "Dev đã fix — chờ verify"</span>
+      <span class="k">O</span><span>Kế hoạch re-test + regression theo root cause (BE→API TC cùng resource; FE→UI TC cùng màn) → Đã đóng / Mở lại</span></div>
+      <span class="gate-chip">⛔ Bắt buộc user approve trước khi chạy</span>
+      <div class="pass"><b>✅ Để đóng vòng lặp bug</b><ul>
+        <li>DEV đã set trạng thái (Dev đã fix — chờ verify / Không tái hiện / Không phải bug)</li>
+        <li>Kế hoạch verify được QC Lead approve; verify fail → Mở lại, quay về DEV</li>
+      </ul></div></div>
+  </div>
+
+  <div class="stage-title">Xuyên suốt (cross-cutting)</div>
+  <div class="row g2">
+    <div class="skill infra"><h4>/qc-qna</h4>
+      <div class="io"><span class="k">I</span><span>Câu hỏi từ qc-uc-read / qc-api-read / qc-api-tc-design (chỉ skill này được ghi sổ)</span>
+      <span class="k">O</span><span>Question Backlog: sổ UI per-UC + sổ API cấp portal, dedup 2 sổ</span></div>
+      <span class="ba-chip">Kênh chính thức duy nhất QC ↔ BA</span></div>
+    <div class="skill infra"><h4>/qc-get-work-log</h4>
+      <div class="io"><span class="k">I</span><span>JSONL worklog per-device (mọi skill tự log)</span>
+      <span class="k">O</span><span><code>agent-work-log.md</code> tổng hợp — chỉ QC Lead gọi</span></div></div>
+  </div>
+  <div class="legend">
+    <span><span class="dot" style="background:var(--infra)"></span>Hạ tầng / xuyên suốt</span>
+    <span><span class="dot" style="background:var(--qc)"></span>Per-UC design &amp; generate</span>
+    <span><span class="dot" style="background:var(--gate)"></span>Run / report / bug</span>
+    <span><span class="dot" style="background:#fecdd3;border:1px solid var(--gate)"></span>⛔ Gate cứng</span>
+    <span><span class="dot" style="background:#fde68a"></span>Điểm chạm BA</span>
+    <span><span class="dot" style="background:#a7f3d0"></span>Điểm chạm DEV</span>
+  </div>
+</div>
+
+<div class="card" style="margin-top:14px">
+  <b style="font-size:13.5px">📥 Input từ role khác (không phải output bước trước) — đọc được loại tài liệu nào, theo thứ tự nào</b>
+  <p style="font-size:12px;color:var(--muted);margin:4px 0 10px">Chuẩn hoá theo <code>qc-uc-read/references/input-files-format.md</code>: tài liệu BA đặt tại <code>docs/BA/</code> (common tại <code>docs/BA/common/</code>, per-UC tại <code>docs/BA/&lt;UC-ID&gt;/</code>). Định dạng kit hiểu: <b>.md</b> (chuẩn chính — bảng + mermaid) · <b>.png</b> (screen asset / wireframe) · <b>.csv</b> (QA Answers) · <b>JSON</b> (Swagger / OpenAPI / Postman). Tài liệu VI hay EN đều đọc được — trích nguyên văn, không dịch, không paraphrase.</p>
+  <table>
+    <tr><th style="width:17%">Skill nhận input ngoài</th><th style="width:40%">Loại tài liệu đọc / phân tích được (từ role nào)</th><th>Thứ tự đọc quy định</th></tr>
+    <tr>
+      <td><code>qc-context-master</code></td>
+      <td>Từ <b>BA</b>: <code>High-level-files</code> (feature list, WBS, scope table, site map / module list) + <code>requirement-common-files</code> (SRS / spec folder)</td>
+      <td>Trích feature theo thứ tự: <b>①</b> feature list / WBS / scope table trong High-level-files → <b>②</b> site map / module list trong High-level-files → <b>③</b> quét SRS/spec theo tên file, folder, heading, UC/feature/story ID. Phase-1 preflight ghi từng nguồn + version vào source inventory. Gap phân 3 loại: QC tự điền / suy được từ spec chi tiết / <b>phải hỏi BA-Tech Lead</b> (kiến trúc, data model, NFR, security — cấm suy đoán)</td>
+    </tr>
+    <tr>
+      <td><code>qc-site-map</code></td>
+      <td>Evidence (chỉ đọc, không viết lại) từ <b>BA / BE / Tech Lead</b>: high-level BA files, sitemap / menu / navigation chính thức, spec, wireframe, API doc, DB schema / ERD</td>
+      <td>Đọc sau <code>project-context-master.md</code>; evidence chỉ để đối chiếu — nguồn sự thật về màn hình / điều hướng cho QC là chính <code>qc-site-map.md</code> sau khi build</td>
+    </tr>
+    <tr>
+      <td><code>qc-uc-read</code><br><span style="font-size:11px;color:var(--muted)">quy định chi tiết nhất — có file format riêng</span></td>
+      <td>Từ <b>BA</b> — bộ common: <code>common-rules.md</code> (COMMON-xxx), <code>business-processes.md</code> (BP-xxx + mermaid flow/state), <code>usecase-list.md</code> (index UC), <code>requirement-traceability.md</code> (BR-/RULE-), <code>project-context_*_v&lt;N&gt;.md</code>, QA Answers <b>.csv</b> (QA-xxx) · bộ per-UC: spec <code>&lt;UC-ID&gt;.md</code> (6 section chuẩn: description, screen + element table, validation summary, cross-refs, open questions, changelog) + screen asset <b>.png</b></td>
+      <td><b>①</b> <code>references/input-files-format.md</code> — hiểu cấu trúc trước khi đọc → <b>②</b> <code>project-context-master</code> → <b>③</b> <code>qc-site-map</code> → <b>④</b> <code>requirement-common-files</code> — đọc TRƯỚC spec để resolve mọi mã COMMON/BR/RULE/QA về nguyên văn rồi inline vào audit → <b>⑤</b> <code>requirement-files</code> (spec per-UC + PNG). Luôn lấy <b>version cao nhất</b>; có <code>project-context_*</code> mới nhất thì đó là bản tóm tắt có thẩm quyền — chỉ mở common-rules / traceability khi thiếu mã</td>
+    </tr>
+    <tr>
+      <td><code>qc-api-tc-design</code></td>
+      <td>Từ <b>BE/BA</b>: API doc <code>api-doc-files</code> — Swagger / OpenAPI / Postman collection (<b>JSON</b>) · <code>requirement-common-files</code> để trích nguyên văn error code / message</td>
+      <td>KHÔNG đọc raw doc trực tiếp: chạy <code>parse-api-doc-script</code> REBUILD <code>api-doc-digest</code> mỗi lần chạy (cấm dùng digest cũ). Thiếu doc → STOP (gate M2). Lưu ý: <code>qc-api-read</code> đứng trước cố tình KHÔNG đọc API doc — chỉ làm việc trên audited UC</td>
+    </tr>
+    <tr>
+      <td><code>qc-func-auto-generate</code><br><code>qc-api-auto-generate</code></td>
+      <td>Từ <b>DEV</b>: hệ thống đang chạy (crawl DOM lấy locator) / API non-prod (probe) — input "sống", không phải tài liệu</td>
+      <td>Chỉ crawl / probe trên môi trường test; bất khớp so với TC md → ghi findings chờ DEV/user trả lời, không bịa selector / endpoint</td>
+    </tr>
+    <tr>
+      <td><code>qc-bug-verify</code></td>
+      <td>Từ <b>DEV</b>: cột "Trạng thái" trong bug-report do DEV cập nhật</td>
+      <td>Chỉ đọc trạng thái DEV set, không tự suy bug đã fix; đọc kèm root cause để scope regression</td>
+    </tr>
+  </table>
+  <p style="font-size:11.5px;color:var(--muted);margin-top:8px">💡 Bàn giao cho BA: nếu tài liệu BA chưa theo cấu trúc <code>docs/BA/</code> ở trên (vd đang là docx/pdf rời), cần chuẩn hoá về md theo <code>input-files-format.md</code> trước khi chạy kit — các mã tham chiếu (COMMON / BR / RULE / QA / SC) chính là thứ kit dựa vào để trace và audit; thiếu mã là audit rơi điểm và sinh câu hỏi thừa.</p>
+</div>
+
+<!-- ============ 3. ANATOMY + UPDATE ============ -->
+<h2><span class="num">3</span> Cấu trúc 1 skill &amp; những gì cần update khi áp vào dự án mới</h2>
+<p class="h2sub">Nguyên tắc bàn giao: <b>cấu hình nằm ở 2 file meta-config, không nằm trong skill</b>. Người tiếp quản chỉ cần chạy lại onboarding — không sửa ruột kit.</p>
+
+<div class="grid2">
+  <div class="card anatomy">
+    <b style="font-size:13.5px">🧩 Giải phẫu một skill <code>.claude/skills/qc-*/</code></b>
+    <ul>
+      <li><code>SKILL.md</code> — hợp đồng: trigger, Input Contract (logical name), Output + versioning, workflow, boundary (được/không được làm gì)</li>
+      <li><code>workflows/</code> — quy trình từng bước mà skill tuân theo</li>
+      <li><code>templates/</code> — khuôn output (report, TC, backlog, bug…) → output đồng nhất giữa mọi QC</li>
+      <li><code>references/</code> — luật &amp; policy: kỹ thuật design TC, <code>expected-and-verify-policy.md</code> (§7 Question Gate, §8 Dedup Gate), taxonomy root-cause…</li>
+      <li><code>process-logging/</code>, <code>state/</code> — tự ghi log tiến trình &amp; trạng thái phục vụ dashboard, work-log</li>
+    </ul>
+  </div>
+
+  <div class="card upd">
+    <b style="font-size:13.5px">🔧 Checklist update theo dự án (qua <code>/qc-project-onboarding</code>)</b>
+    <ul>
+      <li><span class="ok">✔ CẬP NHẬT</span> <code>docs/qc-lead/project-config.md</code> — 7 mục: overview<b>*</b>, links, environments, accounts test, 3rd-party, <b>phạm vi test + variant*</b> (Black-box / API / cả hai — chỉ được mở rộng), Auth API (bắt buộc nếu có API)</li>
+      <li><span class="ok">✔ CẬP NHẬT</span> <code>.claude/config/path-registry.md</code> — chỉ các dòng <b>nhóm A ("Nguồn: BA")</b>: High-level-files, requirement-common-files, api-doc-files…</li>
+      <li><span class="ok">✔ CẬP NHẬT</span> <code>.env</code> — <code>API_TOKEN_&lt;ROLE&gt;</code>, credentials môi trường test (không bao giờ prod)</li>
+      <li><span class="ok">✔ CẬP NHẬT</span> <code>.claude/config/api-shared/auth-strategy.md</code> — cơ chế login/token khi test API</li>
+      <li><span class="ok">✔ ĐƯỢC SỬA</span> phần convention QC-editable trong <code>helpers/</code> của project automation sinh ra</li>
+      <li><span class="no">✘ KHÔNG SỬA</span> logical name trong path-registry (skills/workflows đã tham chiếu) · dòng nhóm B (kit tự quản) · cột "Trạng thái" bug do DEV set · <code>api-baselines</code> ngoài field <code>confirmed</code></li>
+    </ul>
+  </div>
+</div>
+
+<div class="card" style="margin-top:14px">
+  <b style="font-size:13.5px">📝 Cập nhật template &amp; văn phong test case — sửa ở đâu, sửa 1 chỗ phải sửa kèm những gì</b>
+  <p style="font-size:12px;color:var(--muted);margin:4px 0 10px">Cả 2 nhánh UI &amp; API dùng CHUNG một bộ template + converter đặt trong <code>qc-func-tc-design/</code> (rule A2: cấm viết script mới). Sửa lệch bộ là gate Phase-2 (đối chiếu md ↔ xlsx) fail hàng loạt.</p>
+  <table>
+    <tr><th style="width:26%">Muốn thay đổi</th><th style="width:34%">Sửa ở file</th><th>⚠️ Phải cập nhật kèm (dặn agent làm đồng bộ)</th></tr>
+    <tr>
+      <td><b>Layout template xlsx</b><br><span style="font-size:11px;color:var(--muted)">thêm/bớt/đổi cột, đổi sheet</span></td>
+      <td><code>qc-func-tc-design/templates/Testcase_template.xlsx</code><br><span style="font-size:11px;color:var(--muted)">(sheet "Test cases", cột pin A=ID_TC · B=Title · C=Pre-conditions · D=Step · E=Expected · F=Priority)</span></td>
+      <td>• Script convert chung <code>scripts/md_to_xlsx.py</code> (mapping cột đang pin theo chữ cái A–F)<br>• Layout bảng md trong <code>rules/testcase-instruction-rules.md</code> Part B (md và xlsx phải cùng số cột)<br>• 2 workflow <code>convert-md-to-xlsx.md</code> (của func <b>và</b> api — bước verify đếm cột/dòng)<br>• Gold example <code>Testcase-refer-vi/en.md</code> nếu cấu trúc bảng đổi</td>
+    </tr>
+    <tr>
+      <td><b>Quy ước TC ID</b><br><span style="font-size:11px;color:var(--muted)">vd TC_001 → TC_AUTH_001</span></td>
+      <td><code>rules/testcase-instruction-rules.md</code> + <code>.claude/rules/naming-convention.md</code></td>
+      <td>• Regex đếm TC <code>^\| TC_\d+ \|</code> trong Phase-2 verification gate (<code>workflows/convert-md-to-xlsx.md</code>) — quên sửa là mọi check fail, trigger auto-recovery giả<br>• Regex TC-row trong <code>md_to_xlsx.py</code> (đang cover cả <code>TC_API_*</code>/<code>TC_MIX_*</code>)<br>• Spec title automation mang TC ID (qc-func/api-auto-generate) + execution-report map theo TC ID</td>
+    </tr>
+    <tr>
+      <td><b>Văn phong viết TC</b><br><span style="font-size:11px;color:var(--muted)">cách đặt title, pre-condition, step, expected</span></td>
+      <td><code>.claude/rules/qc-writting-rules.md</code> (luật văn phong, chống mã trần, bảng EN→VI, cổng tự kiểm — đọc BẮT BUỘC trước khi draft)<br>+ format trường C1–C6 trong <code>rules/testcase-instruction-rules.md</code></td>
+      <td>• Gold example <code>references/Testcase-refer-vi.md</code> / <code>-en.md</code> — agent căn theo mẫu này, đổi luật mà không đổi mẫu là output lệch<br>• Bảng động từ canonical <code>.claude/config/action-verbs.md</code> (alias "bấm/gõ/điền" bị cấm)<br>• Chọn ngôn ngữ output theo ngôn ngữ UC (VI→VI, EN→EN, không trộn)</td>
+    </tr>
+    <tr>
+      <td><b>Kỹ thuật design theo nền tảng</b><br><span style="font-size:11px;color:var(--muted)">web / mobile / desktop / API</span></td>
+      <td><code>references/design-technical/</code> (common, web, mobile, desktop) · nhánh API: <code>qc-api-tc-design/references/api-common-technical.md</code> + <code>rest-technical.md</code></td>
+      <td>• Khớp với Variant UI/API đã khai ở <code>project-config.md</code> Mục 6 — thêm variant mới (vd GraphQL) thì bổ sung file technical tương ứng<br>• Nhóm 4 loại TC GUI (khởi tạo / tương tác / ca chung / đối chiếu thiết kế) nằm ở Part B instruction-rules</td>
+    </tr>
+    <tr>
+      <td><b>Encoding / tiếng Việt</b></td>
+      <td>Part A <code>rules/testcase-instruction-rules.md</code> (A1–A3)</td>
+      <td>• KHÔNG thêm normalize/transliterate vào <code>md_to_xlsx.py</code>; script tự verify mojibake, exit ≠ 0 → không giao file<br>• Sau convert: spot-check ≥3 dòng non-ASCII</td>
+    </tr>
+  </table>
+  <p style="font-size:11.5px;color:var(--muted);margin-top:8px">💡 Câu dặn agent mẫu khi đổi template: <i>"Cập nhật Testcase_template.xlsx theo layout mới, đồng thời cập nhật mapping cột trong <code>scripts/md_to_xlsx.py</code>, Part B của <code>rules/testcase-instruction-rules.md</code>, bước verify trong cả 2 workflow <code>convert-md-to-xlsx.md</code> (func + api) và gold example <code>Testcase-refer-*.md</code>; sau đó convert thử 1 UC, đối chiếu số dòng/cột và spot-check tiếng Việt."</i></p>
+</div>
+
+<!-- ============ 4. COMMUNICATION ============ -->
+<h2><span class="num">4</span> Cách trao đổi &amp; thảo luận với BA / DEV — kênh nào, khi nào, gate nào</h2>
+<table>
+  <tr><th style="width:14%">Với ai</th><th style="width:22%">Kênh (file sống)</th><th style="width:32%">Luồng trao đổi</th><th>Luật / gate phải nhớ</th></tr>
+  <tr>
+    <td><b style="color:var(--ba)">BA</b><br><span style="font-size:11px;color:var(--muted)">câu hỏi requirement</span></td>
+    <td>Question Backlog của <code>qc-qna</code><br>(sổ UI per-UC · sổ API portal)</td>
+    <td>Skill audit/design phát hiện gap → qc-qna ghi sổ → <b>BA trả lời trực tiếp trong sổ</b> → QC chạy re-audit (<code>/qc-uc-read</code> hoặc <code>/qc-api-read</code>) để hấp thụ câu trả lời → gate mở</td>
+    <td>• <b>Question Gate §7</b>: không hỏi BA code/message/schema — probe/baseline tự trả lời<br>• <b>Dedup Gate §8</b>: không hỏi trùng giữa 2 sổ<br>• Câu trả lời chưa re-audit = chưa có hiệu lực (kit tự cảnh báo lệch trạng thái)</td>
+  </tr>
+  <tr>
+    <td><b style="color:var(--ba)">BA</b><br><span style="font-size:11px;color:var(--muted)">xung đột API doc</span></td>
+    <td>Findings của <code>qc-api-tc-design</code> → qc-qna</td>
+    <td>UNDOCUMENTED_OPERATION / DOC_REQ_MISMATCH / ORPHAN_ENDPOINT → BA chốt → nếu đổi business logic thì re-audit <code>/qc-api-read</code>, không sửa lén</td>
+    <td>API doc là điều kiện gate M2 — thiếu là toàn nhánh API TC dừng</td>
+  </tr>
+  <tr>
+    <td><b style="color:var(--dev)">DEV</b><br><span style="font-size:11px;color:var(--muted)">bug</span></td>
+    <td><code>bug-report</code> (living doc)</td>
+    <td>QC bàn giao bug kèm root cause BE/FE/tích hợp + đối chứng UI↔API → <b>DEV fix rồi set cột Trạng thái</b> → QC duyệt kế hoạch → <code>/qc-bug-verify</code> đóng hoặc mở lại</td>
+    <td>• Chỉ defect thật mới thành bug — lỗi script/env/data để "Chưa chốt"<br>• Kit không bao giờ ghi đè Trạng thái do DEV set<br>• Verify bắt buộc có user approval</td>
+  </tr>
+  <tr>
+    <td><b style="color:var(--dev)">DEV</b><br><span style="font-size:11px;color:var(--muted)">automation blockers</span></td>
+    <td><code>crawl-findings</code> / <code>api-findings</code> · <code>api-baselines</code></td>
+    <td>Generate/run gặp bất khớp → ghi finding "Chờ trả lời" → DEV/user trả lời inline → "Đã giải quyết"; BE confirm baseline API qua field <code>confirmed</code></td>
+    <td>Gate M4: còn 1 finding chưa "Đã giải quyết" → không được ghi execution-report chính thức (và run phải MỚI hơn thời điểm resolve)</td>
+  </tr>
+  <tr>
+    <td><b>QC Lead</b><br><span style="font-size:11px;color:var(--muted)">điều phối nội bộ</span></td>
+    <td><code>qc-dashboard.md</code> · <code>agent-work-log.md</code></td>
+    <td>Dashboard per-UC (1 writer duy nhất: qc-dashboard-sync) cho mọi role xem tiến độ; work-log tổng hợp việc của từng máy QC</td>
+    <td>Scope In/Out do site-map handoff quyết định — dashboard không tự quyết business scope</td>
+  </tr>
+</table>
+
+<p style="margin-top:22px;font-size:12px;color:var(--muted)">Nguồn: 18 file <code>SKILL.md</code> + <code>rules/</code>, <code>references/</code>, <code>workflows/</code> trong <code>sotacare/.claude/skills/</code> — tổng hợp ngày 15/07/2026. Khi kit được nâng cấp (xem <code>_kit-update-*</code>), rà lại mục 2 (bảng input) và mục 3 trước tiên.</p>
+
+</div>
+</body>
+</html>

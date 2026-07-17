@@ -33,7 +33,7 @@ Parse the user's invocation to determine **what triggered this update**:
 | `MIXED` | More than one trigger applies in the same run, e.g. audited UC changed and user also asks to add `mobile-native`. | Produce one consolidated report covering both changed existing variants and newly added variants. Apply only approved actions. |
 
 **Variant expansion rule:** When the trigger type is `ADD_VARIANT`, the newly requested variant(s) may not have existing TC files yet. This is valid because those variants are being created for the first time. However, any existing variant that is also being updated in the same run MUST still have its current TC markdown file available as the update baseline.
-**Explicit user request rule:** if the user explicitly names a target variant (for example, "write mobile-native test cases too"), include that variant in scope even if it is not yet present in the current TC baseline. If it is absent from `project-context-master.md` → Product Platform Type, record this discrepancy in the report and proceed as a user-requested variant override unless the target variant is unsupported.
+**Explicit user request rule:** if the user explicitly names a target variant (for example, "write mobile-native test cases too"), include that variant in scope even if it is not yet present in the current TC baseline. If it is absent from `project-context-master.md` §3.0 (Variant kiểm thử), record this discrepancy in the report and proceed as a user-requested variant override unless the target variant is unsupported.
 
 If the trigger type is ambiguous, ask the user:
 > _"Bạn muốn cập nhật test cases vì: (A) Tài liệu đặc tả đã thay đổi và đã có audited version mới, (B) Tôi có feedback về test cases hiện tại, (C) Viết test cases cho Platform type khác, hay (D) Mix - có nhiều mục thay đổi"_
@@ -46,9 +46,10 @@ If the trigger type is ambiguous, ask the user:
 
 Read the following files before performing any analysis:
 
-- Current / baseline `func-test-cases-draft` `.md` file(s) to be updated.
-- Old audited UC file that was used to design the current TC version.
+- Current / baseline `func-test-cases-md` `.md` file(s) to be updated (highest existing version).
+- Old audited UC file that was used to design the current TC version (LEGACY_BASELINE — baseline không có prelude/Source UC → skip bước này, xử lý theo 1.3a(b)).
 - New audited UC file that should drive the update.
+  - **Verdict gate (same as `generate-test-cases.md` Step 1.1):** read the NEW audited UC's Verdict from its §10.3 `**Tổng điểm**` row (3rd column). Comparison is case-insensitive (`NOT READY`, `Not Ready`, `not ready` all trigger the gate). If the Verdict is `NOT READY` → STOP and ask whether to proceed (the updated test cases will inherit known gaps). Never silently continue.
 - `project-context-master.md`.
 - `.claude/skills/qc-func-tc-design/references/design-technical/common-technical.md`.
 - User feedback, if provided in the current prompt or earlier messages for this update run.
@@ -61,7 +62,7 @@ Read optional files if present:
 
 #### 1.3 Resolve Platform Variants (MANDATORY)
 
-1. Read `project-context-master.md` §1 → **Product Platform Type**.
+1. Read `project-context-master.md` §3.0 → **Variant kiểm thử** (UI variants) + **Project language**. §3.0 is the SOLE read source for scope/variant/language — never read `project-config` §6 directly.
 2. Parse the value(s). One or more of: `web-responsive`, `web-static`, `mobile-native`, `mobile-hybrid`, `desktop-native`.
 3. Parse user-requested target variant(s), if explicitly provided in the prompt.
 4. Cross-check the resolved project-context variants against the current TC file prelude(s) → `**Platform variant:**`.
@@ -69,14 +70,14 @@ Read optional files if present:
    - Existing variants that have current TC `.md` baselines and are impacted by audited delta or user feedback.
    - PLUS user-requested target variants that do not yet have current TC `.md` baselines (`ADD_VARIANT`).
    - PLUS variants newly added by the new audited UC / project context (`ADD_VARIANT`).
-6. If `Product Platform Type` is missing or blank:
-   - If the user explicitly requested a supported target variant, proceed only for that requested variant and record `Product Platform Type missing; using explicit user-requested variant override` in the report.
-   - Otherwise STOP and ask the user to populate it.
+6. If §3.0 is missing or the `Variant kiểm thử` field is blank:
+   - If the user explicitly requested a supported target variant, proceed only for that requested variant and record `Variant kiểm thử (project-context-master §3.0) missing; using explicit user-requested variant override` in the report.
+   - Otherwise STOP and ask the user to populate it (run `/qc-context-master` after `/qc-project-onboarding`).
 7. If a resolved variant has no current TC `.md` file:
    - If the variant is explicitly requested by the user OR newly added by the new audited UC / project context, mark that variant as `ADD_VARIANT`; it is valid for this variant to have no baseline TC file.
    - Otherwise STOP and ask the user to provide the missing current TC `.md` file.
 8. If the user requests an unsupported variant value, STOP and ask the user to choose one of: `web-responsive`, `web-static`, `mobile-native`, `mobile-hybrid`, `desktop-native`.
-9. For EACH applicable variant, load `qc-func-tc-design/references/design-technical/<variant>-technical.md` end-to-end. Hold common + variant rubrics in working memory.
+9. For EACH applicable variant, load the mapped design-technical file end-to-end, per the authoritative variant → file mapping table in `generate-test-cases.md` Step 1.2 (item 4): `web-responsive` / `web-static` → `references/design-technical/web-technical.md`; `mobile-native` / `mobile-hybrid` → `references/design-technical/mobile-technical.md`; `desktop-native` → `references/design-technical/desktop-technical.md`. Hold common + variant rubrics in working memory.
 10. Record the resolved variant list and the per-variant scope reason (`UPDATE_EXISTING` or `ADD_VARIANT`) as a working note.
 
 #### 1.3a Load UI Element Vocabulary from the audited report §4 (MANDATORY)
@@ -86,9 +87,12 @@ Apply the same element load as `generate-test-cases.md` → Step 1.3 (build `ele
 **Element drift detection (UPDATE-ONLY).** Compare the current audited §4 element inventory against the baseline audited version recorded in the baseline TC file's prelude (`Nguồn phần tử UI` block, or legacy `Vocabulary sources` block):
 
 - If the audited version is newer, diff §4 per screen: flag every existing TC that quotes an element whose name/label changed or was removed — treat these flagged TCs as touched by `REQUIREMENT_DELTA` (remap to the new name, or mark for deletion).
-- If the baseline TC file has no element-source block (legacy file), record a `LEGACY_BASELINE` note and re-verify all quoted element names against the current §4 during Step 2.x.
+- **`LEGACY_BASELINE` branch (complete handling):** if the baseline TC file has no element-source block — and in particular when it has NO prelude at all (legacy/simple md: no `**Platform variant:**` line, no `**Source UC:**` line, no RTM) — record a `LEGACY_BASELINE` note and handle the missing prelude as follows:
+  - (a) **Variant:** derive it from the `_<variant>_` segment of the baseline filename (per `rules/naming-convention.md`). If the filename has no variant segment either, STOP and ask the user which variant the baseline covers.
+  - (b) **Old audited version unknown:** without a `**Source UC:**` line, the old-vs-new requirement delta cannot be computed — treat ALL existing TCs as `REVIEW` scope in Step 2.3 (verify each one against the CURRENT audited report instead of diffing; verify-OK → treat as KEEP (không đưa vào Open Questions), chỉ TC lệch audited mới vào Open Questions), and re-verify all quoted element names against the current §4 during Step 2.x.
+  - (c) **Non-conforming headers:** do NOT preserve existing screen/GUI/FUNC section headers that do not conform to the Part B pattern (`## <Roman>. …` / `### <Roman>.1. …` / `### <Roman>.2. …` per `rules/testcase-instruction-rules.md` → "Sheet Layout & Section Headers") — normalize them to the Part B pattern when writing Step 6. Only conforming headers are preserved (see Step 6).
 
-Record the element-source snapshot — it is written into every updated variant's new prelude in Step 4 (per `generate-test-cases.md` Step 4 prelude shape).
+Record the element-source snapshot — it is written into every updated variant's new prelude in Step 6 (per `generate-test-cases.md` Step 4 prelude shape).
 
 #### 1.4 Identify update baseline
 
@@ -269,7 +273,7 @@ Chỉ dùng section này khi `Trigger type` là `ADD_VARIANT` hoặc `MIXED`.
 
 | Variant được yêu cầu | Nguồn yêu cầu | Đã có baseline TC hiện tại? | Technical rubric áp dụng | Output đề xuất | Ghi chú |
 |---|---|---|---|---|---|
-| `<variant>` | user prompt / project context / audited UC | Có / Không | `<variant>-technical.md` | Tạo mới full TC `.md` | ... |
+| `<variant>` | user prompt / project context / audited UC | Có / Không | `web-technical.md` / `mobile-technical.md` / `desktop-technical.md` (theo bảng mapping ở `generate-test-cases.md` Step 1.2) | Tạo mới full TC `.md` | ... |
 
 #### Tóm tắt ảnh hưởng theo Variant
 
@@ -417,8 +421,7 @@ Apply all rules in:
 - `.claude/rules/qc-writting-rules.md`
 - Language-matched test case reference: `Testcase-refer-vi.md` or `Testcase-refer-en.md`
 - `common-technical.md`
-- **Cổng tự kiểm `.claude/rules/qc-writting-rules.md` §5** — chạy trước Step 6: không mã trần, tiêu đề có trạng thái, thuật ngữ đổi sang tiếng Việt theo Bảng §3, đối tượng dùng `Element name` trong ngoặc kép.
-- **Cổng tự kiểm test case** (`rules/testcase-instruction-rules.md`): pre-condition mỗi điều kiện một dòng; không tham chiếu TC khác / trích đủ nguyên văn message; không mã trong nội dung TC (chỉ ở RTM); Priority trải đều P1–P5 (ca bàn phím/zoom/refresh/UI tĩnh để P4–P5).
+- **Cổng tự kiểm (chạy trước Step 6):** chạy Cổng tự kiểm §5 của `.claude/rules/qc-writting-rules.md` (BẮT BUỘC — sửa hết trước khi ghi file) + "Cổng tự kiểm test case" trong `rules/testcase-instruction-rules.md`.
 - Variant-specific technical rubric for V
 
 #### 5.2 Update the Requirement Traceability Matrix
@@ -426,6 +429,7 @@ Apply all rules in:
 For EACH variant V:
 
 - Rebuild the RTM against the new audited UC.
+- **`TS liên quan` column:** when a scenarios file exists (a scenarios file exists for the UC (same rule as the Step 6 delta; baseline có cột hay không đều remap lại)), PRESERVE the `TS liên quan` column — remap AC/TC ↔ `TS_[UC-ID]_NNN` against the latest scenarios version, and re-run the self-check: every TS has ≥ 1 linked TC, or the skip reason is recorded under the RTM table.
 - For `ADD_VARIANT`, build a brand-new RTM for the requested variant and independently cover 100% of audited ACs in scope for that variant.
 - Ensure every in-scope Acceptance Criterion has linked active TC IDs.
 - Removed ACs must not remain mapped to active TCs unless still valid through another AC.
@@ -434,97 +438,48 @@ For EACH variant V:
 
 #### 5.3: Persist Full updated TCs to Scratch (MANDATORY — atomic single Write)
 
-This step is the **safety net for Phase 2 auto-recovery**. It locks down the in-memory design before the final md write begins, so that if the final md write is interrupted (multi-part flow, network blip, context flush, etc.), Phase 2's verification gate can detect the mismatch and auto-recover from this scratch — WITHOUT having to re-run the 6-phase drafting.
+**Coverage audit cho prelude v[N+1] (BẮT BUỘC trước khi ghi):** chạy lại `generate-test-cases.md` Step 3.2 (Interaction Coverage Audit) + Step 3.3 (Element Coverage Audit) trên TẬP TC SAU UPDATE — kết quả điền vào khối `#### Coverage audit` của prelude ở Step 6.
 
-1. **Compose the full scratch content** in working memory, using the SAME content format as the final deliverable md described in Step 6:
-   - The complete required prelude (`# Test Cases — [UC-ID] …`, totals, source filenames, RTM table, etc.).
-   - All screen sections (`## <Roman>. …`) with their GUI (`### <Roman>.1. …`) and FUNC (`### <Roman>.2. …`) subsections and test case tables.
-   - The same heading-level rules as Step 6 (only `#` / `####` in the prelude, `##` for screens, `###` for GUI/FUNC).
-2. **Write to scratch path(s)** — ALWAYS per-variant (no special case for single-variant projects): for EACH platform variant V, write that variant's full scratch content to `.claude/skills/qc-func-tc-design/process-logging/<UC-ID>/02_designed_tcs_<V>.md` in **ONE atomic Write call** containing the ENTIRE content for that variant.
-   - For a single-variant project, this means writing ONE file with the project's only variant in its name (e.g., `02_designed_tcs_web-responsive.md`). The "bare" name `02_designed_tcs.md` (without variant suffix) is NEVER used — Phase 2 always probes by variant.
-   - For a multi-variant project, write N atomic Write calls, one per variant.
-   - Do NOT use Edit / multiple appends to build a scratch incrementally — if a scratch's own Write is interrupted, Phase 2 cannot recover that variant. If a single variant's volume exceeds a Write's practical limit, that is the signal to fail loudly and ask the user — multi-part scratch per variant is NOT supported.
-3. Do NOT delete or modify any scratch file later in this skill run — they are durable sources of truth for Phase 1 and are only removed in `SKILL.md` → Step D cleanup at end-of-run.
+Áp dụng `generate-test-cases.md` Step 3.5 (nguyên văn: safety net for Phase 2 auto-recovery — compose the ENTIRE per-variant content in working memory in the final-md format; ONE atomic Write per variant to `.claude/skills/qc-func-tc-design/process-logging/<UC-ID>/02_designed_tcs_<V>.md`, never the bare un-suffixed name, no Edit/append builds, oversized volume → fail loudly; never delete/modify scratches until `SKILL.md` → Step D cleanup) với các DELTA sau:
 
-After this step completes, the update work of Phase 1 is **durably persisted for every variant**. Step 6 below is a re-materialization of the same content at the deliverable path; if Step 6 is interrupted for any variant, that variant's scratch is still on disk for Phase 2 auto-recovery.
+- **Variant list:** the variants are the ones resolved in **Step 1.3** of THIS workflow (not generate Step 1.2).
+- **Step mapping:** every "Step 4" reference in the source text (final-md content format, heading-level rules, re-materialization target) maps to **Step 6** below.
+- **Content:** what is persisted is the **UPDATE work** of Phase 1 — the post-approval updated TC set, in the v[N+1] prelude shape defined in Step 6 — not a first-generation set.
 
 ### Step 6: Write the .md File(s) (MANDATORY)
 
-For EACH platform variant V resolved in Step 1.3, re-materialize that variant's scratch content (`02_designed_tcs_<V>.md` from Step 5.3) to the **deliverable path** defined in `path-registry.md` for `func-test-cases-draft`. Each variant produces its own deliverable file(s); within a variant, use a single file or multi-part files (`*_part1.md`, `*_part2.md`, …) depending on volume. Each file (single or per-part) is an atomic single Write.
+Áp dụng `generate-test-cases.md` Step 4 (nguyên văn: re-materialize each variant's scratch to the `func-test-cases-md` deliverable path — per-variant file(s), single or multi-part `_partN`, atomic single Writes; naming per `rules/naming-convention.md` with the variant ALWAYS in the name; the required prelude at the top incl. `#### Nguồn phần tử UI`, `#### Requirement Traceability Matrix` with the `TS liên quan` column rules, `#### Coverage audit`; heading-level rules — `#`/`####` prelude-only, `##` screens, `###` GUI/FUNC; do NOT write a separate summary file) với các DELTA sau:
 
-**Deliverable file naming:** Insert a `_<variant>` segment between the `testcases` type and the version, per `rules/naming-convention.md`. Example for UC-101 with both web-responsive and mobile-native:
-- `UC-101_user-login_testcases_web-responsive_v1.md`
-- `UC-101_user-login_testcases_mobile-native_v1.md`
+- **Step mapping:** variants come from **Step 1.3**; the scratch source is `02_designed_tcs_<V>.md` from **Step 5.3**.
+- **Versioning rule:** `UPDATE_EXISTING` variants → bump version to **`v[N+1]`** of the baseline, for BOTH the md and the Phase-2 xlsx (same base name; the update NEVER edits the old version in place). `ADD_VARIANT` variants → use `v1`. `<YYYYMMDD>` in the filename = the day this NEW version is created (e.g. `UC-101_user-login_testcases_web-responsive_20260716_v2.md`).
+- **Prelude deltas (vs the generate Step 4 prelude):**
+  - The title line carries the version: `# Test Cases — [UC-ID] [feature-name] [— <variant> if multi-platform] (v[N+1])`.
+  - Totals line: `**Total test cases:** Y (Delta vs v[N]: +A new, ~U updated, -D deleted)`. For `ADD_VARIANT` variants omit the `Delta vs v[N]` parenthesis and write just `**Total test cases:** Y`.
+  - Add an `**Update trigger:** [REQUIREMENT_DELTA / USER_FEEDBACK_ONLY / ADD_VARIANT / MIXED]` line below `**Platform variant:**`.
+  - The RTM `Status` column additionally uses the update markers `Covered [NEW]` / `Covered [UPDATE]` / `Removed`.
+  - `TS liên quan` column: kept whenever a scenarios file exists — preserved/remapped per **Step 5.2**; omit it only when the project has no scenarios file.
+  - `#### Nguồn phần tử UI` is filled from the element-source snapshot recorded in **Step 1.3a** (current audited filename + version + in-scope screens).
 
-For a single-variant project the same naming applies (just one variant in the name), e.g., `UC-101_user-login_testcases_web-responsive_v1.md`. The "no-variant" filename pattern is NOT used — every deliverable carries its variant in the name so Phase 2's per-variant flow can pair scratch ↔ final md unambiguously.
-
-**At the TOP of the md (or top of `part1` if multi-part), include the following required prelude:**
-**Versioning rule:**
-- `UPDATE_EXISTING` variants → bump version to `v[N+1]` of the baseline; keep the `Delta vs v[N]` line.
-- `ADD_VARIANT` variants → use `v1`; omit the `Delta vs v[N]` line and replace `Total test cases: Y (Delta ...)` with just `Total test cases: Y`.
-
-```markdown
-# Test Cases — [UC-ID] [feature-name] [— <variant> if multi-platform] (v[N+1])
-
-**Total test cases:** Y (Delta vs v[N]: +A new, ~U updated, -D deleted)
-**Platform variant:** [web-responsive / web-static / mobile-native / mobile-hybrid / desktop-native]
-**Update trigger:** [REQUIREMENT_DELTA / USER_FEEDBACK_ONLY / ADD_VARIANT / MIXED]
-**Source UC:** [audited filename + version]
-**Source scenarios (if any):** [scenarios filename + version]
-**Output language:** [VI / EN]
-
-#### Requirement Traceability Matrix
-
-| AC ID | Acceptance Criteria | Linked Test Cases | Status |
-|---|---|---|---|
-| AC-01 | …                   | TC_001, TC_002    | Covered |
-| …     | …                   | …                 | Covered [NEW] |
-| …     | …                   | …                 | Covered [UPDATE] |
-| …     | …                   | …                 | Removed |
-
----
-```
-
-**Heading-level rules (MANDATORY — they govern what does and does not appear in the xlsx):**
-- The prelude MUST use only `#` (h1) and `####` (h4) heading levels — these are skipped by the converter, so the prelude does NOT leak into the xlsx.
-- Use `##` (h2) ONLY for screen headers (e.g., `## I. Màn hình: …` / `## I. Screen: …`).
-- Use `###` (h3) ONLY for GUI / FUNC section headers (e.g., `### I.1. …` / `### I.2. …`).
-
-**Layout / Sorting / Encoding requirements (apply when (re)drafting the md — see `qc-func-tc-design/rules/testcase-instruction-rules.md` → "Sheet Layout & Section Headers"):**
-- Preserve the existing screen / GUI / FUNC section headers from the baseline TC file (for `UPDATE_EXISTING` variants).
+**Layout / Sorting / Encoding requirements (DELTA — update-specific; apply when (re)drafting the md — see `qc-func-tc-design/rules/testcase-instruction-rules.md` → "Sheet Layout & Section Headers"):**
+- Preserve the existing screen / GUI / FUNC section headers from the baseline TC file (for `UPDATE_EXISTING` variants) ONLY when they already conform to the Part B pattern (`## <Roman>. …` / `### <Roman>.1. …` / `### <Roman>.2. …`). Non-conforming headers (`LEGACY_BASELINE` — see Step 1.3a) are NOT preserved — normalize them to the Part B pattern here.
 - Place new TCs **inside the correct section block** for their screen and type — GUI new cases below the matching `<RomanNumeral>.1.` header, FUNC new cases below `<RomanNumeral>.2.`. Do NOT append at the end of the md.
 - When the new audited UC adds a new screen, insert a new screen header block (next Roman numeral with its `.1` / `.2` sub-headers) at the appropriate position.
-- Sorting within a section: GUI before Functional. Within GUI: Screen Initialization → Item Interactions → Common UI cases → UI elements verify. Within FUNC: Happy path → Validation → Error/Exception.
-- Encoding (Rules 0a–0d): UTF-8 md, preserve dấu, no `unicodedata.normalize` / `unidecode` / Latin-1.
+- Sorting within a section: GUI before Functional. Within GUI: Screen Initialization → Item Interactions → Common UI cases → Đối chiếu UI vs thiết kế. Within FUNC: Happy path → Validation → Error/Exception.
+- Encoding (`testcase-instruction-rules.md` Part A — A1–A3): UTF-8 md, preserve dấu, no `unicodedata.normalize` / `unidecode` / Latin-1.
 
-**Inline annotations on changed TCs in the body:**
+**Inline annotations on changed TCs in the body (DELTA — update-specific):**
 - `[NEW — AC-XX]` next to the title of newly added TCs.
 - `[UPDATED — Reason: AC-XX modified]` next to the title of modified TCs.
 - Do NOT include retired/deleted TCs in the md body — their removal is reflected in the Updated RTM (`Removed` status).
-
-**Do NOT write a separate summary file.** The md (with its prelude) is the only design artifact this workflow produces. Anything noteworthy beyond the prelude (e.g., out-of-scope items, requirement gaps observed during drafting) will be reported on chat by the orchestrator (`SKILL.md` → Step C).
 
 ---
 
 ### Checkpoint write — End of Phase 1
 
-Per `workflows/checkpoint-protocol.md` → "Verified-transition rule" (end-of-phase). At this point, two artifacts already exist on disk: the scratch `02_designed_tcs_<V>.md` (Step 5.3) and the final updated deliverable `.md` v[N+1] for variant `<V>` (Step 6). The remaining work is to publish the `## Phase 1 Summary` block to progress.md (so Phase 2 can verify the final md), then update worklog.
+Áp dụng `generate-test-cases.md` → "Checkpoint write — End of Phase 1" (nguyên văn: verified-transition rule per `workflows/checkpoint-protocol.md`; compute per-variant totals — Total + GUI/FUNC split, per-screen breakdown, output language, scratch path, final md path(s) — from each variant's final md, which equals its scratch at this moment; publish ONE consolidated `## Phase 1 Summary` block to `progress.md` per the checkpoint-protocol schema — `**Variants in scope:**` line + one `### Variant: <V>` sub-block per variant, atomic overwrite preserving all existing fields, do NOT touch `last_phase_done`, update `updated_at`; worklog → `status = "Phase 1 done"` + final `.md` path(s) appended to `output` excluding `process-logging/`; incl. the closing Note that `last_phase_done: 1` is only written at the START of Phase 2 after its Step 0 verification gate passes — see `convert-md-to-xlsx.md` → Step 0) với các DELTA sau:
 
-1. **Compute the Phase 1 summary** by counting TCs in the final v[N+1] md (which equals the scratch — both should match exactly at this moment):
-   - Total TCs (single integer) + GUI total + FUNC total (each on its own line in the summary, per `SKILL.md` §1 schema).
-   - **Delta vs v[N]**: `+<A> new, ~<U> updated, -<D> deleted` (counted from the inline annotations: `[NEW]` for new, `[UPDATED]` for modified; deleted count comes from RTM `Removed` rows). ASCII "Delta", not the Greek glyph.
-   - Per-screen breakdown: for each `## <Roman>.` screen, count TC rows in its `### <Roman>.1.` (GUI) and `### <Roman>.2.` (FUNC) tables.
-   - The output language detected in Phase 1.
-   - The platform variants being updated (`<V>`).
-   - The scratch path: absolute path to `02_designed_tcs_<V>.md`.
-   - The final v[N+1] md path(s) written in Step 6 (single file or multi-part list, absolute paths).
-2. **Append `## Phase 1 Summary` block to `progress.md`** using the exact schema from `SKILL.md` → §1 `progress.md` format. The block contains:
-   - A top-level **Variants in scope:** line listing all variants comma-separated.
-   - Exactly ONE `### Variant: <V>` sub-block per variant, populated from the fields computed above (totals, language, scratch path, final md paths, screen breakdown table, plus the `**Delta vs v[N]:**` line below the table).
-   - Atomic single Write that overwrites `progress.md` while preserving all existing fields (run_id, uc_id, workflow, started_at, last_phase_done, next_phase, updated_at, ## Notes). Do NOT touch `last_phase_done` here — it stays at its current value (set when Phase 1 started). Update `updated_at: <now>`.
-3. **Worklog**: rewrite last entry → `status = "Phase 1 done"`. Append the final v[N+1] `.md` path(s) to `output` (excluding `process-logging/`).
-
-> **Note:** `last_phase_done: 1` is NOT written here — it gets written at the START of Phase 2, only AFTER Phase 2's Step 0 verification gate passes. This is what guarantees a partial / mismatched updated md cannot be silently accepted as "Phase 1 done" on resume. See `convert-md-to-xlsx.md` → Step 0.
+- **Artifacts / step mapping:** the scratch `02_designed_tcs_<V>.md` comes from **Step 5.3**; the final deliverable counted and published is the updated **v[N+1]** md from **Step 6** (its path(s) go into the summary and into the worklog `output`).
+- **Delta line (additional per-variant summary field):** each `### Variant: <V>` sub-block ADDITIONALLY carries a `**Delta vs v[N]:**` line below the screen-breakdown table — `+<A> new, ~<U> updated, -<D> deleted`, counted from the inline annotations (`[NEW]` = new, `[UPDATED]` = modified) and the RTM `Removed` rows (= deleted). ASCII "Delta", not the Greek glyph.
 
 ---
 

@@ -89,16 +89,7 @@ For each relationship, record:
 - foreign key/link field;
 - QC note.
 
-Allowed cascade values:
-
-- `cascade-delete`
-- `cascade-soft-delete`
-- `set-null`
-- `set-default`
-- `block`
-- `archive-and-keep`
-- `custom`
-- `Need confirm`
+Allowed cascade values: per `references/qc-data-map-writing-guide.md` §5 (single home).
 
 When a relationship is derived weakly, mark it `Need confirm` instead of treating it as confirmed.
 
@@ -183,11 +174,7 @@ Then produce:
    - hotspot rating High / Medium / Low;
    - reason.
 
-Suggested hotspot rating:
-
-- High: >=4 entities touched, or U/D root entity with cascade >=2 children, or external sync.
-- Medium: 2–3 entities touched and at least one U/D.
-- Low: 1 entity or read-only.
+Suggested hotspot rating (High / Medium / Low): per `references/qc-data-map-writing-guide.md` §9 (single home).
 
 3. Map to test strategy:
    - integration test from lifecycle side-effects and external sync;

@@ -63,7 +63,7 @@ After impact analysis, the workflow writes `pending_update_report.md`, sends it 
 
 | Resuming at | Load |
 |---|---|
-| Phase 1 (fresh) | All inputs re-resolved from `path-registry.md`: UC review report, scenarios (optional), `common-technical.md`, per-variant `<variant>-technical.md`, language-matched `Testcase-refer-*.md`. Update: also baseline TC md, old + new audited UC, user feedback. |
+| Phase 1 (fresh) | All inputs re-resolved from `path-registry.md`: UC review report, scenarios (optional), `common-technical.md`, per-variant design-technical file (mapped per `generate-test-cases.md` Step 1.2 — web/mobile/desktop-technical.md), language-matched `Testcase-refer-*.md`. Update: also baseline TC md, old + new audited UC, user feedback. |
 | Phase 1 (partial — summary block exists) | Same as fresh, PLUS probe `02_designed_tcs_<variant>.md` per declared variant. Variant with scratch → re-materialize final md from scratch only; without → fresh drafting. Rewrite the summary block after all variants are on disk. |
 | Phase 1 (mid-approval, update only) | Same as fresh + the latest `pending_update_report.md`; re-enter pause state. |
 | Phase 2 | Per variant in the summary block: its final md (at recorded paths) + its scratch (required for auto-recovery). |

@@ -18,16 +18,25 @@ Per `.claude/config/checkpoint-protocol.md` §2 (worklog, write-before-work rule
 
 #### 1.1 Read all input files
 - `uc-review-report`
+- **Verdict gate:** If the audited Verdict is `NOT READY` → STOP and ask whether to proceed (test cases will inherit known gaps). Never silently continue. (Verdict location: the audited report's §10.3 `**Tổng điểm**` row, 3rd column. Comparison is case-insensitive — `NOT READY`, `Not Ready`, `not ready` all trigger the gate.)
 - (Optional) `func-test-scenarios`
 - Load `.claude/skills/qc-func-tc-design/references/design-technical/common-technical.md`
 
 #### 1.2 Resolve Platform Variants (MANDATORY)
 
-1. Read `project-context-master.md` §1 → **Product Platform Type**.
+1. Read `project-context-master.md` §3.0 → **Variant kiểm thử** (UI variants) + **Project language**. §3.0 is the SOLE read source for scope/variant/language — never read `project-config` §6 directly.
 2. Parse the value(s). One or more of: `web-responsive`, `web-static`, `mobile-native`, `mobile-hybrid`, `desktop-native`.
-3. **If the field is missing or blank → STOP and ask the user to populate it** (this field is mandatory; the rubric drives TC coverage).
-4. For EACH applicable variant, load `qc-func-tc-design/references/design-technical/<variant>-technical.md` end-to-end. Hold all loaded rubrics in working memory.
-5. Record the resolved variant list as a working note.
+3. **If §3.0 is missing or the variant field is blank → STOP and ask the user to populate it** (run `/qc-context-master` after `/qc-project-onboarding`; this field is mandatory — the rubric drives TC coverage).
+4. For EACH applicable variant, load the mapped design-technical file end-to-end (this table is the authoritative variant → file mapping):
+
+   | Variant (project-context-master §3.0) | File load |
+   |---|---|
+   | `web-responsive`, `web-static` | `references/design-technical/web-technical.md` |
+   | `mobile-native`, `mobile-hybrid` | `references/design-technical/mobile-technical.md` |
+   | `desktop-native` | `references/design-technical/desktop-technical.md` |
+
+   (`common-technical.md` is ALWAYS loaded in addition, per Step 1.1.) Hold all loaded rubrics in working memory.
+5. Record the resolved variant list + the Project language (drives output language per `rules/testcase-instruction-rules.md` §0) as a working note.
 
 #### 1.3 Load UI Element Vocabulary from the audited report §4 (MANDATORY)
 
@@ -62,7 +71,7 @@ They all contribute to the same in-memory TC list **per variant** that gets pers
 Apply all the rules in `qc-func-tc-design/rules/testcase-instruction-rules.md` and `.claude/rules/qc-writting-rules.md`.
 
 - **Test cases example**: read the language-matched reference — `qc-func-tc-design/references/Testcase-refer-vi.md` for Vietnamese test cases, `qc-func-tc-design/references/Testcase-refer-en.md` for English test cases — and align new TCs to the same structural & writing style (TC ID format, Title phrasing, Pre-condition / Step / Expected Result layout, multi-line bullet style).
-- **Cổng tự kiểm (BẮT BUỘC trước khi ghi md):** chạy checklist `.claude/rules/qc-writting-rules.md` §5 — tiêu đề có đủ **TRẠNG THÁI** (testcase-instruction-rules C1); không **mã trần** trong tiêu đề/bước/kết quả (R2); thuật ngữ kỹ thuật đổi sang tiếng Việt theo **Bảng §3**; đối tượng gọi bằng `Element name` trong ngoặc kép. **+ chạy "Cổng tự kiểm test case" trong `rules/testcase-instruction-rules.md`:** pre-condition mỗi điều kiện một dòng; không tham chiếu TC khác / trích đủ nguyên văn message; **không mã** (`CRULE-/AC-/BR-/R-/Q-/EF/SCR-/Vùng X`) trong nội dung TC (chỉ ở RTM); **Priority trải đều P1–P5**, ca bàn phím/zoom/refresh/UI tĩnh để P4–P5.
+- **Cổng tự kiểm (BẮT BUỘC trước khi ghi md):** chạy Cổng tự kiểm §5 của `.claude/rules/qc-writting-rules.md` (BẮT BUỘC — sửa hết trước khi ghi file) + "Cổng tự kiểm test case" trong `rules/testcase-instruction-rules.md`.
 
 ### Step 3: Build the Requirement Traceability Matrix + Vocabulary Coverage Audit
 
@@ -70,6 +79,7 @@ Apply all the rules in `qc-func-tc-design/rules/testcase-instruction-rules.md` a
 
 - Build the `Requirement Traceability Matrix` mapping every Acceptance Criterion of the audited UC to the drafted Test Case IDs.
 - Verify 100% coverage. If any AC has no linked TCs, fix the drafting in Step 2 before proceeding.
+- **When a `func-test-scenarios` file exists:** extend the RTM with a `TS liên quan` column — positioned between `Linked Test Cases` and `Status` — mapping each AC/TC row to its scenario ID(s) (`TS_[UC-ID]_NNN`). An AC that maps to no TS gets `—` in that cell. When NO scenarios file exists, the column is omitted entirely (do not render an empty column). Self-check: EVERY `TS_*` in the scenarios file has ≥ 1 linked TC, or the skip reason is recorded (in a line under the RTM table).
 - The RTM will be embedded in the md prelude (Step 4), not in a separate file.
 - **Multi-platform:** Build ONE RTM PER variant. Each variant's RTM lives in its own `.md` file's prelude. Each RTM must independently cover 100% of the audited ACs that are in scope for that variant.
 
@@ -92,13 +102,13 @@ If any row is uncovered, fix the drafting in Step 2 before proceeding. Record th
 
 ### Step 3.5: Persist Designed TCs to Scratch (MANDATORY — atomic single Write)
 
-This step is the **safety net for 2 auto-recovery**. It locks down the in-memory design before the final md write begins, so that if the final md write is interrupted (multi-part flow, network blip, context flush, etc.), Phase 2's verification gate can detect the mismatch and auto-recover from this scratch — WITHOUT having to re-run the 6-phase drafting.
+This step is the **safety net for Phase 2 auto-recovery**. It locks down the in-memory design before the final md write begins, so that if the final md write is interrupted (multi-part flow, network blip, context flush, etc.), Phase 2's verification gate can detect the mismatch and auto-recover from this scratch — WITHOUT having to re-run the 6-phase drafting.
 
 1. **Compose the full scratch content** in working memory, using the SAME content format as the final deliverable md described in Step 4:
    - The complete required prelude (`# Test Cases — [UC-ID] …`, totals, source filenames, RTM table, etc.).
    - All screen sections (`## <Roman>. …`) with their GUI (`### <Roman>.1. …`) and FUNC (`### <Roman>.2. …`) subsections and test case tables.
    - The same heading-level rules as Step 4 (only `#` / `####` in the prelude, `##` for screens, `###` for GUI/FUNC).
-2. **Write to scratch path(s)** — ALWAYS per-variant (no special case for single-variant projects): for EACH platform variant V resolved in Step 2.1, write that variant's full scratch content to `.claude/skills/qc-func-tc-design/process-logging/<UC-ID>/02_designed_tcs_<V>.md` in **ONE atomic Write call** containing the ENTIRE content for that variant.
+2. **Write to scratch path(s)** — ALWAYS per-variant (no special case for single-variant projects): for EACH platform variant V resolved in Step 1.2, write that variant's full scratch content to `.claude/skills/qc-func-tc-design/process-logging/<UC-ID>/02_designed_tcs_<V>.md` in **ONE atomic Write call** containing the ENTIRE content for that variant.
    - For a single-variant project, this means writing ONE file with the project's only variant in its name (e.g., `02_designed_tcs_web-responsive.md`). The "bare" name `02_designed_tcs.md` (without variant suffix) is NEVER used — Phase 2 always probes by variant.
    - For a multi-variant project, write N atomic Write calls, one per variant.
    - Do NOT use Edit / multiple appends to build a scratch incrementally — if a scratch's own Write is interrupted, Phase 2 cannot recover that variant. If a single variant's volume exceeds a Write's practical limit, that is the signal to fail loudly and ask the user — multi-part scratch per variant is NOT supported.
@@ -108,13 +118,13 @@ After this step completes, the design work of Phase 1 is **durably persisted for
 
 ### Step 4: Write the .md File(s) (MANDATORY)
 
-For EACH platform variant V resolved in Step 1.2, re-materialize that variant's scratch content (`02_designed_tcs_<V>.md` from Step 3.5) to the **deliverable path** defined in `path-registry.md` for `func-test-cases-draft`. Each variant produces its own deliverable file(s); within a variant, use a single file or multi-part files (`*_part1.md`, `*_part2.md`, …) depending on volume. Each file (single or per-part) is an atomic single Write.
+For EACH platform variant V resolved in Step 1.2, re-materialize that variant's scratch content (`02_designed_tcs_<V>.md` from Step 3.5) to the **deliverable path** defined in `path-registry.md` for `func-test-cases-md`. Each variant produces its own deliverable file(s); within a variant, use a single file or multi-part files (`*_part1.md`, `*_part2.md`, …) depending on volume. Each file (single or per-part) is an atomic single Write.
 
-**Deliverable file naming:** Insert a `_<variant>` segment between the `testcases` type and the version, per `rules/naming-convention.md`. Example for UC-101 with both web-responsive and mobile-native:
-- `UC-101_user-login_testcases_web-responsive_v1.md`
-- `UC-101_user-login_testcases_mobile-native_v1.md`
+**Deliverable file naming (per `rules/naming-convention.md`):** `<UC-ID>_<feature>_testcases_<variant>_<YYYYMMDD>_v<N>.md` — this md is the OFFICIAL deliverable (NOT a draft): versioned + immutable, and it shares the SAME base name with the Phase-2 xlsx (they differ only by extension). `<YYYYMMDD>` = the day this version is created; generate mode is normally `v1`. Multi-part files append `_partN` after `_v<N>` (the converter strips it). Example for UC-101 with both web-responsive and mobile-native:
+- `UC-101_user-login_testcases_web-responsive_20260716_v1.md`
+- `UC-101_user-login_testcases_mobile-native_20260716_v1.md`
 
-For a single-variant project the same naming applies (just one variant in the name), e.g., `UC-101_user-login_testcases_web-responsive_v1.md`. The "no-variant" filename pattern is NOT used — every deliverable carries its variant in the name so Phase 2's per-variant flow can pair scratch ↔ final md unambiguously.
+For a single-variant project the same naming applies (just one variant in the name). The "no-variant" filename pattern is NOT used — every deliverable carries its variant in the name so Phase 2's per-variant flow can pair scratch ↔ final md unambiguously.
 
 **At the TOP of the md (or top of `part1` if multi-part), include the following required prelude:**
 
@@ -137,10 +147,12 @@ For a single-variant project the same naming applies (just one variant in the na
 
 #### Requirement Traceability Matrix
 
-| AC ID | Acceptance Criteria | Linked Test Cases | Status |
-|---|---|---|---|
-| AC-01 | …                   | TC_001, TC_002    | Covered |
-| …     | …                   | …                 | …       |
+| AC ID | Acceptance Criteria | Linked Test Cases | TS liên quan | Status |
+|---|---|---|---|---|
+| AC-01 | …                   | TC_001, TC_002    | TS_UC-101_001 | Covered |
+| …     | …                   | …                 | …             | …       |
+
+(The `TS liên quan` column sits between `Linked Test Cases` and `Status`, and is present ONLY when a scenarios file exists — omit the column entirely otherwise. It maps AC/TC ↔ `TS_[UC-ID]_NNN` per Step 3.1; an AC that maps to no TS gets `—` in that cell. Self-check: every TS has ≥ 1 linked TC, or the skip reason is recorded in a line under the table.)
 
 #### Coverage audit
 
@@ -173,7 +185,7 @@ Per `workflows/checkpoint-protocol.md` → "Verified-transition rule" (end-of-ph
    - The output language detected in Phase 1.
    - The scratch path: absolute path to `02_designed_tcs_<V>.md`.
    - The final md path(s) for V written in Step 4 (single file or multi-part list, all absolute paths).
-2. **Append a SINGLE `## Phase 1 Summary` block to `progress.md`** using the exact schema from `SKILL.md` → §1 `progress.md` format. The block contains:
+2. **Append a SINGLE `## Phase 1 Summary` block to `progress.md`** using the exact schema from `workflows/checkpoint-protocol.md` (`## Phase 1 Summary` block schema). The block contains:
    - A top-level `**Variants in scope:**` line listing all variants comma-separated.
    - ONE `### Variant: <V>` sub-block per variant, in the same order. Each sub-block has the per-variant fields computed above (totals, language, scratch path, final md paths, screen breakdown table).
    - This is an atomic single Write that overwrites `progress.md` while preserving all existing fields (run_id, uc_id, workflow, started_at, last_phase_done, next_phase, updated_at, ## Notes). Do NOT touch `last_phase_done` here — it stays at its current value (set when Phase 1 started). Update `updated_at: <now>`.

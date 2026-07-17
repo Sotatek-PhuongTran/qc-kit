@@ -37,7 +37,7 @@ description: <see below>
 ## Language
 
 - SKILL.md, workflows, references: English.
-- All user-facing chat messages and generated outputs: Vietnamese, per `.claude/rules/qc-writting-rules.md`.
+- All user-facing chat messages: Vietnamese. Generated output files: per the two-group language law in `.claude/rules/qc-writting-rules.md` (internal review docs = Vietnamese; official project deliverables = project language, VI/EN only).
 - Output files follow `.claude/rules/naming-convention.md` + header (title, date, author, version).
 
 ## Cross-skill communication

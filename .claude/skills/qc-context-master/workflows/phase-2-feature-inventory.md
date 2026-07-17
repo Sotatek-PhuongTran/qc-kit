@@ -28,7 +28,7 @@ Extract feature candidates in this order:
 | `Module` | Use source module/business area. If unknown, use `TBD`. |
 | `Feature/Use case name` | Short name from source title, heading, file name, or folder name. |
 | `In scope?` | `Yes` if explicitly current; `Need confirm` if unclear. |
-| `Source type` | `official high-level`, `derived from requirement-common-files`, or `existing dashboard`. |
+| `Source type` | `official high-level` or `derived from requirement-common-files`. |
 | `Notes` | Include confirmation needs, missing IDs, or source ambiguity. |
 
 ## Update mode delta rules

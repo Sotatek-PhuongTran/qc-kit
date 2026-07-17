@@ -8,7 +8,7 @@
 
 ### Purpose
 
-Convert the finalized test case markdown into the project's standard `.xlsx` artifact, using the shared converter script. This workflow performs format translation only — no test case content is added, removed, or rewritten here. Encoding and layout requirements are governed by `qc-func-tc-design/rules/testcase-instruction-rules.md` (Rules 0a–0d, "Sheet Layout & Section Headers").
+Convert the finalized test case markdown into the project's standard `.xlsx` artifact, using the shared converter script. This workflow performs format translation only — no test case content is added, removed, or rewritten here. Encoding and layout requirements are governed by `qc-func-tc-design/rules/testcase-instruction-rules.md` (Part A — Encoding, items A1–A3; Part B — "Sheet Layout & Section Headers").
 
 ---
 
@@ -22,7 +22,7 @@ Phase 2 is **per-variant**. It executes in two passes:
 
 **Pass B — Convert (Step 1 → Step 4):** for EACH variant, locate that variant's md → verify prerequisites → run converter → self-verify the produced xlsx. After ALL variants complete Pass B successfully → advance `last_phase_done` to `2` and update worklog/dashboard with all xlsx paths.
 
-For single-variant projects, both loops run exactly once. For update workflow runs, both loops also run exactly once (update is always single-variant per run).
+For single-variant projects, both loops run exactly once. Update workflow runs follow the same per-variant rule — update may process multiple variants in one run (see `update-test-cases.md` Step 1.3 update scope), so both loops run once per variant in scope.
 
 ### Step 0: Phase 1 Verification Gate + Auto-recovery (MANDATORY — runs BEFORE any other Phase 2 work)
 
@@ -100,8 +100,8 @@ For EACH variant Vᵢ in the Variants-in-scope list, perform Step 1 → Step 4 i
 ### Step 2: Verify Conversion Prerequisites (per variant)
 
 For Vᵢ, confirm:
-- The md file(s) follow the encoding rules in `qc-func-tc-design/rules/testcase-instruction-rules.md` (Rules 0a–0d): UTF-8, preserved Vietnamese diacritics for VI projects, no transliteration applied.
-- The md file(s) follow the layout rules ("Sheet Layout & Section Headers"): correct `## <Roman>. …` screen headers and `### <Roman>.1. … / <Roman>.2. …` GUI / FUNC section headers; column hierarchy intact.
+- The md file(s) follow the encoding rules in `qc-func-tc-design/rules/testcase-instruction-rules.md` (Part A — Encoding, A1–A3): UTF-8, preserved Vietnamese diacritics for VI projects, no transliteration applied.
+- The md file(s) follow the layout rules (Part B — "Sheet Layout & Section Headers"): correct `## <Roman>. …` screen headers and `### <Roman>.1. … / <Roman>.2. …` GUI / FUNC section headers; column hierarchy intact.
 - The in-md prelude (summary header + RTM at the top of the md) uses only `#` (h1) and `####` (h4) headings — the converter skips these, so they will NOT leak into the xlsx. If a prelude heading uses `##` or `###`, FIX the md before running the script.
 - The template at `qc-func-tc-design/templates/Testcase_template.xlsx` has not changed since the script was last updated. If it has changed, update the script before running.
 
@@ -124,18 +124,18 @@ pip install -r .claude/skills/qc-func-tc-design/scripts/requirements.txt
 
 The script handles the following automatically — do NOT re-implement in your own openpyxl code:
 - Reads `qc-func-tc-design/templates/Testcase_template.xlsx` and writes into the **single** `Test cases` sheet (column headers in row 1 are kept; do NOT rename the sheet, do NOT add columns).
-- Auto-versioning: scans the test case folder for any existing `*_v{N}.xlsx` whose name contains the UC id, picks the next version. Refuses to overwrite. Per-variant outputs differ by their `_<variant>_` filename segment, so each variant's xlsx is auto-versioned independently.
-- Merges multi-part draft files in `partN` order.
+- Same-base-name output (per `rules/naming-convention.md`): the xlsx base name = the source md base name (a trailing `_partN` is stripped), so the xlsx version ALWAYS matches the md version (`..._v<N>.md` → `..._v<N>.xlsx`) — never auto-bumped independently. Refuses to overwrite an existing file. `--output-name` remains available as an explicit override. (Legacy tolerance: an old unversioned `_draft`-style md name falls back to auto-picking the next version in the folder.)
+- Merges multi-part md files in `partN` order.
 - Skips `#` (h1) and `####+` (h4+) headings — the in-md prelude (summary header + RTM) does NOT leak into the xlsx.
 - Inserts header rows (text in column B only, other columns blank, NOT counted as test cases) for `## <Roman>. <screen-line>` and `### <Roman>.1. … / <Roman>.2. …`. The script keys off the `##` / `###` prefix only, so any language wording is accepted.
-- Strips inline annotations like `[NEW]`, `[UPDATED — …]` from titles before writing — the draft md keeps them, the xlsx does not.
+- Strips inline annotations like `[NEW]`, `[UPDATED — …]` from titles before writing — the source md keeps them, the xlsx does not.
 - Re-opens the saved file and verifies Vietnamese diacritics on sample cells; exits non-zero on mojibake (VI projects only — for EN projects this emits a harmless `WARN: No Vietnamese-diacritic sample found` and proceeds).
 
 ### Step 4: Self-Verification (per variant, MANDATORY)
 
-After the script exits for Vᵢ, open Vᵢ's produced `.xlsx` and spot-check at least 3 rows containing non-ASCII text. If any cell shows: ASCII-only Vietnamese (no dấu, VI projects only), `?` boxes, mojibake (e.g., `Ä\x90`, `Ã©`), or any character that doesn't match the source — STOP, debug the script, regenerate. Do NOT deliver a partially-stripped output. (See Rule 0d in `testcase-instruction-rules.md`.) Do NOT run cleanup until ALL variants' xlsx pass self-verification.
+After the script exits for Vᵢ, open Vᵢ's produced `.xlsx` and spot-check at least 3 rows containing non-ASCII text. If any cell shows: ASCII-only Vietnamese (no dấu, VI projects only), `?` boxes, mojibake (e.g., `Ä\x90`, `Ã©`), or any character that doesn't match the source — STOP, debug the script, regenerate. Do NOT deliver a partially-stripped output. (See Part A — A3 "Self-verify trước khi giao" in `testcase-instruction-rules.md`.) Do NOT run cleanup until ALL variants' xlsx pass self-verification.
 
-After Vᵢ's xlsx passes self-verification, move on to the next variant V_(i+1) and return to Step 1. After the last variant completes Step 4, proceed to "Checkpoint write — End of Phase 3" below.
+After Vᵢ's xlsx passes self-verification, move on to the next variant V_(i+1) and return to Step 1. After the last variant completes Step 4, proceed to "Checkpoint write — End of Phase 2" below.
 
 ### Checkpoint write — End of Phase 2
 

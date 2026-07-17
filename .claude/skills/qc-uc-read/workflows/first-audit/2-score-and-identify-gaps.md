@@ -28,11 +28,11 @@ Do not raise broad product, process, design-system, or architecture issues unles
 
 ## Status update — Start
 
-Per `workflows/checkpoint-protocol.md` section 2:
+Per `.claude/config/checkpoint-protocol.md` §2 (worklog):
 
 1. Worklog: rewrite last entry -> `status = "Running (Phase 2)"`.
 
-If this run resumes directly at Phase 2, first load `01_synthesis.md` into memory per `checkpoint-protocol.md` section 4 Resume load table
+If this run resumes directly at Phase 2, first load `01_synthesis.md` into memory per the Resume load table in `workflows/checkpoint-protocol.md` (this skill's delta).
 
 --- 
 
@@ -218,7 +218,7 @@ Do not duplicate readiness thresholds or auto-fail rules in this workflow.
 If `scoring-rubric.md` defines:
 
 - a total score model, use it;
-- a normalization formula, apply
+- a normalization formula, apply it; otherwise sum the raw area scores — the current rubric needs no normalization.
 
 ---
 

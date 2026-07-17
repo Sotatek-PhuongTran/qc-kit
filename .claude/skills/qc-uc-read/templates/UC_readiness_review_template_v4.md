@@ -17,7 +17,7 @@
 > Không được chỉnh sửa các đầu mục của template.
 > Khi viết file phải xoá bỏ các phần nội dung hướng dẫn.
 >
-> **Cách viết (BẮT BUỘC):** tuân theo `.claude/rules/qc-writting-rules.md` — không dùng mã trần trong câu cho người đọc (tên thường trước, mã trong ngoặc: `trang quên mật khẩu (SCR-ORGUSER-002)`); thuật ngữ kỹ thuật viết tiếng Việt theo Bảng quy đổi §3; mọi `Vùng X` phải kèm tên thường (`trạng thái mặc định (Vùng A)`). Chạy cổng tự kiểm §5 trước khi lưu.
+> **Cách viết (BẮT BUỘC):** tuân theo `.claude/rules/qc-writting-rules.md` (R1–R5 + Bảng quy đổi §3) và chạy Cổng tự kiểm §5 của file đó trước khi lưu.
 
 ---
 
@@ -251,6 +251,29 @@ Nguyên tắc viết câu hỏi:
 | Dependency | Loại | Ảnh hưởng | Owner | Trạng thái |
 |---|---|---|---|---|
 |  | UC / API / Common rule / Data / Integration / Environment / Other |  |  | Open / In Progress / Resolved |
+
+### 10.3 Audit Summary
+
+> Tóm tắt kết quả chấm điểm từ Phase 2 — ngắn gọn, không lặp lại toàn bộ Issue Register.
+
+#### Bảng điểm đánh giá
+
+| Nhóm đánh giá | Điểm | Trạng thái | Nhận xét ngắn |
+|---|---:|---|---|
+|  |  |  |  |
+| **Tổng điểm** | **<X/100>** | **<Verdict>** | **<Tóm tắt readiness 1 câu>** |
+
+#### Blocker cần xử lý
+
+[Chỉ liệt kê blocker. Nếu không có: `Không có blocker được ghi nhận.`]
+
+#### Vấn đề lớn cần xử lý
+
+[Chỉ liệt kê major issue. Nếu không có: `Không có major issue được ghi nhận.`]
+
+#### Khuyến nghị
+
+[Một đoạn ngắn dựa trên verdict và tình trạng blocker/major issue.]
 
 ---
 

@@ -14,7 +14,7 @@ Per `.claude/config/checkpoint-protocol.md` §2 (worklog):
 
 1. **Worklog**: rewrite last entry → `status = "Running (Phase 3)"`.
 
-If this run is a **resume from Phase 3**: first load `01_synthesis.md` and `02_scoring.md` into memory per `checkpoint-protocol.md` §4 Resume load table.
+If this run is a **resume from Phase 3**: first load `01_synthesis.md` and `02_scoring.md` into memory per the Resume load table in `workflows/checkpoint-protocol.md` (this skill's delta).
 
 ---
 
@@ -36,7 +36,7 @@ Use checkpoint outputs as follows:
 | `01_synthesis.md` | Fill the business understanding content in `UC_readiness_review_template_v4.md`.                                                   |
 | `02_scoring.md`   | Fill readiness conclusion, scoring result, Section 10 issues/questions, Audit Summary, blockers, major issues, and recommendation. |
 
-If one of there files are missing, stop and warning user.
+If any of these files is missing, stop and warn the user.
 
 ---
 
@@ -44,22 +44,19 @@ If one of there files are missing, stop and warning user.
 
 The report is based on the **UC Readiness Review Template** at `.claude/skills/qc-uc-read/templates/UC_readiness_review_template_v4.md`. Open the template file, fill every section based on what was found (or not found) in the provided artefacts.
 
-**Section mapping (knowledge area → template section):**
+**Template section mapping** (the 5 scoring areas per `references/scoring-rubric.md` §6 + non-scored sections):
 
-| KA # | Knowledge Area                          | Template Section |
-| ---- | --------------------------------------- | ---------------- |
-| 1    | Feature Identity                        | Section 0        |
-| 2    | Objective & Scope                       | Section 1        |
-| 3    | Actors & User Roles                     | Section 2        |
-| 4    | Preconditions & Postconditions          | Section 3        |
-| 5    | UI Object Inventory & Mapping           | Section 4        |
-| 6    | Object Attributes & Behavior Definition | Section 5        |
-| 7    | Functional Logic & Workflow Decomposition | Section 6      |
-| 8    | Functional Integration Analysis         | Section 7        |
-| 9    | Acceptance Criteria                     | Section 8        |
-| 10   | Non-functional Requirements             | Section 9        |
+| # | Scoring Area (`scoring-rubric.md`)                              | Template Section |
+| - | ---------------------------------------------------------------- | ---------------- |
+| 1 | UI Object Inventory & Source Mapping (§F.1)                       | Section 4        |
+| 2 | Object Attributes, Behavior, Rules, Validations & Messages (§F.2) | Section 5        |
+| 3 | Functional Logic & Workflow Decomposition (§F.3)                  | Section 6        |
+| 4 | Functional Integration & Data Consistency (§F.4)                  | Section 7        |
+| 5 | UC Documentation Quality Issues                                   | Section 10       |
 
-**Section 8 — Acceptance Criteria:** Based on the AC synthesis performed in Phase 1 Step 2 (item 5), populate Section 8 of the template with concrete Given/When/Then acceptance criteria derived from the analyzed workflows, business rules, and UI behaviors. Even if the source document lacks explicit AC, the agent MUST generate them from the synthesized understanding. Score this section based on the source document's AC, but always provide generated AC in the output.
+Non-scored template sections are filled from the Phase 1 synthesis (`01_synthesis.md` §A/§B): Feature Brief (plain-language business summary of the UC), Section 0 (document info), Section 1 (objective & scope), Section 2 (actors & roles), Section 3 (pre/postconditions), Section 8 (AC candidates from §F.5 — not scored, per rubric §2), Section 9 (NFR from source; if absent, state it is missing), Section 11 (Change log — add the `v[N]` entry for this report).
+
+**Section 8 — Acceptance Criteria:** Based on the AC synthesis performed in Phase 1 Step 2 (item 5), populate Section 8 of the template with concrete Given/When/Then acceptance criteria derived from the analyzed workflows, business rules, and UI behaviors. Even if the source document lacks explicit AC, the agent MUST generate them from the synthesized understanding and always provide the generated AC in the output (AC candidates are NOT scored — rubric §2).
 
 **Section 10. Gap, mâu thuẫn và câu hỏi mở:** Use the Issue Register and AC Candidate Review from `02_scoring.md` to fill this section.
 
@@ -86,9 +83,7 @@ Use Section 10.2 for dependencies from Phase 2, including blocked artefacts, una
 
 ## Step 3: Add the Audit Summary under Section 10
 
-Add the audit summary **inside Section 10**, after Section 10.1 and Section 10.2.
-
-Use this heading:
+Fill the audit summary **inside Section 10**, after Section 10.1 and Section 10.2, under the template's existing heading (the `### 10.3 Audit Summary` skeleton is already part of `UC_readiness_review_template_v4.md` — fill it, do not add a new heading):
 
 ```md
 ### 10.3 Audit Summary
@@ -131,17 +126,13 @@ Rules:
 
 ---
 
-## Step 2.9 — Cổng tự kiểm văn phong (BẮT BUỘC)
+## Step 4 — Cổng tự kiểm văn phong (BẮT BUỘC)
 
-Trước khi ghi file, chạy cổng tự kiểm `.claude/rules/qc-writting-rules.md` §5 trên TOÀN báo cáo và sửa hết:
-- Không còn **mã trần** trong câu cho người đọc — tên thường trước, mã trong ngoặc (R2: `trang quên mật khẩu (SCR-ORGUSER-002)`, không `SCR-ORGUSER-002`).
-- Mọi **`Vùng X`** đều kèm tên thường (R4: `trạng thái mặc định (Vùng A)`).
-- Không còn **từ tiếng Anh** ngoài nhãn/message hệ thống → đổi theo **Bảng quy đổi §3** (Loading→đang xử lý, inline error→lỗi tại chỗ, audit log→nhật ký kiểm toán...).
-- Câu **tự chứa** (R1) và **giữ dấu** tiếng Việt (R5); nhãn/nội dung hệ thống đặt trong ngoặc kép, verbatim.
+Trước khi ghi file, chạy **Cổng tự kiểm §5 của `.claude/rules/qc-writting-rules.md`** trên TOÀN báo cáo và sửa hết trước khi lưu (BẮT BUỘC — checklist đầy đủ nằm ở đó, không chép lại tại đây).
 
 ---
 
-## Step 3: Write the Output File
+## Step 5: Write the Output File
 
 Resolve the output path via `path-registry.md` → `uc-review-report` logical name.
 
@@ -156,7 +147,7 @@ Write the completed report to the resolved path.
 
 ---
 
-## Step 4: Transfer Open Questions to Question Backlog (auto-trigger `qc-qna`)
+## Step 6: Transfer Open Questions to Question Backlog (auto-trigger `qc-qna`)
 
 After the `uc-review-report v[N].md` is written successfully, **invoke the `qc-qna` skill via the Skill tool** to transfer all `Open` rows from the report's `### 10.1 Bảng gap và câu hỏi cần xác nhận` table into the project's `question-backlog` file (so the BA can answer them).
 

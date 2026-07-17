@@ -90,7 +90,7 @@ For each relationship, capture:
 - Foreign key or linking field when available.
 - QC note for required cascade test.
 
-Allowed cascade values include:
+Allowed cascade values (single home — every other kit file points here):
 
 - `cascade-delete`
 - `cascade-soft-delete`
@@ -170,7 +170,7 @@ Use the matrix three ways:
 2. **Row/feature hotspot analysis**: Which feature touches many entities or performs risky Update/Delete/sync?
 3. **Regression derivation**: When entity or relationship changes, trace impacted UC rows and cascade-related child entities.
 
-Suggested hotspot rating:
+Suggested hotspot rating (single home — every other kit file points here):
 
 - High: at least 4 entities touched, or U/D on root entity with cascade to at least 2 children, or external sync.
 - Medium: 2-3 entities touched with at least one U/D.
